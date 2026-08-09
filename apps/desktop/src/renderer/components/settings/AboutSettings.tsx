@@ -378,7 +378,7 @@ export function AboutSettings() {
                 />
               </a>
               <a
-                href="mailto:legeling567@gmail.com"
+                href="mailto:yzhu.andrew@163.com"
                 className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group"
               >
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -388,8 +388,10 @@ export function AboutSettings() {
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium">legeling567@gmail.com</div>
-                  <div className="text-xs text-muted-foreground">Email</div>
+                  <div className="text-sm font-medium">yzhu.andrew@163.com</div>
+                  <div className="text-xs text-muted-foreground">
+                    {t("settings.forkMaintainerEmail", "Fork Maintainer Email")}
+                  </div>
                 </div>
               </a>
             </div>
