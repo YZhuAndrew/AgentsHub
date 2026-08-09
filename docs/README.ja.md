@@ -1,9 +1,11 @@
 <div align="center">
-  <img src="./imgs/icon.png" alt="PromptHub Logo" width="128" height="128" />
+  <img src="./imgs/icon.png" alt="AgentsHub Logo" width="128" height="128" />
 
-# PromptHub
+# AgentsHub
 
 プロンプト・Skill・AI コーディング資産のためのローカルファースト ワークスペース。
+
+> 🔖 本プロジェクトは [PromptHub](https://github.com/legeling/PromptHub)（AGPL-3.0）をフォークし、さらに拡張したものです。原作者 [legeling](https://github.com/legeling) のオープンソース貢献に感謝します。
 
   <br/>
 
@@ -39,7 +41,7 @@
 
 <br/>
 
-PromptHub はあなたのプロンプト、SKILL.md、プロジェクトレベルの AI コーディング資産を 1 つのローカルワークスペースにまとめます。同じ Skill を Claude Code、Cursor、Codex、Windsurf、Antigravity など十数のツールへワンクリックでインストールでき、プロンプトのバージョン履歴とマルチモデルテスト、WebDAV による別端末への同期、セルフホスト Web への完全スナップショット保存を備えています。
+AgentsHub はあなたのプロンプト、SKILL.md、プロジェクトレベルの AI コーディング資産を 1 つのローカルワークスペースにまとめます。同じ Skill を Claude Code、Cursor、Codex、Windsurf、Antigravity など十数のツールへワンクリックでインストールでき、プロンプトのバージョン履歴とマルチモデルテスト、WebDAV による別端末への同期、セルフホスト Web への完全スナップショット保存を備えています。
 
 データは既定であなたのマシンに置かれます。
 
@@ -97,7 +99,7 @@ macOS パッケージは Developer ID で署名され、Apple のノータリゼ
 初期の `0.5.9` プレビュー版やそれ以前の履歴ビルドは、署名とノータリゼーションが完了していない場合があります。これらの履歴ビルドを意図してダウンロードし、macOS が「壊れている」または「開発元を検証できません」と表示する場合は、次を実行してください:
 
 ```bash
-sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
+sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 ```
 
 その後、再度開いてください。別の場所にインストールしている場合はパスを置き換えてください。
@@ -201,7 +203,7 @@ sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
 - `.phub.gz` 圧縮形式でフルバックアップ / リストア
 - WebDAV 同期（Nextcloud などに対応）
 - WebDAV / S3 のライブ同期は選択した 1 つのソースだけを使用し、複数ライターの競合を防止
-- セルフホスト PromptHub Web は変更不可のスナップショットを独立保存。起動時と定期処理はアップロードのみで、ローカルデータを自動取得・上書きしない
+- セルフホスト AgentsHub Web は変更不可のスナップショットを独立保存。起動時と定期処理はアップロードのみで、ローカルデータを自動取得・上書きしない
 - バックアップには Desktop と Web の完全なバージョン一致が必要。復元は明示操作で、先にローカル安全スナップショットを作成
 
 ### 🔐 プライバシーとセキュリティ
@@ -219,17 +221,17 @@ sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
 
 2. **Skill を取り込む。** Skills タブを開き、ストアからいくつか選ぶか、「ローカルスキャン」でマシン上の既存 SKILL.md を取り込みます。
 
-3. **AI ツールにインストール。** Skill 詳細画面でターゲットプラットフォームを選択。PromptHub は SKILL.md をプラットフォーム所定のディレクトリに、symlink（ライブ編集）または独立コピーでインストールします。
+3. **AI ツールにインストール。** Skill 詳細画面でターゲットプラットフォームを選択。AgentsHub は SKILL.md をプラットフォーム所定のディレクトリに、symlink（ライブ編集）または独立コピーでインストールします。
 
-4. **同期またはバックアップ（任意）。**「設定 → データ」で WebDAV / S3 のライブ同期、またはセルフホスト PromptHub Web の独立復元スナップショットを設定できます。
+4. **同期またはバックアップ（任意）。**「設定 → データ」で WebDAV / S3 のライブ同期、またはセルフホスト AgentsHub Web の独立復元スナップショットを設定できます。
 
 <div id="self-hosted-web"></div>
 
 ## セルフホスト Web
 
-PromptHub Web は NAS、VPS、LAN マシン上で Docker により実行できる軽量なブラウザ向けコンパニオンです。マネージドクラウドサービスでは**ありません**。次のような用途に向きます:
+AgentsHub Web は NAS、VPS、LAN マシン上で Docker により実行できる軽量なブラウザ向けコンパニオンです。マネージドクラウドサービスでは**ありません**。次のような用途に向きます:
 
-- ブラウザから PromptHub のデータにアクセス
+- ブラウザから AgentsHub のデータにアクセス
 - Web のライブワークスペースを変更せず、デスクトップの復元スナップショットを保存
 - データを自分のネットワーク内に留める
 
@@ -247,7 +249,7 @@ docker compose up -d --build
 
 既定: `http://localhost:3871`。最初のアクセスは `/setup` に遷移、最初の登録ユーザーが管理者になります。
 
-デスクトップから接続:「設定 → データ → Self-Hosted PromptHub」。バージョンとバックアップ機能を確認し、リモートスナップショットの作成、最新スナップショットの明示復元、アップロード専用の起動時 / 定期バックアップを設定できます。自動処理はローカルデータを取得、マージ、置換しません。
+デスクトップから接続:「設定 → データ → Self-Hosted AgentsHub」。バージョンとバックアップ機能を確認し、リモートスナップショットの作成、最新スナップショットの明示復元、アップロード専用の起動時 / 定期バックアップを設定できます。自動処理はローカルデータを取得、マージ、置換しません。
 
 詳細なデプロイ / アップグレード / バックアップ / GHCR イメージ / 開発メモは [`web-self-hosted.md`](./web-self-hosted.md) に記載しています。
 
@@ -313,7 +315,7 @@ Skill のインポート、バージョンスナップショット、配布で�
 - `--summary` — 上限付きの要約を返す（デフォルト）
 - `--full` — 完全なリソース内容を返す
 - `--quiet` — 成功時の stdout を抑制し、エラーは stderr に残す
-- `--data-dir <path>` — PromptHub の `userData` ディレクトリを上書き
+- `--data-dir <path>` — AgentsHub の `userData` ディレクトリを上書き
 - `--app-data-dir <path>` — アプリケーションデータルートを上書き
 - `--version|-v` — CLI バージョンを表示
 
@@ -445,7 +447,7 @@ Skill のインポート、バージョンスナップショット、配布で�
 
 ### 検討中 / 計画中
 
-- [ ] ChatGPT / Claude のページ内で PromptHub を呼び出すブラウザ拡張
+- [ ] ChatGPT / Claude のページ内で AgentsHub を呼び出すブラウザ拡張
 - [ ] モバイルコンパニオン：閲覧、検索、軽量編集と同期
 - [ ] ローカルモデル（Ollama）やカスタム AI プロバイダ向けのプラグイン基盤
 - [ ] Prompt ストア：コミュニティで検証されたプロンプトの再利用
@@ -459,8 +461,8 @@ Skill のインポート、バージョンスナップショット、配布で�
 Node.js ≥ 24 と pnpm 9 が必要です。
 
 ```bash
-git clone https://github.com/legeling/PromptHub.git
-cd PromptHub
+git clone https://github.com/YZhuAndrew/AgentsHub.git
+cd AgentsHub
 pnpm install
 
 # デスクトップ開発
@@ -492,7 +494,7 @@ pnpm build:web
 ## リポジトリ構成
 
 ```text
-PromptHub/
+AgentsHub/
 ├── apps/
 │   ├── desktop/   # Electron デスクトップアプリ
 │   ├── cli/       # 独立 CLI（packages/core ベース）

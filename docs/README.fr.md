@@ -1,9 +1,11 @@
 <div align="center">
-  <img src="./imgs/icon.png" alt="PromptHub Logo" width="128" height="128" />
+  <img src="./imgs/icon.png" alt="AgentsHub Logo" width="128" height="128" />
 
-# PromptHub
+# AgentsHub
 
 Un espace de travail local-first pour les prompts, les skills et les assets de codage IA.
+
+> 🔖 Ce projet est un fork de [PromptHub](https://github.com/legeling/PromptHub) (AGPL-3.0), étendu par-dessus. Merci à l'auteur original [legeling](https://github.com/legeling) pour sa contribution open source.
 
   <br/>
 
@@ -39,7 +41,7 @@ Un espace de travail local-first pour les prompts, les skills et les assets de c
 
 <br/>
 
-PromptHub regroupe vos prompts, fichiers SKILL.md et assets de codage IA au niveau projet dans un espace de travail local. Il installe le même Skill dans Claude Code, Cursor, Codex, Windsurf, Antigravity et une douzaine d'autres outils, propose un historique de versions et des tests multi-modèles, synchronise via WebDAV et conserve des snapshots complets dans une instance Web auto-hébergée.
+AgentsHub regroupe vos prompts, fichiers SKILL.md et assets de codage IA au niveau projet dans un espace de travail local. Il installe le même Skill dans Claude Code, Cursor, Codex, Windsurf, Antigravity et une douzaine d'autres outils, propose un historique de versions et des tests multi-modèles, synchronise via WebDAV et conserve des snapshots complets dans une instance Web auto-hébergée.
 
 Vos données restent sur votre machine.
 
@@ -92,12 +94,12 @@ Pour les mises à jour : `brew upgrade --cask prompthub`. Ne mélangez pas Homeb
 
 ### Vérification de sécurité macOS
 
-Les paquets macOS sont signés avec Developer ID et notarisés par Apple. Installez PromptHub depuis GitHub Releases, le miroir officiel ou Homebrew. Si macOS ne peut toujours pas vérifier l'app, téléchargez à nouveau le DMG de la version actuelle puis réinstallez.
+Les paquets macOS sont signés avec Developer ID et notarisés par Apple. Installez AgentsHub depuis GitHub Releases, le miroir officiel ou Homebrew. Si macOS ne peut toujours pas vérifier l'app, téléchargez à nouveau le DMG de la version actuelle puis réinstallez.
 
-Les premières previews `0.5.9` et les anciens builds historiques peuvent ne pas être signés ni notarisés. Si vous avez volontairement téléchargé l'un de ces builds et que macOS indique que PromptHub est endommagé ou que le développeur ne peut pas être vérifié, exécutez :
+Les premières previews `0.5.9` et les anciens builds historiques peuvent ne pas être signés ni notarisés. Si vous avez volontairement téléchargé l'un de ces builds et que macOS indique que AgentsHub est endommagé ou que le développeur ne peut pas être vérifié, exécutez :
 
 ```bash
-sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
+sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 ```
 
 Puis rouvrez l'application. Adaptez le chemin si vous l'avez installée ailleurs.
@@ -108,7 +110,7 @@ Puis rouvrez l'application. Adaptez le chemin si vous l'avez installée ailleurs
 
 ### Canal Aperçu
 
-Vous voulez tester la prochaine version d'aperçu ? Ouvrez _Paramètres → À propos_ et activez le canal aperçu. L'application vérifiera alors les Prereleases GitHub. Désactivez-le pour revenir à la stable ; PromptHub ne fait pas de retour automatique d'une preview plus récente vers une stable plus ancienne.
+Vous voulez tester la prochaine version d'aperçu ? Ouvrez _Paramètres → À propos_ et activez le canal aperçu. L'application vérifiera alors les Prereleases GitHub. Désactivez-le pour revenir à la stable ; AgentsHub ne fait pas de retour automatique d'une preview plus récente vers une stable plus ancienne.
 
 <div id="screenshots"></div>
 
@@ -201,7 +203,7 @@ Vous voulez tester la prochaine version d'aperçu ? Ouvrez _Paramètres → À p
 - Sauvegarde / restauration complète au format compressé `.phub.gz`
 - Synchronisation WebDAV (Jianguoyun, Nextcloud, etc.)
 - La synchronisation active WebDAV / S3 utilise une seule source sélectionnée pour éviter les conflits multi-écriture
-- PromptHub Web auto-hébergé conserve séparément des snapshots immuables ; les tâches au lancement et planifiées envoient uniquement et ne récupèrent ni n'écrasent les données locales
+- AgentsHub Web auto-hébergé conserve séparément des snapshots immuables ; les tâches au lancement et planifiées envoient uniquement et ne récupèrent ni n'écrasent les données locales
 - Les versions Desktop et Web doivent correspondre exactement avant sauvegarde ; la restauration est explicite et crée d'abord un snapshot local de sécurité
 
 ### 🔐 Confidentialité et sécurité
@@ -219,17 +221,17 @@ Vous voulez tester la prochaine version d'aperçu ? Ouvrez _Paramètres → À p
 
 2. **Importez des Skills.** Ouvrez l'onglet Skills. Choisissez quelques skills depuis le store, ou cliquez sur _Scanner local_ pour récupérer les SKILL.md déjà présents sur votre machine.
 
-3. **Installez vers vos outils IA.** Depuis le détail d'un Skill, sélectionnez la plateforme cible. PromptHub installe le SKILL.md dans le dossier attendu par la plateforme, en symlink (édition partagée) ou en copie indépendante.
+3. **Installez vers vos outils IA.** Depuis le détail d'un Skill, sélectionnez la plateforme cible. AgentsHub installe le SKILL.md dans le dossier attendu par la plateforme, en symlink (édition partagée) ou en copie indépendante.
 
-4. **Synchronisation ou sauvegarde (optionnelle).** _Paramètres → Données_ configure WebDAV / S3 pour la sync active, ou PromptHub Web auto-hébergé pour des snapshots de récupération indépendants.
+4. **Synchronisation ou sauvegarde (optionnelle).** _Paramètres → Données_ configure WebDAV / S3 pour la sync active, ou AgentsHub Web auto-hébergé pour des snapshots de récupération indépendants.
 
 <div id="self-hosted-web"></div>
 
 ## Web auto-hébergé
 
-PromptHub Web est un compagnon léger orienté navigateur, à exécuter sur un NAS, un VPS ou une machine LAN avec Docker. Ce **n'est pas** un service cloud managé. Utilisez-le pour :
+AgentsHub Web est un compagnon léger orienté navigateur, à exécuter sur un NAS, un VPS ou une machine LAN avec Docker. Ce **n'est pas** un service cloud managé. Utilisez-le pour :
 
-- Accéder à vos données PromptHub depuis un navigateur
+- Accéder à vos données AgentsHub depuis un navigateur
 - Conserver des snapshots immuables du desktop sans modifier l'espace Web actif
 - Garder vos données dans votre propre réseau
 
@@ -247,7 +249,7 @@ Dans `.env`, à minima :
 
 Par défaut : `http://localhost:3871`. La première visite redirige vers `/setup` ; le premier utilisateur devient administrateur.
 
-Pour connecter le desktop : _Paramètres → Données → Self-Hosted PromptHub_. Vérifiez la version et la capacité de sauvegarde, créez un snapshot distant, restaurez explicitement le dernier snapshot ou activez les sauvegardes au lancement / planifiées en envoi uniquement. Les tâches automatiques ne récupèrent, ne fusionnent ni ne remplacent les données locales.
+Pour connecter le desktop : _Paramètres → Données → Self-Hosted AgentsHub_. Vérifiez la version et la capacité de sauvegarde, créez un snapshot distant, restaurez explicitement le dernier snapshot ou activez les sauvegardes au lancement / planifiées en envoi uniquement. Les tâches automatiques ne récupèrent, ne fusionnent ni ne remplacent les données locales.
 
 Détails de déploiement / mise à jour / sauvegarde / image GHCR / notes de dev dans [`web-self-hosted.md`](./web-self-hosted.md).
 
@@ -313,7 +315,7 @@ Options globales courantes :
 - `--summary` — renvoyer un résumé borné (par défaut)
 - `--full` — renvoyer le contenu complet de la ressource
 - `--quiet` — masquer stdout en cas de succès tout en conservant les erreurs stderr
-- `--data-dir <path>` — surcharger le dossier `userData` de PromptHub
+- `--data-dir <path>` — surcharger le dossier `userData` de AgentsHub
 - `--app-data-dir <path>` — surcharger la racine des données applicatives
 - `--version|-v` — afficher la version CLI
 
@@ -373,7 +375,7 @@ Journal complet : **[CHANGELOG.md](../CHANGELOG.md)**
 - Modèle unifié de configuration complète pour agents built-in et custom avec overrides directs de `root / skills / rules / agents / commands / config`
 - Nouveaux presets built-in `Cline` et `Trae CN`, avec rafraîchissement immédiat du workspace Rules quand la configuration agent change
 - Déploiement direct des Skills vers des dossiers d'agents locaux au projet, `.agents/skills` par défaut, avec sélection multi-cibles
-- Quand une installation symlink retombe en copy, PromptHub affiche désormais un warning explicite au lieu de ressembler à un succès normal
+- Quand une installation symlink retombe en copy, AgentsHub affiche désormais un warning explicite au lieu de ressembler à un succès normal
 - L'édition inline du détail Prompt ouvre désormais exactement le champ double-cliqué tout en restant plus proche de la mise en page normale
 
 ### v0.5.6 (2026-05-12)
@@ -445,7 +447,7 @@ Voir le journal ci-dessus.
 
 ### Pistes / planifié
 
-- [ ] Extension navigateur qui interroge PromptHub depuis ChatGPT / Claude
+- [ ] Extension navigateur qui interroge AgentsHub depuis ChatGPT / Claude
 - [ ] Compagnon mobile : visualisation, recherche, édition légère et synchronisation
 - [ ] Surface plugin pour modèles locaux (Ollama) et fournisseurs IA personnalisés
 - [ ] Prompt Store : réutilisation de prompts validés par la communauté
@@ -459,8 +461,8 @@ Voir le journal ci-dessus.
 Node.js ≥ 24 et pnpm 9 requis.
 
 ```bash
-git clone https://github.com/legeling/PromptHub.git
-cd PromptHub
+git clone https://github.com/YZhuAndrew/AgentsHub.git
+cd AgentsHub
 pnpm install
 
 # dev desktop
@@ -492,7 +494,7 @@ pnpm build:web
 ## Structure du dépôt
 
 ```text
-PromptHub/
+AgentsHub/
 ├── apps/
 │   ├── desktop/   # application desktop Electron
 │   ├── cli/       # CLI autonome (basée sur packages/core)

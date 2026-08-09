@@ -1,9 +1,11 @@
 <div align="center">
-  <img src="./imgs/icon.png" alt="PromptHub Logo" width="128" height="128" />
+  <img src="./imgs/icon.png" alt="AgentsHub Logo" width="128" height="128" />
 
-# PromptHub
+# AgentsHub
 
 本機優先的 Prompt、Skill 與 AI 編程資產工作台。
+
+> 🔖 本專案 fork 自 [PromptHub](https://github.com/legeling/PromptHub)（AGPL-3.0），並在此基礎上擴展。感謝原作者 [legeling](https://github.com/legeling) 的開源貢獻。
 
   <br/>
 
@@ -39,7 +41,7 @@
 
 <br/>
 
-PromptHub 把你的 Prompt、SKILL.md 和專案級 AI 編程資產放進一個本機工作區。它能把同一份 Skill 一鍵安裝到 Claude Code、Cursor、Codex、Windsurf、Antigravity 等十幾個工具，給 Prompt 提供版本管理與多模型測試，透過 WebDAV 同步到其他裝置，並把完整快照備份到自部署 Web。
+AgentsHub 把你的 Prompt、SKILL.md 和專案級 AI 編程資產放進一個本機工作區。它能把同一份 Skill 一鍵安裝到 Claude Code、Cursor、Codex、Windsurf、Antigravity 等十幾個工具，給 Prompt 提供版本管理與多模型測試，透過 WebDAV 同步到其他裝置，並把完整快照備份到自部署 Web。
 
 資料預設存在你自己的電腦上。
 
@@ -97,7 +99,7 @@ macOS 安裝包會使用 Developer ID 簽章並完成 Apple 公證。請優先�
 `0.5.9` 早期預覽包和更早的歷史包可能尚未完成簽章公證。如果你明確下載的是這些歷史版本，且 macOS 提示「已損壞」或「無法驗證開發者」，可以在終端機執行：
 
 ```bash
-sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
+sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 ```
 
 接著重新打開應用。如果應用安裝在其他位置，把路徑替換成實際安裝路徑。
@@ -201,7 +203,7 @@ sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
 - 全量備份 / 還原使用 `.phub.gz` 壓縮格式
 - WebDAV 同步（堅果雲、Nextcloud 等）
 - WebDAV / S3 線上同步只使用一個已選取來源，避免多來源衝突寫入
-- 自部署 PromptHub Web 獨立保存不可變快照；啟動與定時任務只上傳，絕不會自動拉取或覆蓋本機資料
+- 自部署 AgentsHub Web 獨立保存不可變快照；啟動與定時任務只上傳，絕不會自動拉取或覆蓋本機資料
 - 桌面版與 Web 版必須完全同版本才會備份；還原由使用者明確觸發，並先建立本機安全快照
 
 ### 🔐 隱私與安全
@@ -217,19 +219,19 @@ sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
 
 1. **新建第一個 Prompt。** 點「+ 新建」，填標題、描述、System Prompt 和 User Prompt。`{{變數名稱}}` 會變成一個變數，複製或測試時會跳出表單讓你填。
 
-2. **把 Skills 納入工作區。** 開啟「Skills」頁籤，從商店選幾個，或點「掃描本機」讓 PromptHub 自動找你電腦上已有的 SKILL.md。
+2. **把 Skills 納入工作區。** 開啟「Skills」頁籤，從商店選幾個，或點「掃描本機」讓 AgentsHub 自動找你電腦上已有的 SKILL.md。
 
-3. **一鍵安裝到 AI 工具。** 在 Skill 詳情頁選擇目標平台。PromptHub 會依平台規範把 SKILL.md 安裝到對應目錄。可以選 symlink（同步編輯）或獨立副本。
+3. **一鍵安裝到 AI 工具。** 在 Skill 詳情頁選擇目標平台。AgentsHub 會依平台規範把 SKILL.md 安裝到對應目錄。可以選 symlink（同步編輯）或獨立副本。
 
-4. **設定同步或備份（可選）。**「設定 → 資料」裡設定 WebDAV / S3 線上同步，或自部署一份 PromptHub Web 保存獨立還原快照。
+4. **設定同步或備份（可選）。**「設定 → 資料」裡設定 WebDAV / S3 線上同步，或自部署一份 AgentsHub Web 保存獨立還原快照。
 
 <div id="self-hosted-web"></div>
 
 ## 自部署網頁版
 
-PromptHub Web 是一個輕量的瀏覽器版工作區，你可以用 Docker 把它跑在 NAS、VPS 或區網裡。它**不是**官方雲端服務，主要用途是：
+AgentsHub Web 是一個輕量的瀏覽器版工作區，你可以用 Docker 把它跑在 NAS、VPS 或區網裡。它**不是**官方雲端服務，主要用途是：
 
-- 在瀏覽器裡存取自己的 PromptHub 資料
+- 在瀏覽器裡存取自己的 AgentsHub 資料
 - 給桌面版保存不改動線上工作區的不可變還原快照
 - 不想讓資料離開本機區網
 
@@ -247,7 +249,7 @@ docker compose up -d --build
 
 預設在 `http://localhost:3871`。第一次打開會跳到 `/setup`，你建立的第一個使用者就是管理員。
 
-桌面版接入這份 Web：「設定 → 資料 → Self-Hosted PromptHub」，填 URL、使用者名稱、密碼。可以驗證版本與備份能力、建立遠端快照、明確還原最近快照，以及啟用只上傳的啟動 / 定時自動備份。自動任務不會拉取、合併或覆蓋本機資料。
+桌面版接入這份 Web：「設定 → 資料 → Self-Hosted AgentsHub」，填 URL、使用者名稱、密碼。可以驗證版本與備份能力、建立遠端快照、明確還原最近快照，以及啟用只上傳的啟動 / 定時自動備份。自動任務不會拉取、合併或覆蓋本機資料。
 
 更詳細的部署、升級、備份、GHCR 映像檔、開發說明在 [`web-self-hosted.md`](./web-self-hosted.md)。
 
@@ -313,7 +315,7 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 - `--summary` — 回傳有界摘要（預設）
 - `--full` — 回傳完整資源內容
 - `--quiet` — 成功時不輸出 stdout，錯誤仍輸出 stderr
-- `--data-dir <path>` — 顯式指定 PromptHub 的 `userData` 目錄
+- `--data-dir <path>` — 顯式指定 AgentsHub 的 `userData` 目錄
 - `--app-data-dir <path>` — 顯式指定應用資料根目錄
 - `--version|-v` — 印出 CLI 版本
 
@@ -445,7 +447,7 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 
 ### 在做 / 在想
 
-- [ ] 瀏覽器擴充功能：在 ChatGPT / Claude 網頁裡直接呼叫 PromptHub 庫
+- [ ] 瀏覽器擴充功能：在 ChatGPT / Claude 網頁裡直接呼叫 AgentsHub 庫
 - [ ] 行動端：手機查看、搜尋、輕量編輯同步
 - [ ] 外掛機制：本機模型（Ollama 等）和自訂 AI 服務商
 - [ ] Prompt 商店：複用社群驗證過的提示詞範本
@@ -459,8 +461,8 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 需要 Node.js ≥ 24、pnpm 9。
 
 ```bash
-git clone https://github.com/legeling/PromptHub.git
-cd PromptHub
+git clone https://github.com/YZhuAndrew/AgentsHub.git
+cd AgentsHub
 pnpm install
 
 # 桌面端開發
@@ -494,7 +496,7 @@ pnpm build:web
 ## 儲存庫結構
 
 ```text
-PromptHub/
+AgentsHub/
 ├── apps/
 │   ├── desktop/   # Electron 桌面端
 │   ├── cli/       # 獨立 CLI（基於 packages/core）
