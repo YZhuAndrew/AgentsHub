@@ -106,7 +106,7 @@ describe("tray controller", () => {
     );
     expect(harness.preferredImage.setTemplateImage).toHaveBeenCalledWith(true);
     expect(harness.preferredImage.resize).not.toHaveBeenCalled();
-    expect(harness.tray.setToolTip).toHaveBeenCalledWith("PromptHub");
+    expect(harness.tray.setToolTip).toHaveBeenCalledWith("AgentsHub");
     expect(harness.handlers.has("mouse-down")).toBe(true);
     expect(harness.handlers.has("click")).toBe(false);
 

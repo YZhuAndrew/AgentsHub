@@ -207,13 +207,7 @@ const isE2E = isE2EEnabled();
 const isLegacyCliInvocation = process.argv.includes("--cli");
 configureE2ETestProfile();
 if (!isE2E) {
-  // Set the application name so the macOS Dock/menubar and Linux window
-  // list show "AgentsHub" in dev mode (electron .), where they otherwise
-  // fall back to "Electron". Packaged builds already use the builder's
-  // productName. This does NOT affect the user-data path: that is pinned
-  // to LEGACY_PRODUCT_NAME ("PromptHub") via app.setPath("userData", ...)
-  // below, so existing databases remain reachable.
-  app.setName("AgentsHub");
+  app.setName("AgentsHub"); // dev mode: show AgentsHub instead of Electron; userData pinned to PromptHub below
 
   const appDataPath = app.getPath("appData");
   const resolvedUserDataPath = resolveInitialUserDataPath({

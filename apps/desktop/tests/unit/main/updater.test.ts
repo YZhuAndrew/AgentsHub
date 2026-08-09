@@ -294,7 +294,7 @@ describe("Updater Service (Main Process)", () => {
     expect(autoUpdater.setFeedURL).toHaveBeenCalledWith({
       provider: "generic",
       channel: undefined,
-      url: "https://github.com/legeling/PromptHub/releases/download/v1.1.0-beta.2",
+      url: "https://github.com/YZhuAndrew/AgentsHub/releases/download/v1.1.0-beta.2",
     });
     expect(networkProxyMocks.getHttpRequestAgentMock).toHaveBeenCalledWith(
       "https://api.github.com",
@@ -325,7 +325,7 @@ describe("Updater Service (Main Process)", () => {
     expect(autoUpdater.setFeedURL).toHaveBeenCalledWith({
       provider: "generic",
       channel: undefined,
-      url: "https://github.com/legeling/PromptHub/releases/download/v1.1.0-beta.2",
+      url: "https://github.com/YZhuAndrew/AgentsHub/releases/download/v1.1.0-beta.2",
     });
   });
 

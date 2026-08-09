@@ -86,14 +86,14 @@ describe("main menu", () => {
 
     expect(openExternalMock).toHaveBeenNthCalledWith(
       1,
-      "https://github.com/legeling/PromptHub",
+      "https://github.com/YZhuAndrew/AgentsHub",
     );
     expect(openExternalMock).toHaveBeenNthCalledWith(
       2,
-      "https://github.com/legeling/PromptHub/issues",
+      "https://github.com/YZhuAndrew/AgentsHub/issues",
     );
     expect(openExternalMock).not.toHaveBeenCalledWith(
-      expect.stringContaining("github.com/xxx/PromptHub"),
+      expect.stringContaining("github.com/xxx/AgentsHub"),
     );
   });
 });

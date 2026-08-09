@@ -47,7 +47,7 @@ function getCliTarballName(): string {
 }
 
 function getCliInstallSource(): string {
-  return `https://github.com/legeling/PromptHub/releases/download/${getReleaseTag()}/${getCliTarballName()}`;
+  return `https://github.com/YZhuAndrew/AgentsHub/releases/download/${getReleaseTag()}/${getCliTarballName()}`;
 }
 
 function buildInstallCommand(method: CliInstallMethod): string {

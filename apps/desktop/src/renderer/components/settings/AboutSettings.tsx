@@ -76,7 +76,7 @@ export function AboutSettings() {
     setUpdateState("checking");
     try {
       const res = await fetch(
-        "https://api.github.com/repos/legeling/PromptHub/releases/latest",
+        "https://api.github.com/repos/YZhuAndrew/AgentsHub/releases/latest",
         { headers: { Accept: "application/vnd.github+json" } },
       );
       if (!res.ok) throw new Error("fetch failed");
@@ -134,13 +134,16 @@ export function AboutSettings() {
           <div className="w-16 h-16 mx-auto mb-3 rounded-2xl overflow-hidden">
             <img
               src={appIconUrl}
-              alt="PromptHub"
+              alt="AgentsHub"
               className="w-full h-full object-cover"
             />
           </div>
-          <h2 className="text-lg font-semibold">PromptHub</h2>
+          <h2 className="text-lg font-semibold">AgentsHub</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {t("settings.version")} {webRuntime ? (webVersion || "...") : (appVersion || "...")}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {t("settings.forkAttribution", "Fork of PromptHub, maintained by YZhuAndrew")}
           </p>
         </div>
 
@@ -172,7 +175,7 @@ export function AboutSettings() {
             >
               {updateState === "available" ? (
                 <a
-                  href="https://github.com/legeling/PromptHub/releases/latest"
+                  href="https://github.com/YZhuAndrew/AgentsHub/releases/latest"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h-8 px-4 rounded-lg bg-primary text-white text-sm hover:bg-primary/90 transition-colors inline-flex items-center gap-1.5"
@@ -260,13 +263,13 @@ export function AboutSettings() {
               description={t("settings.projectRepositoryDesc")}
             >
               <a
-                href="https://github.com/legeling/PromptHub"
+                href="https://github.com/YZhuAndrew/AgentsHub"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
               >
                 <GithubIcon aria-hidden="true" className="h-4 w-4" />
-                github.com/legeling/PromptHub
+                github.com/YZhuAndrew/AgentsHub
               </a>
             </SettingItem>
             <SettingItem
@@ -274,7 +277,7 @@ export function AboutSettings() {
               description={t("settings.reportIssueDesc")}
             >
               <a
-                href="https://github.com/legeling/PromptHub/issues/new"
+                href="https://github.com/YZhuAndrew/AgentsHub/issues/new"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="h-8 px-4 rounded-lg bg-orange-500 text-white text-sm hover:bg-orange-600 transition-colors inline-flex items-center gap-1.5"
@@ -342,7 +345,32 @@ export function AboutSettings() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium">@legeling</div>
-                  <div className="text-xs text-muted-foreground">GitHub</div>
+                  <div className="text-xs text-muted-foreground">
+                    {t("settings.originalAuthor", "Original Author")}
+                  </div>
+                </div>
+                <ExternalLinkIcon
+                  aria-hidden="true"
+                  className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+              </a>
+              <a
+                href="https://github.com/YZhuAndrew"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group"
+              >
+                <div className="w-8 h-8 rounded-full bg-foreground/10 flex items-center justify-center">
+                  <GithubIcon
+                    aria-hidden="true"
+                    className="w-4 h-4 text-foreground"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">@YZhuAndrew</div>
+                  <div className="text-xs text-muted-foreground">
+                    {t("settings.forkMaintainer", "Fork Maintainer")}
+                  </div>
                 </div>
                 <ExternalLinkIcon
                   aria-hidden="true"
@@ -384,7 +412,7 @@ export function AboutSettings() {
         </div>
 
         <div className="px-4 py-4 text-sm text-muted-foreground text-center">
-          <div>AGPL-3.0 License &copy; 2026 PromptHub</div>
+          <div>AGPL-3.0 License &copy; 2026 AgentsHub (fork of PromptHub)</div>
         </div>
       </div>
 

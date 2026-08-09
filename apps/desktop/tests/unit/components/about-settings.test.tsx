@@ -140,7 +140,7 @@ describe("AboutSettings", () => {
     });
 
     expect(
-      screen.getByText("AGPL-3.0 License © 2026 PromptHub"),
+      screen.getByText("AGPL-3.0 License © 2026 AgentsHub (fork of PromptHub)"),
     ).toBeInTheDocument();
   });
 
@@ -164,7 +164,7 @@ describe("AboutSettings", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Join the PromptHub Discord community for announcements and discussion",
+        "Join the AgentsHub Discord community for announcements and discussion",
       ),
     ).toBeInTheDocument();
     expect(
@@ -173,8 +173,8 @@ describe("AboutSettings", () => {
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /github.com\/legeling\/PromptHub/i }),
-    ).toHaveAttribute("href", "https://github.com/legeling/PromptHub");
+      screen.getByRole("link", { name: /github.com\/YZhuAndrew\/AgentsHub/i }),
+    ).toHaveAttribute("href", "https://github.com/YZhuAndrew/AgentsHub");
     expect(screen.getByText("Contact Author")).toBeInTheDocument();
   });
 

@@ -34,8 +34,8 @@ interface UpdateRequestOptions {
 
 const OFFICIAL_REPO = {
   provider: "github" as const,
-  owner: "legeling",
-  repo: "PromptHub",
+  owner: "YZhuAndrew",
+  repo: "AgentsHub",
   releaseType: "release" as const,
 };
 
@@ -64,10 +64,10 @@ function getMirrorSources(
 ): string[] {
   const suffix = getFeedSuffix(channel, releaseTag);
   return [
-    `https://ghfast.top/https://github.com/legeling/PromptHub/releases/${suffix}`,
-    `https://gh-proxy.com/https://github.com/legeling/PromptHub/releases/${suffix}`,
-    `https://hub.gitmirror.com/https://github.com/legeling/PromptHub/releases/${suffix}`,
-    `https://cors.isteed.cc/github.com/legeling/PromptHub/releases/${suffix}`,
+    `https://ghfast.top/https://github.com/YZhuAndrew/AgentsHub/releases/${suffix}`,
+    `https://gh-proxy.com/https://github.com/YZhuAndrew/AgentsHub/releases/${suffix}`,
+    `https://hub.gitmirror.com/https://github.com/YZhuAndrew/AgentsHub/releases/${suffix}`,
+    `https://cors.isteed.cc/github.com/YZhuAndrew/AgentsHub/releases/${suffix}`,
   ];
 }
 
@@ -896,7 +896,7 @@ export function registerUpdaterIPC() {
   // Open GitHub Releases page
   // 打开 GitHub Releases 页面
   ipcMain.handle("updater:openReleases", () => {
-    shell.openExternal("https://github.com/legeling/PromptHub/releases");
+    shell.openExternal("https://github.com/YZhuAndrew/AgentsHub/releases");
   });
 
   ipcMain.handle("updater:openDownloadedUpdate", async () => {

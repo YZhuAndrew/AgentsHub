@@ -317,8 +317,8 @@ describe("cli-installer", () => {
     expect(status.packageManager).toBeNull();
     expect(status.installCommand).toBeNull();
     expect(status.manualInstallCommands).toEqual({
-      pnpm: "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.9/prompthub-cli-0.5.9.tgz",
-      npm: "npm install -g https://github.com/legeling/PromptHub/releases/download/v0.5.9/prompthub-cli-0.5.9.tgz",
+      pnpm: "pnpm add -g https://github.com/YZhuAndrew/AgentsHub/releases/download/v0.5.9/prompthub-cli-0.5.9.tgz",
+      npm: "npm install -g https://github.com/YZhuAndrew/AgentsHub/releases/download/v0.5.9/prompthub-cli-0.5.9.tgz",
     });
   });
 

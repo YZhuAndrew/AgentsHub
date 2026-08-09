@@ -1,6 +1,6 @@
 import { Menu, app, shell, BrowserWindow } from 'electron';
 
-const PROMPTHUB_REPOSITORY_URL = 'https://github.com/legeling/PromptHub';
+const PROMPTHUB_REPOSITORY_URL = 'https://github.com/YZhuAndrew/AgentsHub';
 const PROMPTHUB_ISSUES_URL = `${PROMPTHUB_REPOSITORY_URL}/issues`;
 
 /**
