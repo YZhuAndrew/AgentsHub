@@ -122,7 +122,7 @@ export function createTrayController(
     }
 
     tray = options.createTray(icon);
-    tray.setToolTip("PromptHub");
+    tray.setToolTip("AgentsHub");
     refresh();
     void reloadAgentProviders();
     if (options.platform === "darwin") {

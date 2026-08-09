@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "PromptHub",
+    "name": "AgentsHub",
     "description": "Gestionnaire de Prompts local avec contrôle de version"
   },
   "filter": {

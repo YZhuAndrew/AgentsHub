@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "PromptHub",
+    "name": "AgentsHub",
     "description": "ローカル版 Prompt マネージャー、バージョン管理付き"
   },
   "filter": {

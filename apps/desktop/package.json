@@ -4,6 +4,7 @@
   "private": true,
   "description": "PromptHub Desktop - Electron application for AI prompt management",
   "main": "out/main/index.js",
+  "productName": "AgentsHub",
   "files": [
     "README.md",
     "LICENSE"

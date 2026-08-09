@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "PromptHub",
+    "name": "AgentsHub",
     "description": "本地版的 Prompt 管理器，带版本控制"
   },
   "filter": {

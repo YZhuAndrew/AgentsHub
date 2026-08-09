@@ -15,7 +15,7 @@ const macReleaseSigningConfig = enableMacReleaseSigning
 
 module.exports = {
   appId: "com.prompthub.app",
-  productName: "PromptHub",
+  productName: "AgentsHub",
   directories: {
     output: "dist",
     buildResources: "resources",

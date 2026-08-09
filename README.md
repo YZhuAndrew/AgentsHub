@@ -1,9 +1,11 @@
 <div align="center">
-  <img src="./docs/imgs/icon.png" alt="PromptHub Logo" width="128" height="128" />
+  <img src="./docs/imgs/icon.png" alt="AgentsHub Logo" width="128" height="128" />
 
-# PromptHub
+# AgentsHub
 
 本地优先的 Prompt、Skill 与 AI 编程资产工作台。
+
+> 🔖 本项目 fork 自 [PromptHub](https://github.com/legeling/PromptHub)（AGPL-3.0），并在此基础上扩展。感谢原作者 [legeling](https://github.com/legeling) 的开源贡献。
 
   <br/>
 
@@ -43,7 +45,7 @@
 
 <br/>
 
-PromptHub 把你的 Prompt、SKILL.md 和项目级 AI 编程资产放进一个本地工作区。它能把同一份 Skill 一键安装到 Claude Code、Cursor、Codex、Windsurf、Antigravity、Cline 等十几个工具，给 Prompt 做版本管理与多模型测试，并通过 WebDAV 同步到其他设备，或把完整快照备份到自部署 Web。
+AgentsHub 把你的 Prompt、SKILL.md 和项目级 AI 编程资产放进一个本地工作区。它能把同一份 Skill 一键安装到 Claude Code、Cursor、Codex、Windsurf、Antigravity、Cline 等十几个工具，给 Prompt 做版本管理与多模型测试，并通过 WebDAV 同步到其他设备，或把完整快照备份到自部署 Web。
 
 数据默认存在你自己的电脑上。
 
@@ -101,7 +103,7 @@ macOS 安装包会使用 Developer ID 签名并完成 Apple 公证。请优先�
 `0.5.9` 早期预览包和更早的历史包可能尚未完成签名公证。如果你明确下载的是这些历史版本，并且 macOS 提示「已损坏」或「无法验证开发者」，可以在终端执行：
 
 ```bash
-sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
+sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 ```
 
 然后重新打开应用。如果应用安装在其他位置，把路径替换成实际安装路径。
@@ -205,7 +207,7 @@ sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
 - 全量备份 / 恢复使用 `.phub.gz` 压缩格式
 - WebDAV 同步（坚果云、Nextcloud 等）
 - WebDAV / S3 在线同步只允许一个活动同步源，避免多源冲突写入
-- 自部署 PromptHub Web 独立保存不可变快照；启动和定时任务只上传，绝不会自动拉取或覆盖本地数据
+- 自部署 AgentsHub Web 独立保存不可变快照；启动和定时任务只上传，绝不会自动拉取或覆盖本地数据
 - 桌面版与 Web 版必须完全同版本才会备份；恢复由用户显式触发，并先创建本地安全快照
 
 ### 🔐 隐私与安全
@@ -223,21 +225,21 @@ sudo xattr -rd com.apple.quarantine /Applications/PromptHub.app
    点「+ 新建」，写标题、描述、System Prompt 和 User Prompt。`{{变量名}}` 会变成一个变量，复制或测试时会弹表单让你填。
 
 2. **把 Skills 纳入工作区**
-   去「Skills」标签，从商店选几个，或点「扫描本地」让 PromptHub 自动找你电脑上已有的 SKILL.md。
+   去「Skills」标签，从商店选几个，或点「扫描本地」让 AgentsHub 自动找你电脑上已有的 SKILL.md。
 
 3. **一键安装到 AI 工具**
-   在 Skill 详情页选目标平台。PromptHub 会按平台规范把 SKILL.md 安装到对应目录。可以选 symlink（同步编辑）或独立复制。
+   在 Skill 详情页选目标平台。AgentsHub 会按平台规范把 SKILL.md 安装到对应目录。可以选 symlink（同步编辑）或独立复制。
 
 4. **配置同步或备份（可选）**
-   「设置 → 数据」里配 WebDAV / S3 在线同步，或自部署一份 PromptHub Web 保存独立恢复快照。
+   「设置 → 数据」里配 WebDAV / S3 在线同步，或自部署一份 AgentsHub Web 保存独立恢复快照。
 
 <div id="self-hosted-web"></div>
 
 ## 自部署网页版
 
-PromptHub Web 是一个轻量的浏览器版工作区，你可以用 Docker 把它跑在 NAS、VPS 或局域网里。它**不是**官方云服务，主要用途是：
+AgentsHub Web 是一个轻量的浏览器版工作区，你可以用 Docker 把它跑在 NAS、VPS 或局域网里。它**不是**官方云服务，主要用途是：
 
-- 在浏览器里访问自己的 PromptHub 数据
+- 在浏览器里访问自己的 AgentsHub 数据
 - 给桌面版保存不改变在线工作区的不可变备份快照
 - 不想让数据出本地局域网
 
@@ -255,14 +257,14 @@ docker compose up -d --build
 
 默认在 `http://localhost:3871`。第一次打开会跳到 `/setup`，你创建的第一个用户就是管理员。
 
-桌面版接入这一份 Web：「设置 → 数据 → Self-Hosted PromptHub」，填 URL、用户名、密码。可以测试版本与备份能力、创建远端快照、显式恢复最近快照，以及启用只上传的启动/定时自动备份。自动任务不会拉取、合并或覆盖本地数据。
+桌面版接入这一份 Web：「设置 → 数据 → Self-Hosted AgentsHub」，填 URL、用户名、密码。可以测试版本与备份能力、创建远端快照、显式恢复最近快照，以及启用只上传的启动/定时自动备份。自动任务不会拉取、合并或覆盖本地数据。
 
 ### Cloudflare Workers 版（分支实验）
 
 如果你希望把在线自部署版跑在 Cloudflare 边缘网络上，可以使用本分支的 `apps/web-cloudflare`。它把 API 运行在 Workers，账号和旧同步快照元数据存到 D1，图片 / 视频媒体存到 R2。当前该分支仍实现旧 live-sync API；新版桌面端的备份专用 `/api/backups/desktop` 路由补齐前，不会把它当作安全自部署备份端点。
 
 <div align="center">
-  <img src="./docs/imgs/cloudflare-login.png" width="70%" alt="PromptHub Cloudflare Workers 登录页"/>
+  <img src="./docs/imgs/cloudflare-login.png" width="70%" alt="AgentsHub Cloudflare Workers 登录页"/>
   <p><strong>Cloudflare Workers 在线自部署登录页</strong></p>
 </div>
 
@@ -349,7 +351,7 @@ Skill 导入、版本快照和分发统一应用内置忽略规则与根目录 `
 - `--summary` — 返回有界摘要（默认）
 - `--full` — 返回完整资源内容
 - `--quiet` — 成功时不输出 stdout，错误仍输出 stderr
-- `--data-dir <path>` — 显式指定 PromptHub 的 `userData` 目录
+- `--data-dir <path>` — 显式指定 AgentsHub 的 `userData` 目录
 - `--app-data-dir <path>` — 显式指定应用数据根目录
 - `--version|-v` — 打印 CLI 版本
 
@@ -499,7 +501,7 @@ Skill 导入、版本快照和分发统一应用内置忽略规则与根目录 `
 
 ### 在做 / 在想
 
-- [ ] 浏览器扩展：在 ChatGPT / Claude 网页里直接调用 PromptHub 库
+- [ ] 浏览器扩展：在 ChatGPT / Claude 网页里直接调用 AgentsHub 库
 - [ ] 移动端：手机查看、搜索、轻量编辑同步
 - [ ] 插件机制：本地模型（Ollama 等）和自定义 AI 供应商
 - [ ] Prompt 商店：复用社区验证过的提示词模板
@@ -513,8 +515,8 @@ Skill 导入、版本快照和分发统一应用内置忽略规则与根目录 `
 需要 Node.js ≥ 24、pnpm 9。
 
 ```bash
-git clone https://github.com/legeling/PromptHub.git
-cd PromptHub
+git clone https://github.com/YZhuAndrew/AgentsHub.git
+cd AgentsHub
 pnpm install
 
 # 桌面端开发
@@ -548,7 +550,7 @@ pnpm build:web
 ## 仓库结构
 
 ```text
-PromptHub/
+AgentsHub/
 ├── apps/
 │   ├── desktop/   # Electron 桌面端
 │   ├── cli/       # 独立 CLI（基于 packages/core）
@@ -577,7 +579,7 @@ PromptHub/
 - `spec-init` 上游仓库：[`git@github.com:legeling/spec-init.git`](git@github.com:legeling/spec-init.git)
 - 文档拓扑路由：[`spec-init.topology.yml`](./spec-init.topology.yml)
 
-PromptHub 当前采用的是 `spec-init` 文档边界 + `spec/changes/active/<change-key>/` 变更流：项目级稳定文档主入口使用 `spec/workflow/*`、`spec/knowledge/*`、`spec/rules/`、`spec/releases/`，非平凡改动继续在 change 文件夹里写 `proposal.md` / `specs/<domain>/spec.md` / `design.md` / `tasks.md` / `implementation.md`，完成后再把稳定事实同步回这些长期真相源。
+AgentsHub 当前采用的是 `spec-init` 文档边界 + `spec/changes/active/<change-key>/` 变更流：项目级稳定文档主入口使用 `spec/workflow/*`、`spec/knowledge/*`、`spec/rules/`、`spec/releases/`，非平凡改动继续在 change 文件夹里写 `proposal.md` / `specs/<domain>/spec.md` / `design.md` / `tasks.md` / `implementation.md`，完成后再把稳定事实同步回这些长期真相源。
 
 <div id="meta"></div>
 
