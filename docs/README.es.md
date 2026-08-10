@@ -71,11 +71,11 @@ Las compilaciones de escritorio se publican en GitHub Releases para macOS / Wind
 | Plataforma | Instalador |
 | ---- | ------ |
 | macOS (Apple Silicon) | [arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS (Intel) | [x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS (Apple Silicon / Intel) | [zip portátil](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| Windows / Linux | ver la [página Releases](https://github.com/YZhuAndrew/AgentsHub/releases) |
+| macOS (Apple Silicon) | [zip portátil](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Windows (x64) | [x64 Setup](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Linux | ver la [página Releases](https://github.com/YZhuAndrew/AgentsHub/releases) |
 
-> **¿Apple Silicon o Intel?** M1/M2/M3/M4 → `arm64`. Los Mac Intel → `x64`. El zip portátil se descomprime y usa sin instalación.
+> **¿macOS?** Solo se publican compilaciones `arm64` de Apple Silicon (M1/M2/M3/M4). El zip portátil se descomprime y usa sin instalación.
 
 ### Verificación de seguridad en macOS
 

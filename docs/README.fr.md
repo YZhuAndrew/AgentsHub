@@ -71,12 +71,11 @@ Les builds desktop sont publiés sur GitHub Releases pour macOS / Windows / Linu
 | Plateforme | Installateur |
 | ---- | ------ |
 | macOS (Apple Silicon) | [arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS (Intel) | [x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS (Apple Silicon / Intel) | [zip portable](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| Windows / Linux | voir la [page Releases](https://github.com/YZhuAndrew/AgentsHub/releases) |
+| macOS (Apple Silicon) | [zip portable](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Windows (x64) | [x64 Setup](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Linux | voir la [page Releases](https://github.com/YZhuAndrew/AgentsHub/releases) |
 
-> **Apple Silicon ou Intel ?** M1/M2/M3/M4 → `arm64`. Macs Intel → `x64`.
-> **Windows arch ?** La plupart des PC → `x64`. Seules les machines ARM type Surface Pro X → `arm64`.
+> **macOS ?** Seules les builds Apple Silicon (M1/M2/M3/M4) `arm64` sont publiées.
 
 ### Vérification de sécurité macOS
 

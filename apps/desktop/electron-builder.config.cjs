@@ -58,11 +58,11 @@ module.exports = {
     target: [
       {
         target: "dmg",
-        arch: ["x64", "arm64"],
+        arch: ["arm64"],
       },
       {
         target: "zip",
-        arch: ["x64", "arm64"],
+        arch: ["arm64"],
       },
     ],
     artifactName: "${productName}-${version}-${arch}.${ext}",
@@ -75,7 +75,7 @@ module.exports = {
     target: [
       {
         target: "nsis",
-        arch: ["x64", "arm64"],
+        arch: ["x64"],
       },
     ],
     artifactName: "${productName}-Setup-${version}-${arch}.${ext}",

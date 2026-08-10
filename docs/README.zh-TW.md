@@ -71,11 +71,11 @@ AgentsHub 把你的 Prompt、SKILL.md 和專案級 AI 編程資產放進一個�
 | 平台 | 安裝包 |
 | ---- | ------ |
 | macOS（Apple Silicon） | [arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS（Intel） | [x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS（Apple Silicon / Intel） | [zip 可攜版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| Windows / Linux | 前往 [Releases 頁](https://github.com/YZhuAndrew/AgentsHub/releases) 查看 |
+| macOS（Apple Silicon） | [zip 可攜版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Windows（x64） | [x64 Setup](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Linux | 前往 [Releases 頁](https://github.com/YZhuAndrew/AgentsHub/releases) 查看 |
 
-> **macOS 選哪個？** Apple Silicon（M1/M2/M3/M4）選 `arm64`，Intel Mac 選 `x64`。
+> **macOS 選哪個？** 僅提供 Apple Silicon（M1/M2/M3/M4）`arm64` 建構。
 
 ### macOS 安全驗證
 

@@ -71,11 +71,11 @@ AgentsHub はあなたのプロンプト、SKILL.md、プロジェクトレベ�
 | プラットフォーム | インストールパッケージ |
 | ---- | ------ |
 | macOS（Apple Silicon） | [arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS（Intel） | [x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS（Apple Silicon / Intel） | [zip ポータブル版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| Windows / Linux | [Releases ページ](https://github.com/YZhuAndrew/AgentsHub/releases) を参照 |
+| macOS（Apple Silicon） | [zip ポータブル版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Windows（x64） | [x64 Setup](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Linux | [Releases ページ](https://github.com/YZhuAndrew/AgentsHub/releases) を参照 |
 
-> **macOS の arch?** Apple Silicon（M1/M2/M3/M4）→ `arm64`、Intel Mac → `x64`。ポータブル版 zip は展開するだけでインストール不要です。
+> **macOS の arch?** Apple Silicon（M1/M2/M3/M4）の `arm64` ビルドのみ提供します。ポータブル版 zip は展開するだけでインストール不要です。
 > 履歴バージョン、署名情報、完全なリリースノートは [Releases ページ](https://github.com/YZhuAndrew/AgentsHub/releases) を参照してください。
 
 ### macOS セキュリティ検証

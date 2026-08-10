@@ -11,20 +11,14 @@ jobs:
     strategy:
       matrix:
         include:
-          # macOS: Use Intel runner for x64, Apple Silicon runner for arm64
-          # CRITICAL: macos-15-intel is x86_64, macos-15 is Apple Silicon (arm64)
-          - os: macos-15-intel # Intel (x86_64) runner for x64 builds
-            platform: mac
-            arch: x64
+          # macOS: Apple Silicon runner for arm64 builds (Intel x64 target retired)
+          # CRITICAL: macos-15 is Apple Silicon (arm64)
           - os: macos-15 # Apple Silicon (arm64) runner for arm64 builds
             platform: mac
             arch: arm64
           - os: windows-latest
             platform: win
             arch: x64
-          - os: windows-latest
-            platform: win
-            arch: arm64
           - os: ubuntu-latest
             platform: linux
 
@@ -182,10 +176,6 @@ jobs:
 
           ACTUAL_ARCHS=$(lipo -archs "$APP_BIN")
           echo "Detected macOS binary archs: $ACTUAL_ARCHS"
-          if [ "${{ matrix.arch }}" = "x64" ] && [ "$ACTUAL_ARCHS" != "x86_64" ]; then
-            echo "Expected x86_64 binary, got: $ACTUAL_ARCHS"
-            exit 1
-          fi
           if [ "${{ matrix.arch }}" = "arm64" ] && [ "$ACTUAL_ARCHS" != "arm64" ]; then
             echo "Expected arm64 binary, got: $ACTUAL_ARCHS"
             exit 1

@@ -65,11 +65,11 @@
 | 平台 | 安装包 |
 | ---- | ------ |
 | macOS（Apple Silicon） | [arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS（Intel） | [x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS（Apple Silicon / Intel） | [zip 便携版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| Windows / Linux | 前往 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases) 查看可用构建 |
+| macOS（Apple Silicon） | [zip 便携版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Windows（x64） | [x64 Setup](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Linux | 前往 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases) 查看可用构建 |
 
-> **macOS 选哪个？** Apple Silicon（M1/M2/M3/M4）选 `arm64`，Intel Mac 选 `x64`。便携版 zip 解压即用，无需安装。
+> **macOS 选哪个？** 仅提供 Apple Silicon（M1/M2/M3/M4）`arm64` 构建。便携版 zip 解压即用，无需安装。
 > 历史版本、签名信息与完整 Release Notes 见 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases)。
 
 ### macOS 安全验证
