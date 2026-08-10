@@ -1,5 +1,14 @@
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-10
+
+### 新功能 / Features
+
+- 🤖 **千问办公 (QwenWork) Agent 平台**：新增内置 `qwenwork` 平台目标（`~/.qwenwork` 根目录 + `skills/` 约定），使用官方绿色章鱼吉祥物图标；用户可直接向其分发 Skill，无需创建自定义 Agent。当前为最小骨架（MCP / 会话 / Provider 适配待后续确认官方本地契约后扩展）
+  - **QwenWork Agent Platform**: Added a built-in `qwenwork` platform target (`~/.qwenwork` root + `skills/` convention) with the official green octopus mascot mark; users can distribute Skills to it without creating a custom agent. Minimal skeleton for now — MCP / session / provider adapters are deferred until the official local contracts are confirmed
+- 🚀 **启动行为设置**：新增三项启动控制——① 应用启动后默认打开主界面（`minimizeOnLaunch` 默认值由开启改为关闭，用户仍可手动开启"启动时最小化到托盘"）；② 新增"启动界面"设置（默认恢复上次界面，可固定为提示词 / Agents / 技能 / MCP / 插件 / 规则）；③ 开机自启动（`launchAtStartup`，默认关闭，复用既有实现）
+  - **Startup Behavior Settings**: Three startup controls — ① the main window now opens by default on launch (`minimizeOnLaunch` default flipped to off; users can still enable "minimize on launch"); ② new "Startup View" setting (defaults to last-used; can be pinned to Prompts / Agents / Skills / MCP / Plugins / Rules); ③ launch at system startup (`launchAtStartup`, default off, reusing the existing implementation)
+
 ### 维护 / Maintenance
 
 - **0.6.0 版本准备**：统一 Desktop、CLI、自部署 Web、Cloudflare Worker 与 Mobile 的构建版本；在正式发布前，官网稳定版徽标和下载链接继续指向已发布的 `0.5.9`

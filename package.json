@@ -1,6 +1,6 @@
 {
   "name": "agentshub-monorepo",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "description": "AgentsHub monorepo - AI agent asset & memory management platform",
   "license": "AGPL-3.0",
