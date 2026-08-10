@@ -655,7 +655,7 @@ jobs:
             # 如果已经发布过就不再退回 draft（避免误伤已发布版本）。
             IS_DRAFT=$(gh release view "${GITHUB_REF_NAME}" --json isDraft -q .isDraft)
             gh release edit "${GITHUB_REF_NAME}" \
-              --title "AgentsHub " \
+              --title "AgentsHub ${VERSION}" \
               --notes-file release_notes.md \
               --draft=${IS_DRAFT} \
               --prerelease=${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
@@ -667,7 +667,7 @@ jobs:
             echo "Creating DRAFT release..."
             gh release create "${GITHUB_REF_NAME}" \
               release_assets/* \
-              --title "AgentsHub " \
+              --title "AgentsHub ${VERSION}" \
               --notes-file release_notes.md \
               --draft=true \
               --prerelease=${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }} \
