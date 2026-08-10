@@ -90,40 +90,66 @@ jobs:
         run: |
           rm -rf dist || true
 
+      - name: Check macOS signing secrets
+        id: mac_signing
+        if: matrix.platform == 'mac'
+        shell: bash
+        run: |
+          # Treat macOS signing as "ready" only when every required credential
+          # is present. When any secret is missing, the build proceeds as an
+          # unsigned build (identity: null, no notarization) so forks without
+          # Apple Developer credentials can still publish installers.
+          ready="true"
+          for secret_name in MAC_CSC_LINK MAC_CSC_KEY_PASSWORD APPLE_TEAM_ID; do
+            if [ -z "${!secret_name:-}" ]; then
+              echo "${secret_name} is not configured."
+              ready="false"
+            fi
+          done
+          has_api_key=false
+          if [ -n "${APPLE_API_KEY_B64:-}" ] && [ -n "${APPLE_API_KEY_ID:-}" ] && [ -n "${APPLE_API_ISSUER:-}" ]; then
+            has_api_key=true
+          fi
+          has_apple_id=false
+          if [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
+            has_apple_id=true
+          fi
+          if [ "$has_api_key" != "true" ] && [ "$has_apple_id" != "true" ]; then
+            echo "Apple notarization credentials are not configured."
+            ready="false"
+          fi
+          if [ "$ready" = "true" ]; then
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+            echo "macOS build will be signed and notarized."
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::macOS signing/notarization secrets are missing; publishing an UNSIGNED build."
+          fi
+        env:
+          MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
       - name: Build for ${{ matrix.platform }} ${{ matrix.arch }}
         shell: bash
         working-directory: apps/desktop
         run: |
-          if [ "${{ matrix.platform }}" = "mac" ]; then
-            missing=false
-            for secret_name in MAC_CSC_LINK MAC_CSC_KEY_PASSWORD APPLE_TEAM_ID; do
-              if [ -z "${!secret_name:-}" ]; then
-                echo "::error::${secret_name} is required for signed and notarized macOS releases."
-                missing=true
-              fi
-            done
+          MAC_SIGNED="${{ steps.mac_signing.outputs.signed }}"
+          if [ "${{ matrix.platform }}" = "mac" ] && [ "$MAC_SIGNED" = "true" ]; then
+            # Configure signing and notarization only when every credential is
+            # present. Without these, the build below stays unsigned.
+            export CSC_LINK="$MAC_CSC_LINK"
+            export CSC_KEY_PASSWORD="$MAC_CSC_KEY_PASSWORD"
 
             has_api_key=false
             if [ -n "${APPLE_API_KEY_B64:-}" ] && [ -n "${APPLE_API_KEY_ID:-}" ] && [ -n "${APPLE_API_ISSUER:-}" ]; then
               has_api_key=true
             fi
-
-            has_apple_id=false
-            if [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]; then
-              has_apple_id=true
-            fi
-
-            if [ "$has_api_key" != "true" ] && [ "$has_apple_id" != "true" ]; then
-              echo "::error::macOS notarization requires either APPLE_API_KEY + APPLE_API_KEY_ID + APPLE_API_ISSUER, or APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD."
-              missing=true
-            fi
-
-            if [ "$missing" = "true" ]; then
-              exit 1
-            fi
-
-            export CSC_LINK="$MAC_CSC_LINK"
-            export CSC_KEY_PASSWORD="$MAC_CSC_KEY_PASSWORD"
 
             if [ "$has_api_key" = "true" ]; then
               APPLE_API_KEY_PATH="${RUNNER_TEMP}/AuthKey_${APPLE_API_KEY_ID}.p8"
@@ -139,7 +165,11 @@ jobs:
             if [ "${{ matrix.platform }}" = "win" ]; then
               pnpm vite build && pnpm electron-builder --config electron-builder.config.cjs --win --${{ matrix.arch }} --publish never
             elif [ "${{ matrix.platform }}" = "mac" ]; then
-              pnpm vite build && PROMPTHUB_MAC_RELEASE_SIGN=true pnpm electron-builder --config electron-builder.config.cjs --mac --${{ matrix.arch }} --publish never
+              MAC_SIGN_FLAG=""
+              if [ "$MAC_SIGNED" = "true" ]; then
+                MAC_SIGN_FLAG="PROMPTHUB_MAC_RELEASE_SIGN=true"
+              fi
+              pnpm vite build && env $MAC_SIGN_FLAG pnpm electron-builder --config electron-builder.config.cjs --mac --${{ matrix.arch }} --publish never
             fi
           else
             pnpm electron:build:${{ matrix.platform }}
@@ -160,7 +190,7 @@ jobs:
         shell: bash
         working-directory: apps/desktop
         run: |
-          ZIP_FILE=$(find dist -maxdepth 1 -name "PromptHub-*-${{ matrix.arch }}.zip" | head -n 1)
+          ZIP_FILE=$(find dist -maxdepth 1 -name "AgentsHub-*-${{ matrix.arch }}.zip" | head -n 1)
           if [ -z "$ZIP_FILE" ]; then
             echo "Expected macOS ZIP artifact not found for ${{ matrix.arch }}"
             exit 1
@@ -168,9 +198,9 @@ jobs:
 
           TMP_DIR=$(mktemp -d)
           ditto -x -k "$ZIP_FILE" "$TMP_DIR/app"
-          APP_BIN=$(find "$TMP_DIR/app" -path "*/PromptHub.app/Contents/MacOS/PromptHub" | head -n 1)
+          APP_BIN=$(find "$TMP_DIR/app" -path "*/AgentsHub.app/Contents/MacOS/AgentsHub" | head -n 1)
           if [ -z "$APP_BIN" ]; then
-            echo "PromptHub.app binary not found inside $ZIP_FILE"
+            echo "AgentsHub.app binary not found inside $ZIP_FILE"
             exit 1
           fi
 
@@ -182,7 +212,7 @@ jobs:
           fi
 
       - name: Verify macOS signing and notarization
-        if: matrix.platform == 'mac' && matrix.arch != ''
+        if: matrix.platform == 'mac' && matrix.arch != '' && steps.mac_signing.outputs.signed == 'true'
         shell: bash
         working-directory: apps/desktop
         run: |
@@ -213,7 +243,7 @@ jobs:
           }
           trap cleanup EXIT
 
-          ZIP_FILE=$(find dist -maxdepth 1 -name "PromptHub-*-${{ matrix.arch }}.zip" | head -n 1)
+          ZIP_FILE=$(find dist -maxdepth 1 -name "AgentsHub-*-${{ matrix.arch }}.zip" | head -n 1)
           if [ -z "$ZIP_FILE" ]; then
             echo "Expected macOS ZIP artifact not found for ${{ matrix.arch }}"
             exit 1
@@ -221,16 +251,16 @@ jobs:
 
           TMP_DIR=$(mktemp -d)
           ditto -x -k "$ZIP_FILE" "$TMP_DIR/app"
-          APP_PATH=$(find "$TMP_DIR/app" -maxdepth 4 -type d -name "PromptHub.app" | head -n 1)
+          APP_PATH=$(find "$TMP_DIR/app" -maxdepth 4 -type d -name "AgentsHub.app" | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "PromptHub.app not found inside $ZIP_FILE"
+            echo "AgentsHub.app not found inside $ZIP_FILE"
             exit 1
           fi
 
           echo "Verifying ZIP app: $APP_PATH"
           validate_macos_app "$APP_PATH"
 
-          DMG_FILE=$(find dist -maxdepth 1 -name "PromptHub-*-${{ matrix.arch }}.dmg" | head -n 1)
+          DMG_FILE=$(find dist -maxdepth 1 -name "AgentsHub-*-${{ matrix.arch }}.dmg" | head -n 1)
           if [ -z "$DMG_FILE" ]; then
             echo "Expected macOS DMG artifact not found for ${{ matrix.arch }}"
             exit 1
@@ -239,9 +269,9 @@ jobs:
           DMG_MOUNT_DIR=$(mktemp -d)
           hdiutil attach "$DMG_FILE" -mountpoint "$DMG_MOUNT_DIR" -nobrowse -quiet
 
-          DMG_APP_PATH=$(find "$DMG_MOUNT_DIR" -maxdepth 2 -type d -name "PromptHub.app" | head -n 1)
+          DMG_APP_PATH=$(find "$DMG_MOUNT_DIR" -maxdepth 2 -type d -name "AgentsHub.app" | head -n 1)
           if [ -z "$DMG_APP_PATH" ]; then
-            echo "PromptHub.app not found inside $DMG_FILE"
+            echo "AgentsHub.app not found inside $DMG_FILE"
             exit 1
           fi
 
@@ -333,10 +363,10 @@ jobs:
           }
 
           if [ "${{ matrix.platform }}" = "mac" ]; then
-            copy_if_exists "dist/PromptHub-${VERSION}-${{ matrix.arch }}.dmg"
-            copy_if_exists "dist/PromptHub-${VERSION}-${{ matrix.arch }}.dmg.blockmap"
-            copy_if_exists "dist/PromptHub-${VERSION}-${{ matrix.arch }}.zip"
-            copy_if_exists "dist/PromptHub-${VERSION}-${{ matrix.arch }}.zip.blockmap"
+            copy_if_exists "dist/AgentsHub-${VERSION}-${{ matrix.arch }}.dmg"
+            copy_if_exists "dist/AgentsHub-${VERSION}-${{ matrix.arch }}.dmg.blockmap"
+            copy_if_exists "dist/AgentsHub-${VERSION}-${{ matrix.arch }}.zip"
+            copy_if_exists "dist/AgentsHub-${VERSION}-${{ matrix.arch }}.zip.blockmap"
 
             if [ "${{ matrix.arch }}" = "arm64" ]; then
               copy_if_exists "dist/latest-mac-arm64.yml"
@@ -345,7 +375,7 @@ jobs:
               copy_if_exists "dist/latest-mac-x64.yml"
             fi
           elif [ "${{ matrix.platform }}" = "win" ]; then
-            copy_if_exists "dist/PromptHub-Setup-${VERSION}-${{ matrix.arch }}.exe"
+            copy_if_exists "dist/AgentsHub-Setup-${VERSION}-${{ matrix.arch }}.exe"
 
             if [ "${{ matrix.arch }}" = "arm64" ]; then
               copy_if_exists "dist/latest-arm64.yml"
@@ -354,8 +384,8 @@ jobs:
               copy_if_exists "dist/latest-x64.yml"
             fi
           else
-            copy_if_exists "dist/PromptHub-${VERSION}-x64.AppImage"
-            copy_if_exists "dist/PromptHub-${VERSION}-amd64.deb"
+            copy_if_exists "dist/AgentsHub-${VERSION}-x64.AppImage"
+            copy_if_exists "dist/AgentsHub-${VERSION}-amd64.deb"
             copy_if_exists "dist/latest-linux.yml"
             # CLI tarball was already staged into upload_dist by the
             # earlier "Pack standalone CLI tarball" step, so we just
@@ -410,12 +440,12 @@ jobs:
           echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
           if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
             echo "IS_PRERELEASE=true" >> "$GITHUB_ENV"
-            echo "DOWNLOAD_BASE_URL=https://github.com/legeling/PromptHub/releases/download/${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
-            echo "PREVIEW_RELEASE_URL=https://github.com/legeling/PromptHub/releases/tag/${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+            echo "DOWNLOAD_BASE_URL=https://github.com/YZhuAndrew/AgentsHub/releases/download/${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+            echo "PREVIEW_RELEASE_URL=https://github.com/YZhuAndrew/AgentsHub/releases/tag/${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
           else
             echo "IS_PRERELEASE=false" >> "$GITHUB_ENV"
-            echo "DOWNLOAD_BASE_URL=https://github.com/legeling/PromptHub/releases/latest/download" >> "$GITHUB_ENV"
-            echo "PREVIEW_RELEASE_URL=https://github.com/legeling/PromptHub/releases?q=prerelease%3Atrue" >> "$GITHUB_ENV"
+            echo "DOWNLOAD_BASE_URL=https://github.com/YZhuAndrew/AgentsHub/releases/latest/download" >> "$GITHUB_ENV"
+            echo "PREVIEW_RELEASE_URL=https://github.com/YZhuAndrew/AgentsHub/releases?q=prerelease%3Atrue" >> "$GITHUB_ENV"
           fi
 
       - name: List artifacts for debugging
@@ -471,9 +501,9 @@ jobs:
 
           | 平台 | 下载 |
           |------|------|
-          | Windows | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](${DOWNLOAD_BASE_URL}/PromptHub-Setup-${VERSION}-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](${DOWNLOAD_BASE_URL}/PromptHub-Setup-${VERSION}-arm64.exe) |
-          | macOS | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](${DOWNLOAD_BASE_URL}/PromptHub-${VERSION}-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](${DOWNLOAD_BASE_URL}/PromptHub-${VERSION}-x64.dmg) |
-          | Linux | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](${DOWNLOAD_BASE_URL}/PromptHub-${VERSION}-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](${DOWNLOAD_BASE_URL}/PromptHub-${VERSION}-amd64.deb) |
+          | Windows | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-Setup-${VERSION}-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-Setup-${VERSION}-arm64.exe) |
+          | macOS | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-x64.dmg) |
+          | Linux | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-amd64.deb) |
           | 预览版 | [![Preview Prereleases](https://img.shields.io/badge/Preview_Prereleases-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](${PREVIEW_RELEASE_URL}) |
 
           ### macOS 安全说明
@@ -485,7 +515,7 @@ jobs:
 
           ## 🔄 本次更新
 
-          详细更新日志请查看 [更新日志](https://github.com/legeling/PromptHub#-更新日志)
+          详细更新日志请查看 [更新日志](https://github.com/YZhuAndrew/AgentsHub#-更新日志)
           EOF
 
           # 2. Collect release assets deterministically.
@@ -516,18 +546,18 @@ jobs:
             cp "${matches[0]}" "release_assets/$(basename "${matches[0]}")"
           }
 
-          copy_unique "PromptHub-${VERSION}-x64.dmg"
-          copy_unique "PromptHub-${VERSION}-arm64.dmg"
-          copy_unique "PromptHub-${VERSION}-x64.dmg.blockmap"
-          copy_unique "PromptHub-${VERSION}-arm64.dmg.blockmap"
-          copy_unique "PromptHub-${VERSION}-x64.zip"
-          copy_unique "PromptHub-${VERSION}-arm64.zip"
-          copy_unique "PromptHub-${VERSION}-x64.zip.blockmap"
-          copy_unique "PromptHub-${VERSION}-arm64.zip.blockmap"
-          copy_unique "PromptHub-${VERSION}-x64.AppImage"
-          copy_unique "PromptHub-Setup-${VERSION}-x64.exe"
-          copy_unique "PromptHub-Setup-${VERSION}-arm64.exe"
-          copy_unique "PromptHub-${VERSION}-amd64.deb"
+          copy_unique "AgentsHub-${VERSION}-x64.dmg"
+          copy_unique "AgentsHub-${VERSION}-arm64.dmg"
+          copy_unique "AgentsHub-${VERSION}-x64.dmg.blockmap"
+          copy_unique "AgentsHub-${VERSION}-arm64.dmg.blockmap"
+          copy_unique "AgentsHub-${VERSION}-x64.zip"
+          copy_unique "AgentsHub-${VERSION}-arm64.zip"
+          copy_unique "AgentsHub-${VERSION}-x64.zip.blockmap"
+          copy_unique "AgentsHub-${VERSION}-arm64.zip.blockmap"
+          copy_unique "AgentsHub-${VERSION}-x64.AppImage"
+          copy_unique "AgentsHub-Setup-${VERSION}-x64.exe"
+          copy_unique "AgentsHub-Setup-${VERSION}-arm64.exe"
+          copy_unique "AgentsHub-${VERSION}-amd64.deb"
           copy_unique "prompthub-cli-${VERSION}.tgz"
           copy_unique "latest.yml"
           copy_unique "latest-x64.yml"
@@ -587,7 +617,7 @@ jobs:
             # 如果已经发布过就不再退回 draft（避免误伤已发布版本）。
             IS_DRAFT=$(gh release view "${GITHUB_REF_NAME}" --json isDraft -q .isDraft)
             gh release edit "${GITHUB_REF_NAME}" \
-              --title "PromptHub ${VERSION}" \
+              --title "AgentsHub " \
               --notes-file release_notes.md \
               --draft=${IS_DRAFT} \
               --prerelease=${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
@@ -599,7 +629,7 @@ jobs:
             echo "Creating DRAFT release..."
             gh release create "${GITHUB_REF_NAME}" \
               release_assets/* \
-              --title "PromptHub ${VERSION}" \
+              --title "AgentsHub " \
               --notes-file release_notes.md \
               --draft=true \
               --prerelease=${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }} \
@@ -668,21 +698,21 @@ jobs:
           # latest/ tree is what README/website link to; the version tree is
           # the immutable archive.
           # version-less filenames in latest/ → these are the URLs README points to.
-          cp "release_assets/PromptHub-${VERSION}-arm64.dmg"          "r2_staging/latest/PromptHub-arm64.dmg"
-          cp "release_assets/PromptHub-${VERSION}-x64.dmg"            "r2_staging/latest/PromptHub-x64.dmg"
-          cp "release_assets/PromptHub-Setup-${VERSION}-x64.exe"      "r2_staging/latest/PromptHub-Setup-x64.exe"
-          cp "release_assets/PromptHub-Setup-${VERSION}-arm64.exe"    "r2_staging/latest/PromptHub-Setup-arm64.exe"
-          cp "release_assets/PromptHub-${VERSION}-x64.AppImage"       "r2_staging/latest/PromptHub-x64.AppImage"
-          cp "release_assets/PromptHub-${VERSION}-amd64.deb"          "r2_staging/latest/PromptHub-amd64.deb"
+          cp "release_assets/AgentsHub-${VERSION}-arm64.dmg"          "r2_staging/latest/AgentsHub-arm64.dmg"
+          cp "release_assets/AgentsHub-${VERSION}-x64.dmg"            "r2_staging/latest/AgentsHub-x64.dmg"
+          cp "release_assets/AgentsHub-Setup-${VERSION}-x64.exe"      "r2_staging/latest/AgentsHub-Setup-x64.exe"
+          cp "release_assets/AgentsHub-Setup-${VERSION}-arm64.exe"    "r2_staging/latest/AgentsHub-Setup-arm64.exe"
+          cp "release_assets/AgentsHub-${VERSION}-x64.AppImage"       "r2_staging/latest/AgentsHub-x64.AppImage"
+          cp "release_assets/AgentsHub-${VERSION}-amd64.deb"          "r2_staging/latest/AgentsHub-amd64.deb"
           cp "release_assets/prompthub-cli-${VERSION}.tgz"            "r2_staging/latest/prompthub-cli-latest.tgz"
 
           # version-suffixed copies in v<version>/ → never overwritten archive.
-          cp "release_assets/PromptHub-${VERSION}-arm64.dmg"          "r2_staging/v${VERSION}/"
-          cp "release_assets/PromptHub-${VERSION}-x64.dmg"            "r2_staging/v${VERSION}/"
-          cp "release_assets/PromptHub-Setup-${VERSION}-x64.exe"      "r2_staging/v${VERSION}/"
-          cp "release_assets/PromptHub-Setup-${VERSION}-arm64.exe"    "r2_staging/v${VERSION}/"
-          cp "release_assets/PromptHub-${VERSION}-x64.AppImage"       "r2_staging/v${VERSION}/"
-          cp "release_assets/PromptHub-${VERSION}-amd64.deb"          "r2_staging/v${VERSION}/"
+          cp "release_assets/AgentsHub-${VERSION}-arm64.dmg"          "r2_staging/v${VERSION}/"
+          cp "release_assets/AgentsHub-${VERSION}-x64.dmg"            "r2_staging/v${VERSION}/"
+          cp "release_assets/AgentsHub-Setup-${VERSION}-x64.exe"      "r2_staging/v${VERSION}/"
+          cp "release_assets/AgentsHub-Setup-${VERSION}-arm64.exe"    "r2_staging/v${VERSION}/"
+          cp "release_assets/AgentsHub-${VERSION}-x64.AppImage"       "r2_staging/v${VERSION}/"
+          cp "release_assets/AgentsHub-${VERSION}-amd64.deb"          "r2_staging/v${VERSION}/"
           cp "release_assets/prompthub-cli-${VERSION}.tgz"            "r2_staging/v${VERSION}/"
 
           # Generate sha256 checksums.txt for both trees so users can verify
@@ -700,12 +730,12 @@ jobs:
             "tag": "${RELEASE_TAG}",
             "released_at": "${RELEASED_AT}",
             "downloads": {
-              "macArm64": "PromptHub-arm64.dmg",
-              "macX64": "PromptHub-x64.dmg",
-              "windowsX64": "PromptHub-Setup-x64.exe",
-              "windowsArm64": "PromptHub-Setup-arm64.exe",
-              "linuxAppImage": "PromptHub-x64.AppImage",
-              "linuxDeb": "PromptHub-amd64.deb",
+              "macArm64": "AgentsHub-arm64.dmg",
+              "macX64": "AgentsHub-x64.dmg",
+              "windowsX64": "AgentsHub-Setup-x64.exe",
+              "windowsArm64": "AgentsHub-Setup-arm64.exe",
+              "linuxAppImage": "AgentsHub-x64.AppImage",
+              "linuxDeb": "AgentsHub-amd64.deb",
               "cli": "prompthub-cli-latest.tgz"
             }
           }
