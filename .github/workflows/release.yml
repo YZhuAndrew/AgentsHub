@@ -588,13 +588,17 @@ jobs:
           copy_optional "AgentsHub-Setup-${VERSION}-arm64.exe"
           copy_unique "AgentsHub-${VERSION}-amd64.deb"
           copy_unique "prompthub-cli-${VERSION}.tgz"
-          copy_unique "latest.yml"
-          copy_unique "latest-x64.yml"
-          copy_unique "latest-arm64.yml"
-          copy_unique "latest-linux.yml"
-          copy_unique "latest-mac.yml"
-          copy_unique "latest-mac-x64.yml"
-          copy_unique "latest-mac-arm64.yml"
+          # Updater manifests are per-platform metadata, not installers. Make
+          # them optional because the build matrix produces only a subset
+          # (macOS arm64 emits latest-mac-arm64.yml, not latest-arm64.yml;
+          # Windows emits latest.yml/latest-x64.yml; Linux emits latest-linux.yml).
+          copy_optional "latest.yml"
+          copy_optional "latest-x64.yml"
+          copy_optional "latest-arm64.yml"
+          copy_optional "latest-linux.yml"
+          copy_optional "latest-mac.yml"
+          copy_optional "latest-mac-x64.yml"
+          copy_optional "latest-mac-arm64.yml"
 
           echo "Files to upload (deduplicated):"
           ls -1 release_assets/
