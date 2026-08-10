@@ -1,5 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { useSettingsStore } from "../../stores/settings.store";
+import {
+  DESKTOP_HOME_MODULES,
+  type StartupModule,
+} from "../../stores/settings/settings-types";
 import { SettingSection, SettingItem, ToggleSwitch } from "./shared";
 import { Select } from "../ui/Select";
 
@@ -12,6 +16,10 @@ const LANGUAGE_OPTIONS = [
   { value: "de", label: "Deutsch" },
   { value: "fr", label: "Français" },
 ];
+
+// Options for the "startup module" selector. `"last"` restores the previously
+// active home module; the other values map to `DESKTOP_HOME_MODULES`.
+const STARTUP_MODULE_KEYS = ["last", ...DESKTOP_HOME_MODULES] as const;
 
 export function GeneralSettings() {
   const { t } = useTranslation();
@@ -38,6 +46,27 @@ export function GeneralSettings() {
             ariaLabel={t("settings.minimizeOnLaunch")}
             checked={settings.minimizeOnLaunch}
             onChange={settings.setMinimizeOnLaunch}
+          />
+        </SettingItem>
+        <SettingItem
+          label={t("settings.startupModule")}
+          description={t("settings.startupModuleDesc")}
+        >
+          <Select
+            ariaLabel={t("settings.startupModule")}
+            value={settings.startupModule}
+            onChange={(value) =>
+              settings.setStartupModule(value as StartupModule)
+            }
+            options={STARTUP_MODULE_KEYS.map((key) => ({
+              value: key,
+              label: t(
+                key === "last"
+                  ? "settings.startupModuleLast"
+                  : `settings.startupModuleOption.${key}`,
+              ),
+            }))}
+            className="w-40"
           />
         </SettingItem>
         <SettingItem

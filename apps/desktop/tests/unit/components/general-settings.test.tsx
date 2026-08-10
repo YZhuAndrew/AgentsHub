@@ -98,4 +98,15 @@ describe("GeneralSettings", () => {
     expect(useSettingsStore.getState().tagFilterMode).toBe("single");
   });
 
+  it("changes the startup view from last-used to Agents", async () => {
+    const user = userEvent.setup();
+    await renderWithI18n(<GeneralSettings />, { language: "en" });
+
+    // Default is "last" (Last used). Open the select and pick Agents.
+    await user.click(screen.getByRole("button", { name: "Startup View" }));
+    await user.click(screen.getByRole("option", { name: "Agents" }));
+
+    expect(useSettingsStore.getState().startupModule).toBe("agents");
+  });
+
 });

@@ -33,6 +33,7 @@ import {
   normalizeShortcutModes,
   normalizeSidebarTagSectionHeights,
   normalizeSkillListPageSize,
+  normalizeStartupModule,
   normalizeSyncProvider,
   normalizeSyncTimingSettings,
   normalizeTagFilterMode,
@@ -76,6 +77,7 @@ function normalizeSharedSettingsState(next: SettingsState): void {
   next.githubToken = "";
   normalizeAppearanceSettings(next, normalizeLanguage);
   normalizePromptWorkflowSettings(next);
+  next.startupModule = normalizeStartupModule(next.startupModule);
   next.aiApiProtocol = normalizeAIProtocol(
     next.aiApiProtocol,
     next.aiProvider,
@@ -293,6 +295,7 @@ function normalizeMigratedCoreState(
   next.githubToken = "";
   normalizeAppearanceSettings(next, normalizeLanguage);
   normalizePromptWorkflowSettings(next);
+  next.startupModule = normalizeStartupModule(next.startupModule);
   next.aiApiProtocol = normalizeAIProtocol(
     next.aiApiProtocol,
     next.aiProvider,

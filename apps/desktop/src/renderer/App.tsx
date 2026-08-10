@@ -11,7 +11,7 @@ import { Sidebar, TopBar, MainContent, TitleBar } from "./components/layout";
 import { usePromptStore } from "./stores/prompt.store";
 import { useFolderStore } from "./stores/folder.store";
 import { useSettingsStore } from "./stores/settings.store";
-import { useUIStore } from "./stores/ui.store";
+import { useUIStore, resolveStartupAppModule } from "./stores/ui.store";
 import {
   getRenderedBackgroundImageBlur,
   getRenderedBackgroundImageOpacity,
@@ -1142,6 +1142,20 @@ function App() {
       await loadSettingsFromMainProcess();
       if (disposed) {
         return;
+      }
+
+      // Apply the configured startup module once per app session. When the
+      // setting is a concrete module, override the persisted `appModule`; when
+      // it is `"last"`, leave `ui.store` to restore the previously active
+      // module. This runs before the first home render so the user lands on the
+      // intended view without a visible flash.
+      const startupModule = useSettingsStore.getState().startupModule;
+      const resolvedStartupModule = resolveStartupAppModule(
+        startupModule,
+        useUIStore.getState().appModule,
+      );
+      if (resolvedStartupModule !== useUIStore.getState().appModule) {
+        useUIStore.getState().setAppModule(resolvedStartupModule);
       }
 
       await init();

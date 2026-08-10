@@ -64,6 +64,26 @@ function getViewModeForModule(module: AppModule): ViewMode {
   return module === "skill" ? "skill" : "prompt";
 }
 
+/**
+ * Resolve the home module to land on when the app starts.
+ *
+ * - When `startupPreference` is a concrete module, the app always starts there.
+ * - When it is `"last"`, the previously active (`persistedAppModule`) module is
+ *   restored, matching the long-standing `ui.store` persistence behavior.
+ *
+ * The result is always a valid `AppModule`; an invalid persisted value falls
+ * back to `"prompt"` via `normalizeAppModule`.
+ */
+export function resolveStartupAppModule(
+  startupPreference: "last" | AppModule,
+  persistedAppModule: AppModule,
+): AppModule {
+  if (startupPreference !== "last") {
+    return normalizeAppModule(startupPreference);
+  }
+  return normalizeAppModule(persistedAppModule);
+}
+
 interface UIState {
   viewMode: ViewMode;
   appModule: AppModule;

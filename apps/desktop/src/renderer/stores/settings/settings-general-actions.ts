@@ -23,6 +23,7 @@ import {
   normalizeLanguage,
   normalizeSkillListPageSize,
   normalizeSourceHistory,
+  normalizeStartupModule,
   normalizeTagsSectionHeight,
   normalizeTranslationMode,
 } from "./settings-normalizers";
@@ -50,6 +51,7 @@ type GeneralActionKey =
   | "setShowLineNumbers"
   | "setLaunchAtStartup"
   | "setMinimizeOnLaunch"
+  | "setStartupModule"
   | "setCloseAction"
   | "setDebugMode"
   | "setShortcutMode"
@@ -310,6 +312,11 @@ function createDesktopIntegrationActions(context: SettingsActionContext) {
       }
       void syncSettingsToMain({ minimizeOnLaunch });
     },
+    setStartupModule: (startupModule) => {
+      const normalized = normalizeStartupModule(startupModule);
+      setTouched({ startupModule: normalized });
+      void syncSettingsToMain({ startupModule: normalized });
+    },
     setCloseAction: (action) => {
       const closeAction = normalizeCloseAction(action);
       setTouched({ closeAction });
@@ -322,6 +329,7 @@ function createDesktopIntegrationActions(context: SettingsActionContext) {
   } satisfies SettingsActionGroup<
     | "setLaunchAtStartup"
     | "setMinimizeOnLaunch"
+    | "setStartupModule"
     | "setCloseAction"
     | "setDebugMode"
   >;

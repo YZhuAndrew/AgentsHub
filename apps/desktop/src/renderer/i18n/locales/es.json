@@ -1359,6 +1359,17 @@
     "launchAtStartupDesc": "Ejecutar PromptHub al iniciar el sistema",
     "minimizeOnLaunch": "Minimizar al iniciar",
     "minimizeOnLaunchDesc": "Minimizar a la bandeja del sistema al iniciar",
+    "startupModule": "Vista de inicio",
+    "startupModuleDesc": "Elige qué vista se abre al iniciar la aplicación",
+    "startupModuleLast": "Última usada",
+    "startupModuleOption": {
+      "prompt": "Prompts",
+      "agents": "Agents",
+      "skill": "Habilidades",
+      "mcp": "MCP",
+      "plugin": "Plugins",
+      "rules": "Reglas"
+    },
     "closeAction": "Acción al cerrar",
     "closeActionDesc": "Selecciona qué hacer al cerrar la ventana",
     "askEveryTime": "Preguntar cada vez",

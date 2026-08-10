@@ -1358,6 +1358,17 @@
     "launchAtStartupDesc": "系統啟動時自動執行 PromptHub",
     "minimizeOnLaunch": "啟動時最小化",
     "minimizeOnLaunchDesc": "啟動後最小化到系統匣",
+    "startupModule": "啟動介面",
+    "startupModuleDesc": "選擇應用啟動時開啟的介面",
+    "startupModuleLast": "上次使用的介面",
+    "startupModuleOption": {
+      "prompt": "提示詞",
+      "agents": "Agents",
+      "skill": "技能",
+      "mcp": "MCP",
+      "plugin": "外掛",
+      "rules": "規則"
+    },
     "closeAction": "關閉視窗行為",
     "closeActionDesc": "點擊關閉按鈕時的行為",
     "askEveryTime": "每次詢問",

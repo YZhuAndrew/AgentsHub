@@ -91,3 +91,51 @@ describe("settings startup behavior sync (issue #115)", () => {
     },
   );
 });
+
+describe("startup module setting", () => {
+  beforeEach(() => {
+    changeLanguageMock.mockReset();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it("defaults to \"last\" so the previously active module is restored", async () => {
+    const { useSettingsStore } = await importStoreWithSpy();
+
+    expect(useSettingsStore.getState().startupModule).toBe("last");
+  });
+
+  it.each([
+    { value: "last", label: "last" },
+    { value: "agents", label: "agents" },
+    { value: "prompt", label: "prompt" },
+    { value: "skill", label: "skill" },
+    { value: "mcp", label: "mcp" },
+    { value: "plugin", label: "plugin" },
+    { value: "rules", label: "rules" },
+  ] as const)(
+    "syncs startupModule=$label to the main process when changed",
+    async ({ value }) => {
+      const { useSettingsStore, setSpy } = await importStoreWithSpy();
+
+      useSettingsStore.getState().setStartupModule(value);
+
+      expect(useSettingsStore.getState().startupModule).toBe(value);
+      expect(
+        lastPayloadWithKey(setSpy, "startupModule")?.startupModule,
+      ).toBe(value);
+    },
+  );
+
+  it("normalizes an unknown value back to \"last\"", async () => {
+    const { useSettingsStore } = await importStoreWithSpy();
+
+    // Invalid values must not be stored as-is (defends against DB corruption).
+    useSettingsStore.getState().setStartupModule("not-a-module" as never);
+
+    expect(useSettingsStore.getState().startupModule).toBe("last");
+  });
+});

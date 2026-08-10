@@ -37,6 +37,13 @@ export const DESKTOP_HOME_MODULES = [
 ] as const;
 
 export type DesktopHomeModule = (typeof DESKTOP_HOME_MODULES)[number];
+/**
+ * The home module to land on when the app starts.
+ * - `"last"`: restore the module that was active when the app last closed
+ *   (the default, preserving the existing `ui.store` persistence behavior).
+ * - any `DesktopHomeModule`: always start on that module.
+ */
+export type StartupModule = "last" | DesktopHomeModule;
 export type ThemeMode = "light" | "dark" | "system";
 export type AIModelType = "chat" | "image";
 export type CreationMode = "manual" | "quick";
@@ -140,6 +147,7 @@ export interface SettingsState {
   showLineNumbers: boolean;
   launchAtStartup: boolean;
   minimizeOnLaunch: boolean;
+  startupModule: StartupModule;
   debugMode: boolean;
   closeAction: "ask" | "minimize" | "exit";
   shortcutModes: Record<string, "global" | "local">;
@@ -253,6 +261,7 @@ export interface SettingsState {
   setShowLineNumbers: (enabled: boolean) => void;
   setLaunchAtStartup: (enabled: boolean) => void;
   setMinimizeOnLaunch: (enabled: boolean) => void;
+  setStartupModule: (module: StartupModule) => void;
   setDebugMode: (enabled: boolean) => void;
   setEnableNotifications: (enabled: boolean) => void;
   setCloseAction: (action: "ask" | "minimize" | "exit") => void;

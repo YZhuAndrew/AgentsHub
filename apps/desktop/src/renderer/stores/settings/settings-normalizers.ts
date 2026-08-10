@@ -307,6 +307,14 @@ export function normalizeCloseAction(
     : "ask";
 }
 
+export function normalizeStartupModule(
+  value: unknown,
+): SettingsState["startupModule"] {
+  return value === "last" || DESKTOP_HOME_MODULES.includes(value as never)
+    ? (value as SettingsState["startupModule"])
+    : "last";
+}
+
 export function normalizeSourceHistory(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return Array.from(

@@ -1360,6 +1360,17 @@
     "launchAtStartupDesc": "系统启动时自动运行 PromptHub",
     "minimizeOnLaunch": "启动时最小化",
     "minimizeOnLaunchDesc": "启动后最小化到系统托盘",
+    "startupModule": "启动界面",
+    "startupModuleDesc": "选择应用启动时打开的界面",
+    "startupModuleLast": "上次使用的界面",
+    "startupModuleOption": {
+      "prompt": "提示词",
+      "agents": "Agents",
+      "skill": "技能",
+      "mcp": "MCP",
+      "plugin": "插件",
+      "rules": "规则"
+    },
     "closeAction": "关闭窗口行为",
     "closeActionDesc": "点击关闭按钮时的行为",
     "askEveryTime": "每次询问",

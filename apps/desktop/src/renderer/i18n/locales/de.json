@@ -1359,6 +1359,17 @@
     "launchAtStartupDesc": "PromptHub beim Systemstart ausführen",
     "minimizeOnLaunch": "Beim Start minimieren",
     "minimizeOnLaunchDesc": "Beim Start in die Taskleiste minimieren",
+    "startupModule": "Startansicht",
+    "startupModuleDesc": "Wähle, welche Ansicht beim App-Start geöffnet wird",
+    "startupModuleLast": "Zuletzt verwendet",
+    "startupModuleOption": {
+      "prompt": "Prompts",
+      "agents": "Agents",
+      "skill": "Fähigkeiten",
+      "mcp": "MCP",
+      "plugin": "Plugins",
+      "rules": "Regeln"
+    },
     "closeAction": "Schließaktion",
     "closeActionDesc": "Wählen Sie, was beim Schließen des Fensters passieren soll",
     "askEveryTime": "Jedes Mal fragen",
