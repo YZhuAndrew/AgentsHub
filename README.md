@@ -1,106 +1,82 @@
 <div align="center">
-  <img src="./docs/imgs/icon.png" alt="AgentsHub Logo" width="128" height="128" />
+  <img src="./assets/readme/hero.png" width="100%" alt="AgentsHub — 本地优先的 Prompt、Skill 与 AI 编程资产工作台：管理五类 AI 资产，一键分发到 15+ 平台，支持版本、同步与备份" />
+</div>
+
+<br/>
+
+<div align="center">
 
 # AgentsHub
 
 本地优先的 Prompt、Skill 与 AI 编程资产工作台。
 
+把你的 Prompt、SKILL.md 和项目级 AI 编程资产放进一个本地工作区：同一份 Skill 一键安装到 Claude Code、Cursor、Codex、Windsurf、Cline 等 15+ 工具；Prompt 支持版本管理与多模型对比测试；数据通过 WebDAV 同步到其他设备，或把完整快照备份到自部署 Web。
+
+数据默认只存在你自己的电脑上。
+
 > 🔖 本项目 fork 自 [PromptHub](https://github.com/legeling/PromptHub)（AGPL-3.0），并在此基础上扩展。感谢原作者 [legeling](https://github.com/legeling) 的开源贡献。
 
-  <br/>
+<br/>
 
-  <!-- Badges -->
-
-[![GitHub Stars](https://img.shields.io/github/stars/legeling/PromptHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/legeling/PromptHub/stargazers)
-[![Downloads](https://img.shields.io/github/downloads/legeling/PromptHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/legeling/PromptHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.5.9_stable-22C55E?style=for-the-badge)](https://github.com/legeling/PromptHub/releases/latest)
+[![Release](https://img.shields.io/github/v/release/YZhuAndrew/AgentsHub?style=for-the-badge&color=4F6EF5)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](./LICENSE)
-
-  <br/>
-
-  <!-- Tech Stack -->
+[![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white)](https://github.com/YZhuAndrew/AgentsHub/releases)
+[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/YZhuAndrew/AgentsHub/releases)
+[![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/YZhuAndrew/AgentsHub/releases)
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Electron](https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white)
 ![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
-![TailwindCSS](https://img.shields.io/badge/Tailwind-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
-
-  <br/>
-
-![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white)
-![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)
-
-  <br/>
 
 [简体中文](./README.md) · [繁體中文](./docs/README.zh-TW.md) · [English](./docs/README.en.md) · [日本語](./docs/README.ja.md) · [Deutsch](./docs/README.de.md) · [Español](./docs/README.es.md) · [Français](./docs/README.fr.md)
 
-  <br/>
-
-  <a href="https://github.com/legeling/PromptHub/releases/latest">
-    <img src="https://img.shields.io/badge/📥_下载桌面版-Releases-blue?style=for-the-badge&logo=github" alt="Download"/>
-  </a>
-</div>
-
 <br/>
 
-AgentsHub 把你的 Prompt、SKILL.md 和项目级 AI 编程资产放进一个本地工作区。它能把同一份 Skill 一键安装到 Claude Code、Cursor、Codex、Windsurf、Antigravity、Cline 等十几个工具，给 Prompt 做版本管理与多模型测试，并通过 WebDAV 同步到其他设备，或把完整快照备份到自部署 Web。
+<a href="https://github.com/YZhuAndrew/AgentsHub/releases/latest">
+  <img src="https://img.shields.io/badge/📥_下载桌面版-Releases-4F6EF5?style=for-the-badge&logo=github" alt="下载桌面版"/>
+</a>
 
-数据默认存在你自己的电脑上。
+</div>
 
 ---
 
 ## 目录
 
-- [桌面版下载](#install)
-- [截图](#screenshots)
-- [核心能力](#features)
-- [快速上手](#quick-start)
-- [自部署网页版](#self-hosted-web)
-- [命令行 CLI](#cli)
-- [更新日志](#changelog)
-- [路线图](#roadmap)
-- [从源码运行](#dev)
-- [仓库结构](#project-structure)
-- [贡献与文档](#contributing)
-- [许可证 / 致谢 / 社区](#meta)
+- [下载安装](#下载安装)
+- [截图](#截图)
+- [核心能力](#核心能力)
+- [快速上手](#快速上手)
+- [自部署网页版](#自部署网页版)
+- [命令行 CLI](#命令行-cli)
+- [从源码运行](#从源码运行)
+- [仓库结构](#仓库结构)
+- [更新日志](#更新日志)
+- [路线图](#路线图)
+- [贡献与文档](#贡献与文档)
+- [许可证 / 反馈](#许可证--反馈)
 
 ---
 
-<div id="install"></div>
+## 下载安装
 
-## 📥 桌面版下载
+最新稳定版 **v0.6.0** 已发布（GitHub Releases）。
 
-最新稳定版 **v0.5.9** 已发布。直链下载指向 GitHub Latest 稳定版资产；镜像同步完成后会切回固定文件名 CDN 直链：
+| 平台 | 安装包 |
+| ---- | ------ |
+| macOS（Apple Silicon） | [v0.6.0 · arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS（Intel） | [v0.6.0 · x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS（Apple Silicon / Intel） | [v0.6.0 · zip 便携版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Windows / Linux | 前往 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases) 查看可用构建 |
 
-- **直链下载** — 指向 GitHub 最新稳定版资产，避免 CDN 镜像未就绪时出现 404；镜像同步完成后会切回固定文件名 CDN 直链
-- **GitHub Releases** — 官方发布页，可下载历史版本、查看签名与完整 Release Notes。
-
-| 平台    | 直链下载                                                                                                                                                                                                                                                                                                                                                                                                                                | GitHub Releases                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Windows | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-arm64.exe) | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-arm64.exe) |
-| macOS   | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.dmg)     | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.dmg)     |
-| Linux   | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-amd64.deb)              | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-amd64.deb)              |
-| 预览版  | [![历史预览版](https://img.shields.io/badge/Preview-v0.5.9--beta.2-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](https://github.com/legeling/PromptHub/releases/tag/v0.5.9-beta.2)                                                                                                                                                                                                                                           | [GitHub Prerelease v0.5.9-beta.2](https://github.com/legeling/PromptHub/releases/tag/v0.5.9-beta.2)                                                                                                                                                                                                                                                                                                                                     |
-
-> **macOS 选哪个？** Apple Silicon（M1/M2/M3/M4）选 `arm64`，Intel Mac 选 `x64`。
-> **Windows 选哪个？** 绝大多数选 `x64`，只有 Surface Pro X 这类 ARM 设备选 `arm64`。
-
-### macOS 通过 Homebrew
-
-```bash
-brew tap legeling/tap
-brew install --cask prompthub
-```
-
-后续升级请用 `brew upgrade --cask prompthub`，**不要**和应用内自动更新混用，否则可能出现 Homebrew 记录的版本和实际安装不一致。
+> **macOS 选哪个？** Apple Silicon（M1/M2/M3/M4）选 `arm64`，Intel Mac 选 `x64`。便携版 zip 解压即用，无需安装。
+> 历史版本、签名信息与完整 Release Notes 见 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases)。
 
 ### macOS 安全验证
 
-macOS 安装包会使用 Developer ID 签名并完成 Apple 公证。请优先从 GitHub Release、官网镜像或 Homebrew 安装；如果系统仍提示无法验证，请重新下载当前 Release 的 DMG 后再安装。
+macOS 安装包使用 Developer ID 签名并完成 Apple 公证。请优先从 GitHub Release 下载；如果系统仍提示无法验证，请重新下载当前 Release 的 DMG 后再安装。
 
-`0.5.9` 早期预览包和更早的历史包可能尚未完成签名公证。如果你明确下载的是这些历史版本，并且 macOS 提示「已损坏」或「无法验证开发者」，可以在终端执行：
+如果系统提示「已损坏」或「无法验证开发者」，可以在终端执行：
 
 ```bash
 sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
@@ -116,11 +92,11 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 
 如果你想体验下一版的开发预览版，可以在「设置 → 关于」打开「预览版通道」开关，应用会从 GitHub Prereleases 拉取构建。一旦关掉这个开关，更新会回到稳定版，并且不会从较新的预览版自动降级到较旧的稳定版。
 
-<div id="screenshots"></div>
+---
 
 ## 截图
 
-> 以下截图覆盖当前稳定版 0.5.9 的五个桌面工作区：Prompt、Skill、MCP、Plugin 和 Rules。
+> 以下截图覆盖桌面端主要工作区：Prompt、Skill、MCP、Plugin 和 Rules。
 
 <div align="center">
   <p><strong>主界面（双栏首页）</strong></p>
@@ -151,7 +127,7 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
   <img src="./docs/imgs/17-appearance-motion.png" width="80%" alt="外观设置"/>
 </div>
 
-<div id="features"></div>
+---
 
 ## 核心能力
 
@@ -165,7 +141,7 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 ### 🧩 Skill 商店与一键分发
 
 - **技能商店**：内置 20+ 精选技能（来自 Anthropic、OpenAI 等），可叠加自定义商店源（GitHub / skills.sh / 本地目录）
-- **一键安装到平台**：Claude Code、Cursor、Windsurf、Codex、Antigravity、Kiro、Kilo Code、Cline、Qoder、QoderWork、CodeBuddy、Trae、Trae CN、OpenCode 等 15+ 平台；Gemini 仅保留企业与付费 API 兼容目标
+- **一键安装到平台**：Claude Code、Cursor、Windsurf、Codex、Antigravity、Kiro、Kilo Code、Cline、Qoder、QoderWork、CodeBuddy、Trae、Trae CN、OpenCode 等 15+ 平台
 - **本地扫描**：自动发现本地已有 SKILL.md，预览选择后导入，避免在多个工具目录间复制粘贴
 - **Symlink / Copy 双模式**：选 symlink 共享编辑，选 copy 各平台保留独立副本
 - **平台目标目录可覆写**：为每个平台单独配置 Skills 目录，扫描和分发保持一致
@@ -205,35 +181,29 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 
 - 本地优先：所有数据默认存在你自己的电脑上
 - 全量备份 / 恢复使用 `.phub.gz` 压缩格式
-- WebDAV 同步（坚果云、Nextcloud 等）
-- WebDAV / S3 在线同步只允许一个活动同步源，避免多源冲突写入
+- WebDAV 同步（坚果云、Nextcloud 等），只允许一个活动同步源，避免多源冲突写入
 - 自部署 AgentsHub Web 独立保存不可变快照；启动和定时任务只上传，绝不会自动拉取或覆盖本地数据
 - 桌面版与 Web 版必须完全同版本才会备份；恢复由用户显式触发，并先创建本地安全快照
 
 ### 🔐 隐私与安全
 
-- 主密码保护应用入口，AES-256-GCM 加密
-- 私密文件夹内容加密存储（Beta）
+- 主密码保护应用入口，AES-256-GCM 加密；私密文件夹内容加密存储（Beta）
 - 跨平台离线运行：macOS / Windows / Linux
 - 7 种界面语言：简体中文、繁體中文、English、日本語、Deutsch、Español、Français
 
-<div id="quick-start"></div>
+---
 
 ## 快速上手
 
-1. **新建第一个 Prompt**
-   点「+ 新建」，写标题、描述、System Prompt 和 User Prompt。`{{变量名}}` 会变成一个变量，复制或测试时会弹表单让你填。
+1. **新建第一个 Prompt**：点「+ 新建」，写标题、描述、System Prompt 和 User Prompt。`{{变量名}}` 会变成一个变量，复制或测试时会弹表单让你填。
 
-2. **把 Skills 纳入工作区**
-   去「Skills」标签，从商店选几个，或点「扫描本地」让 AgentsHub 自动找你电脑上已有的 SKILL.md。
+2. **把 Skills 纳入工作区**：去「Skills」标签，从商店选几个，或点「扫描本地」让 AgentsHub 自动找你电脑上已有的 SKILL.md。
 
-3. **一键安装到 AI 工具**
-   在 Skill 详情页选目标平台。AgentsHub 会按平台规范把 SKILL.md 安装到对应目录。可以选 symlink（同步编辑）或独立复制。
+3. **一键安装到 AI 工具**：在 Skill 详情页选目标平台。AgentsHub 会按平台规范把 SKILL.md 安装到对应目录。可以选 symlink（同步编辑）或独立复制。
 
-4. **配置同步或备份（可选）**
-   「设置 → 数据」里配 WebDAV / S3 在线同步，或自部署一份 AgentsHub Web 保存独立恢复快照。
+4. **配置同步或备份（可选）**：「设置 → 数据」里配 WebDAV / S3 在线同步，或自部署一份 AgentsHub Web 保存独立恢复快照。
 
-<div id="self-hosted-web"></div>
+---
 
 ## 自部署网页版
 
@@ -261,7 +231,7 @@ docker compose up -d --build
 
 ### Cloudflare Workers 版（分支实验）
 
-如果你希望把在线自部署版跑在 Cloudflare 边缘网络上，可以使用本分支的 `apps/web-cloudflare`。它把 API 运行在 Workers，账号和旧同步快照元数据存到 D1，图片 / 视频媒体存到 R2。当前该分支仍实现旧 live-sync API；新版桌面端的备份专用 `/api/backups/desktop` 路由补齐前，不会把它当作安全自部署备份端点。
+如果你希望把在线自部署版跑在 Cloudflare 边缘网络上，可以使用本仓库的 `apps/web-cloudflare`。它把 API 运行在 Workers，账号和旧同步快照元数据存到 D1，图片 / 视频媒体存到 R2。当前该分支仍实现旧 live-sync API；新版桌面端的备份专用 `/api/backups/desktop` 路由补齐前，不会把它当作安全自部署备份端点。
 
 <div align="center">
   <img src="./docs/imgs/cloudflare-login.png" width="70%" alt="AgentsHub Cloudflare Workers 登录页"/>
@@ -272,7 +242,7 @@ docker compose up -d --build
 
 更详细的 Docker / NAS / VPS 自部署说明在 [`docs/web-self-hosted.md`](./docs/web-self-hosted.md)，Cloudflare Workers + D1 + R2 部署说明在 [`docs/cloudflare-workers.md`](./docs/cloudflare-workers.md)。
 
-<div id="cli"></div>
+---
 
 ## 命令行 CLI
 
@@ -291,7 +261,10 @@ pnpm --filter @prompthub/cli dev -- prompt list
 pnpm --filter @prompthub/cli dev -- skill scan
 ```
 
-支持的资源命令一览（每个命令都有 `--help`）：
+<details>
+<summary>支持的资源命令一览（展开查看）</summary>
+
+每个命令都有 `--help`：
 
 ```text
 prompt    list / get / create / update / delete / duplicate / search
@@ -343,6 +316,8 @@ sync      status / push / pull
 doctor    database-lock [--recover]
 ```
 
+</details>
+
 Skill 导入、版本快照和分发统一应用内置忽略规则与根目录 `.prompthubignore`，并在写入前阻止疑似私钥、访问令牌和密码。默认成功输出是有界摘要；只有明确使用 `--full` 才返回 Skill 正文与完整文件快照。
 
 常用全局参数：
@@ -355,160 +330,7 @@ Skill 导入、版本快照和分发统一应用内置忽略规则与根目录 `
 - `--app-data-dir <path>` — 显式指定应用数据根目录
 - `--version|-v` — 打印 CLI 版本
 
-<div id="changelog"></div>
-
-## 更新日志
-
-完整版本说明：**[CHANGELOG.md](./CHANGELOG.md)**
-
-### v0.5.9（2026-07-09，正式版）
-
-- Plugin 管理正式收口：My Plugins / Plugin Store / Agent Plugin 对齐 Skill 风格，支持安装、详情、版本快照、来源更新确认、批量操作、Agent 分发和子 Skill / MCP 导入
-- MCP 管理与同步能力扩展：MCP 工作台、官方模板商店、Agent 目标分发、健康检查、.env 按需导入、CLI MCP 命令和一键重同步设计完成阶段性收口
-- 整套 Agent 资产备份：自托管备份恢复纳入 My Skills、My MCP、My Plugins 和 Rules 等数据
-- Skill 来源更新改为 SHA-256 包指纹和三方对账，并修复 registry 指纹、content-url 基线和 URL 脱敏问题
-- Plugin 来源更新和批量商店更新现在先展示差异并要求确认，不再点击后直接覆盖本地 Plugin
-- Prompt 支持组合、排序和持久化自定义输出格式序列，并随备份恢复
-- macOS 发布链路加强 Developer ID 签名、公证、DMG/ZIP 校验和 Gatekeeper 验证
-
-### v0.5.9-beta.1（2026-06-14，预览版）
-
-- MCP 管理工作台预览版：新增本地 MCP 库、官方模板商店、Agent 目标分发、健康检查、按需导入 .env 和 CLI MCP 命令
-- Prompt 关系树与语义关系：现有列表和表格支持拖拽成父子结构、展开/折叠、父级标签、子项计数和详情页关系导航
-- Git 仓库 Skill 导入修复：SSH GitHub 扫描走本地 clone，地址变更可重新扫描，HTTPS 限流会提示改用 SSH
-- Skill 图片资源预览支持滚轮缩放、抓手拖拽、右下角固定缩放控件和全屏预览
-- Skill 版本展示从 v1 开始，详情标题点击即可复制 Skill 名称
-
-### v0.5.8（2026-06-04）
-
-- 图片 Prompt 反推新增独立入口，支持视觉模型生成结构化生图 Prompt，先预览/复制再决定是否保存
-- AI 模型配置改为供应商优先的三栏体验，区分供应商、模型能力和业务路由
-- ClawHub 与 skill.sh 商店接入远程搜索、分类、分页/滚动加载、缓存和完整 Skill 包安装
-- Skill 生命周期矩阵继续加固，覆盖我的 Skill、项目 Skill、Agent Skill、平台安装、copy / symlink、内置 Skill 和外部软链接
-- GitHub / Gitea / 自托管 Git 来源更新检查更准确，并忽略常见缓存文件以减少误报
-- Skill 文件视图接入轻量代码编辑器，支持语法高亮、行号、自动换行和更准确的文件图标
-
-### v0.5.8-beta.3（2026-06-02，预览版）
-
-- Skill 文件视图接入轻量代码编辑器，支持语法高亮、行号、自动换行和更准确的文件图标
-- GitHub 导入到“我的 Skill”的条目现在可以直接检查来源更新，并在更新前创建版本快照
-- Cherry Studio、Agent Skill、项目 Skill、copy / symlink、内置 Skill 与外部软链接状态继续补强
-- Prompt / Skill 版本历史弹窗改为更适合检索和对比的表格化呈现
-
-### v0.5.8-beta.2（2026-06-02，预览版）
-
-- Skill 生命周期操作继续补强，覆盖项目 Skill、Agent Skill 和平台 Skill 的安装、卸载、删除与软链接路径
-- 项目详情页删除按钮改为默认红色 destructive 样式，降低误操作风险
-- Skill 管理页和项目/Agent 内部切换统一使用横向过渡动画
-- GitHub Actions 发布链路同步到 Node 24
-
-### v0.5.8-beta.1（2026-06-01，预览版）
-
-- 图片 Prompt 反推工作流新增独立入口，支持通过视觉模型反推结构化生图 Prompt，并可把原图作为参考图保存
-- AI 模型服务重构为供应商优先的三栏配置体验，区分供应商实例、模型能力和业务路由
-- 独立 CLI 的 `--version` 与 package 版本同步到 `0.5.8-beta.1`
-- 项目 Skill 结果区改为紧凑列表，次要动作收口为 icon-only
-
-### v0.5.7（2026-05-29）
-
-- Prompt AI 快速编辑：详情页、详情弹窗和右键菜单统一接入 `AI 快速编辑`，支持先生成草稿再应用或继续编辑
-- 同名 Skill variant 正式落地：允许同名但不同来源的 Skill 并存，并统一围绕 `source_id` 与托管容器结构收口
-- 备份导入恢复链路加固，降低恢复后的状态漂移风险
-- `scanRemoteGithub` 统一支持 HTTPS / SSH 的 GitHub、Gitea 和自托管 Git 仓库
-- AI Workbench 的 `测试连接` 成功状态现可持久回显，切换回来不会掉回 `未验证`
-- Kilo Code 规则扫描补齐，避免新增平台遗漏全局规则文件
-
-### v0.5.7-beta.2（2026-05-28，预览版）
-
-- Git 商店源支持 `branch / directory` 配置、远程分支建议和 GitHub / SSH / 自部署 Git 仓库
-- 项目 Skill 导入支持 `copy / symlink` 高级模式，并按项目记住导入偏好与目标目录
-- Agent 管理与 Skill 平台安装内置接入 `Kilo Code`，移除 `Roo Code`
-
-### v0.5.7-beta.1（2026-05-26，预览版）
-
-- 统一 built-in / custom agent 完整配置模型，Skill Settings 可直接覆写 `root / skills / rules / agents / commands / config` 路径
-- 新增 `Cline`、`Trae CN` 内置平台预设，并让 Rules 工作区按 agent 配置和顺序即时刷新
-- 支持把 Skill 直接部署到项目本地 agent 目录，默认 `.agents/skills`，并支持多目标选择
-- 平台 symlink 安装回退到 copy 时会明确提示 warning，不再伪装成普通成功
-- Prompt 详情双击编辑收口：双击哪块就编辑哪块，编辑态尽量保持原页面结构
-
-### v0.5.6（2026-05-12）
-
-**新功能**
-
-- 🧭 **Rules 集中管理工作台**：桌面端独立的 Rules 页面，统一管理全局规则和手动添加的项目规则，支持搜索、历史快照预览、恢复到草稿，并接入 ZIP 导出、WebDAV、自托管备份恢复和 Web 导入导出
-- 📁 **项目级 Skill 工作区**：可以为本地项目建立独立 Skill 工作区，自动扫描常见目录，在项目上下文中预览、导入和分发 Skill
-- 🤖 **Quick Add 支持 AI 直接生成 Prompt**：除了分析已有 Prompt，Quick Add 现在也能根据目标和约束直接生成结构化 Prompt 草稿
-- 🏷️ **全局 Prompt 标签管理**：侧栏标签区域新增统一入口，可集中搜索、重命名、合并和删除标签，同步更新数据库与工作区文件
-- 🔐 **Skill 商店支持 GitHub Token**：减少匿名限流导致的商店和仓库导入失败
-
-**修复**
-
-- ✍️ 卡片详情支持双击编辑用户提示词和系统提示词
-- 🪟 修复检查更新弹窗闪烁、下载按钮不可稳定点击，以及开机自启时不能按 `minimizeOnLaunch` 最小化的问题
-- ↔️ Skills 三栏列宽调节、双击重置、标题换行、商店搜索的一组易用性回归
-- 🔁 Rules、Skill 附加文件和托管副本在 ZIP 导出、WebDAV、自托管备份恢复和 Web 导入导出链路中的一致性
-- 🖼️ 自托管 Web 登录改用一次性图形验证码
-
-**优化**
-
-- 🏠 双栏首页稳定支持模块显隐、拖拽排序，背景图独立开关
-- ☁️ 桌面端只允许一个活动同步源驱动自动同步，避免多源同时写入冲突
-- ✨ 引入完整的桌面端动画系统（duration / easing / scale tokens、`<Reveal>` `<Collapsible>` `<ViewTransition>` `<Pressable>` 四个意图组件、三档用户偏好），并卸掉了仅在一个组件用过的 framer-motion，`ui-vendor` chunk gzip 从 54 KB 降到 16 KB
-- 🪶 桌面端长列表（Skill 列表 / Prompt 画廊 / 看板 / Prompt 详情列表）改为 `@tanstack/react-virtual` 虚拟化，去掉了之前手写的 setTimeout 分批渲染补丁
-
-<div id="roadmap"></div>
-
-## 路线图
-
-### v0.5.9 ← 当前稳定版
-
-- Plugin / MCP 管理对齐 Skill 体验，覆盖商店、Agent 分发、详情、标签筛选、更新确认和安全检查
-- Agent 资产同步、网络代理、CLI 项目安装和 Skill 来源更新检查进入稳定版
-- Prompt 关系树、Windows Agent 路径、Web 验证码开关、macOS 签名公证和发布链路修复随正式版提供给用户
-
-### v0.5.8
-
-- 图片 Prompt 反推、AI 模型供应商/能力/路由配置和生图测试链路稳定落地
-- Skill 生命周期矩阵收口，覆盖商店、Git、Agent、项目、平台、copy / symlink 和内置 Skill
-- ClawHub / skill.sh 商店、来源更新检查、代码视图、文件图标和版本历史体验补齐
-
-### v0.5.7
-
-- Prompt AI 快速编辑、同名 Skill variant、远程 Git 扫描和 AI Workbench 验证状态加固
-
-### v0.5.6
-
-详见上方更新日志。
-
-### v0.5.5
-
-- 商店 Skill 安装时记录内容哈希，可检测远端 SKILL.md 是否更新并支持本地修改冲突保护
-- Skill 整份文档 AI 翻译：围绕完整 SKILL.md 生成 sidecar 译文，支持全文翻译和沉浸式对照
-- 数据目录切换通过 relaunch 真正生效
-- AI 模型测试与翻译错误反馈更明确（504 / 超时 / 未配置都有具体提示）
-- Web/Docker 媒体上传修复，`local-image://` / `local-video://` 自动解析
-- 预览通道更新链路加固
-- Issue Form 自动同步 `version: x.y.z` 标签
-
-### v0.4.x
-
-- AI 工作台、模型管理、端点编辑、连接测试与场景默认模型
-- skills.sh 社区商店接入，支持榜单、安装量、Star
-- skill-installer God Class 拆分、SSRF 防护、URL 协议校验
-- 多平台 Skill 一键安装：Claude Code、Cursor、Windsurf、Codex、Cline 等十几个平台
-- AI 翻译、AI 生成 Skill、本地批量扫描
-
-### 在做 / 在想
-
-- [ ] 浏览器扩展：在 ChatGPT / Claude 网页里直接调用 AgentsHub 库
-- [ ] 移动端：手机查看、搜索、轻量编辑同步
-- [ ] 插件机制：本地模型（Ollama 等）和自定义 AI 供应商
-- [ ] Prompt 商店：复用社区验证过的提示词模板
-- [ ] 更复杂的变量类型：选择框、动态日期等
-- [ ] 用户上传分享自创 Skill
-
-<div id="dev"></div>
+---
 
 ## 从源码运行
 
@@ -545,7 +367,7 @@ pnpm build:web
 | `pnpm test:release`                              | 桌面端发布前完整门禁                  |
 | `pnpm --filter @prompthub/desktop bundle:budget` | 桌面端 bundle 体积预算检查            |
 
-<div id="project-structure"></div>
+---
 
 ## 仓库结构
 
@@ -567,7 +389,38 @@ AgentsHub/
 └── package.json
 ```
 
-<div id="contributing"></div>
+---
+
+## 更新日志
+
+完整版本说明见 **[CHANGELOG.md](./CHANGELOG.md)**。
+
+### v0.5.9（2026-07-14，正式版）
+
+- Plugin 管理正式收口：My Plugins / Plugin Store / Agent Plugin 对齐 Skill 风格，支持安装、详情、版本快照、来源更新确认、批量操作、Agent 分发和子 Skill / MCP 导入
+- MCP 管理与同步能力扩展：MCP 工作台、官方模板商店、Agent 目标分发、健康检查、.env 按需导入、CLI MCP 命令和一键重同步阶段性收口
+- 整套 Agent 资产备份：自托管备份恢复纳入 My Skills、My MCP、My Plugins 和 Rules 等数据
+- Skill 来源更新改为 SHA-256 包指纹和三方对账，修复 registry 指纹、content-url 基线和 URL 脱敏问题
+- Plugin 来源更新和批量商店更新先展示差异并要求确认，不再直接覆盖本地 Plugin
+- Prompt 支持组合、排序和持久化自定义输出格式序列，并随备份恢复
+- macOS 发布链路加强 Developer ID 签名、公证、DMG/ZIP 校验和 Gatekeeper 验证
+
+更早版本更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
+
+---
+
+## 路线图
+
+- [ ] 浏览器扩展：在 ChatGPT / Claude 网页里直接调用 AgentsHub 库
+- [ ] 移动端：手机查看、搜索、轻量编辑同步
+- [ ] 插件机制：本地模型（Ollama 等）和自定义 AI 供应商
+- [ ] Prompt 商店：复用社区验证过的提示词模板
+- [ ] 更复杂的变量类型：选择框、动态日期等
+- [ ] 用户上传分享自创 Skill
+
+历史版本路线图见 [CHANGELOG.md](./CHANGELOG.md) 与版本发布说明。
+
+---
 
 ## 贡献与文档
 
@@ -576,105 +429,19 @@ AgentsHub/
 - 对外文档索引：[`docs/README.md`](./docs/README.md)
 - 内部 SSD / spec：[`spec/README.md`](./spec/README.md)
 - 项目内置 spec skill：[`spec-init`](./.agents/skills/spec-init/SKILL.md)
-- `spec-init` 上游仓库：[`git@github.com:legeling/spec-init.git`](git@github.com:legeling/spec-init.git)
 - 文档拓扑路由：[`spec-init.topology.yml`](./spec-init.topology.yml)
 
-AgentsHub 当前采用的是 `spec-init` 文档边界 + `spec/changes/active/<change-key>/` 变更流：项目级稳定文档主入口使用 `spec/workflow/*`、`spec/knowledge/*`、`spec/rules/`、`spec/releases/`，非平凡改动继续在 change 文件夹里写 `proposal.md` / `specs/<domain>/spec.md` / `design.md` / `tasks.md` / `implementation.md`，完成后再把稳定事实同步回这些长期真相源。
+---
 
-<div id="meta"></div>
-
-## 许可证
+## 许可证 / 反馈
 
 [AGPL-3.0](./LICENSE)
 
-## 反馈
-
-- 问题：[GitHub Issues](https://github.com/legeling/PromptHub/issues)
-- 想法：[GitHub Discussions](https://github.com/legeling/PromptHub/discussions)
-
-## 致谢
-
-[Electron](https://www.electronjs.org/) · [React](https://react.dev/) · [TailwindCSS](https://tailwindcss.com/) · [Zustand](https://zustand-demo.pmnd.rs/) · [Lucide](https://lucide.dev/) · [@tanstack/react-virtual](https://tanstack.com/virtual) · [tailwindcss-animate](https://github.com/jamiebuilds/tailwindcss-animate)
-
-## 贡献者
-
-感谢所有为 PromptHub 做出贡献的开发者。
-
-<a href="https://github.com/legeling/PromptHub/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=legeling/PromptHub" alt="Contributors" />
-</a>
-
-## Star History
-
-<a href="https://star-history.com/#legeling/PromptHub&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=legeling/PromptHub&type=Date&theme=dark" />
-    <img alt="Star History" src="https://api.star-history.com/svg?repos=legeling/PromptHub&type=Date" />
-  </picture>
-</a>
-
-## 社区
-
-欢迎加入 PromptHub 社群，反馈问题、交流使用方式、讨论新功能、抢先体验预览版。
-
-<div align="center">
-  <a href="https://discord.gg/zmfWguWFB">
-    <img src="https://img.shields.io/badge/Discord-Join%20PromptHub%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join PromptHub Discord Community" />
-  </a>
-  <p><strong>推荐优先加入 Discord 社群，获取公告、交流支持与新版本动态</strong></p>
-</div>
-
-<br/>
-
-### QQ 交流群
-
-如果你更习惯用 QQ，可以加入 PromptHub QQ 交流群：
-
-- 群号：`704298939`
-
-<div align="center">
-  <img src="./docs/imgs/qq-group.jpg" width="320" alt="PromptHub QQ 交流群二维码"/>
-  <p><strong>扫码加入 PromptHub QQ 交流群</strong></p>
-</div>
-
-<div id="sponsor"></div>
-
-## 赞助支持 / Sponsor
-
-如果 PromptHub 对你的工作有帮助，欢迎请作者喝杯咖啡。
-
-If PromptHub is helpful to your work, feel free to buy the author a coffee.
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center">
-        <img src="./docs/imgs/donate/wechat.png" width="200" alt="WeChat Pay"/>
-        <br/>
-        <b>微信支付 / WeChat Pay</b>
-      </td>
-      <td align="center">
-        <img src="./docs/imgs/donate/alipay.jpg" width="200" alt="Alipay"/>
-        <br/>
-        <b>支付宝 / Alipay</b>
-      </td>
-      <td align="center">
-        <a href="https://www.buymeacoffee.com/legeling" target="_blank">
-          <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50" />
-        </a>
-        <br/>
-        <b>Buy Me A Coffee</b>
-      </td>
-    </tr>
-  </table>
-</div>
-
-联系邮箱：legeling567@gmail.com
-
-历史赞助记录归档在 [`docs/sponsors.md`](./docs/sponsors.md)。
+- 问题反馈：[GitHub Issues](https://github.com/YZhuAndrew/AgentsHub/issues/new)
+- 联系维护者：yzhu.andrew@163.com
 
 ---
 
 <div align="center">
-  <p>如果 PromptHub 对你有帮助，请给个 ⭐ 支持一下。</p>
+  <p>如果 AgentsHub 对你有帮助，请给个 ⭐ 支持一下。</p>
 </div>

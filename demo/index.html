@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentsHub — 演示</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Morandi Palette / Royal Blue
+   Tokens sourced from apps/desktop/src/renderer/styles/globals.css
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --theme-hue: 220;
+  --theme-sat: 70;
+  --radius: 0.75rem;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --mono: "SF Mono", "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+/* Light mode */
+:root, html:not(.dark) {
+  --bg: hsl(220 14% 96%);
+  --fg: hsl(220 20% 25%);
+  --card: hsl(0 0% 100%);
+  --card-fg: hsl(220 20% 25%);
+  --popover: hsl(0 0% 100%);
+  --secondary: hsl(220 14% 96%);
+  --secondary-fg: hsl(220 20% 25%);
+  --muted: hsl(220 14% 94%);
+  --muted-fg: hsl(220 12% 50%);
+  --accent: hsl(220 35% 94%);
+  --accent-fg: hsl(220 70% 40%);
+  --destructive: hsl(0 45% 55%);
+  --border: hsl(220 13% 90%);
+  --input: hsl(220 13% 90%);
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-accent: hsl(220 14% 95%);
+  --sidebar-border: hsl(220 13% 90%);
+  --rail-bg: hsl(220 16% 97%);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 4px 12px rgba(0,0,0,.06);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.08);
+}
+
+/* Dark mode */
+html.dark {
+  --bg: hsl(220 25% 7%);
+  --fg: hsl(220 15% 92%);
+  --card: hsl(220 22% 10%);
+  --card-fg: hsl(220 15% 92%);
+  --popover: hsl(220 22% 12%);
+  --secondary: hsl(220 20% 12%);
+  --secondary-fg: hsl(220 15% 92%);
+  --muted: hsl(220 20% 12%);
+  --muted-fg: hsl(220 12% 60%);
+  --accent: hsl(220 20% 15%);
+  --accent-fg: hsl(220 70% 85%);
+  --destructive: hsl(0 70% 55%);
+  --border: hsl(220 20% 14%);
+  --input: hsl(220 20% 14%);
+  --sidebar: hsl(220 25% 7%);
+  --sidebar-accent: hsl(220 20% 14%);
+  --sidebar-border: hsl(220 20% 12%);
+  --rail-bg: hsl(220 26% 5%);
+  --shadow-sm: 0 2px 4px rgba(0,0,0,.4);
+  --shadow: 0 8px 16px rgba(0,0,0,.5);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.6);
+}
+
+/* Primary (derived from theme-hue/sat at L=55%) */
+:root, html.dark {
+  --primary: hsl(var(--theme-hue) var(--theme-sat) 55%);
+  --primary-fg: hsl(0 0% 100%);
+  --ring: hsl(var(--theme-hue) var(--theme-sat) 55%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea, select { font-family: inherit; font-size: inherit; }
+svg { display: block; flex-shrink: 0; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-fg); }
+
+/* ═══════════════════════════════════════════════════════════════
+   ICONS
+   ═══════════════════════════════════════════════════════════════ */
+.ico { width: 18px; height: 18px; stroke-width: 2; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ico-sm { width: 15px; height: 15px; stroke-width: 2; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ico-lg { width: 22px; height: 22px; stroke-width: 2; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ico-xl { width: 28px; height: 28px; stroke-width: 1.8; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ═══════════════════════════════════════════════════════════════
+   APP LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
+.app-shell { display: flex; flex-direction: column; height: 100vh; }
+
+/* Title bar */
+.titlebar {
+  display: flex; align-items: center; gap: 12px;
+  height: 40px; padding: 0 12px;
+  background: var(--sidebar);
+  border-bottom: 1px solid var(--sidebar-border);
+  user-select: none;
+  flex-shrink: 0;
+}
+.titlebar-dots { display: flex; gap: 8px; margin-right: 8px; }
+.tdot { width: 12px; height: 12px; border-radius: 50%; }
+.tdot-r { background: #ff5f57; }
+.tdot-y { background: #febc2e; }
+.tdot-g { background: #28c840; }
+.titlebar-title { font-size: 13px; font-weight: 600; color: var(--muted-fg); flex: 1; text-align: center; }
+.titlebar-actions { display: flex; align-items: center; gap: 4px; }
+
+/* Body area */
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* Icon rail */
+.icon-rail {
+  width: 56px;
+  background: var(--rail-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.rail-btn {
+  width: 40px; height: 40px;
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted-fg);
+  transition: all 0.15s;
+  position: relative;
+}
+.rail-btn:hover { background: var(--sidebar-accent); color: var(--fg); }
+.rail-btn.active { background: var(--primary); color: var(--primary-fg); }
+.rail-btn.active::after {
+  content: ''; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px; border-radius: 2px; background: var(--primary);
+}
+.rail-sep { width: 24px; height: 1px; background: var(--sidebar-border); margin: 4px 0; }
+.rail-spacer { flex: 1; }
+
+/* Nav panel */
+.nav-panel {
+  width: 220px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.nav-panel-header { padding: 16px 16px 8px; }
+.nav-panel-title { font-size: 16px; font-weight: 700; }
+.nav-panel-sub { font-size: 12px; color: var(--muted-fg); margin-top: 2px; }
+.nav-list { flex: 1; overflow-y: auto; padding: 4px 8px; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: var(--radius);
+  font-size: 13px; color: var(--fg);
+  cursor: pointer; transition: background 0.12s;
+  width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--sidebar-accent); }
+.nav-item.active { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.nav-item .ico-sm { color: var(--muted-fg); flex-shrink: 0; }
+.nav-item.active .ico-sm { color: var(--accent-fg); }
+.nav-item-count { margin-left: auto; font-size: 11px; color: var(--muted-fg); font-variant-numeric: tabular-nums; }
+.nav-item.active .nav-item-count { color: var(--accent-fg); }
+.nav-section { font-size: 11px; font-weight: 600; color: var(--muted-fg); text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 10px 4px; }
+
+/* Folder tree */
+.folder-tree { padding-left: 0; }
+.folder-row {
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: calc(var(--radius) - 4px);
+  font-size: 13px; cursor: pointer; transition: background 0.12s;
+}
+.folder-row:hover { background: var(--sidebar-accent); }
+.folder-row .folder-chevron { width: 14px; height: 14px; transition: transform 0.15s; opacity: 0.6; }
+.folder-row.expanded .folder-chevron { transform: rotate(90deg); }
+.folder-row .folder-icon { color: hsl(45 80% 55%); }
+.folder-row.private .folder-icon { color: var(--muted-fg); }
+.folder-children { padding-left: 16px; overflow: hidden; }
+.folder-children.collapsed { display: none; }
+
+/* Tag cloud */
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 10px; }
+.tag-chip {
+  font-size: 12px; padding: 2px 10px; border-radius: 999px;
+  background: var(--sidebar-accent); color: var(--muted-fg);
+  cursor: pointer; transition: all 0.12s;
+}
+.tag-chip:hover { background: var(--accent); color: var(--accent-fg); }
+
+/* Main area */
+.main-area { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+  min-height: 56px;
+}
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card); border: 1px solid var(--input);
+  border-radius: var(--radius); padding: 0 12px;
+  height: 36px; width: 280px; transition: border-color 0.15s;
+}
+.search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px hsl(var(--theme-hue) var(--theme-sat) 55% / 0.15); }
+.search-box .ico { color: var(--muted-fg); width: 16px; height: 16px; }
+.search-box input { border: none; background: none; outline: none; flex: 1; color: var(--fg); }
+.search-box input::placeholder { color: var(--muted-fg); }
+.topbar-spacer { flex: 1; }
+
+/* View toggle group */
+.view-toggle {
+  display: flex; background: var(--card); border: 1px solid var(--input);
+  border-radius: var(--radius); overflow: hidden; height: 36px;
+}
+.view-toggle button {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; color: var(--muted-fg); transition: all 0.12s;
+}
+.view-toggle button:hover { background: var(--sidebar-accent); color: var(--fg); }
+.view-toggle button.active { background: var(--primary); color: var(--primary-fg); }
+
+/* Select */
+.select-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--card); border: 1px solid var(--input);
+  border-radius: var(--radius); padding: 0 10px; height: 36px;
+  font-size: 13px; color: var(--fg); transition: border-color 0.15s;
+}
+.select-pill:hover { border-color: var(--muted-fg); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 14px; height: 36px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 500; transition: all 0.12s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--primary); color: var(--primary-fg); }
+.btn-primary:hover { filter: brightness(1.1); box-shadow: 0 2px 8px hsl(var(--theme-hue) var(--theme-sat) 55% / 0.3); }
+.btn-ghost { background: var(--card); border: 1px solid var(--input); color: var(--fg); }
+.btn-ghost:hover { background: var(--sidebar-accent); }
+.btn-ghost .ico { color: var(--muted-fg); }
+.btn-sm { height: 30px; font-size: 12px; padding: 0 10px; }
+.btn-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: var(--radius);
+  color: var(--muted-fg); transition: all 0.12s;
+}
+.btn-icon:hover { background: var(--sidebar-accent); color: var(--fg); }
+
+/* Content scroll area */
+.content-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   PROMPT CARDS — Card View
+   ═══════════════════════════════════════════════════════════════ */
+.prompt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.prompt-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.prompt-card:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-1px); }
+.prompt-card-header { display: flex; align-items: flex-start; gap: 10px; }
+.prompt-type-badge {
+  width: 36px; height: 36px; border-radius: calc(var(--radius) - 4px);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 18px;
+}
+.prompt-type-badge.text { background: hsl(210 60% 50% / 0.12); color: hsl(210 60% 55%); }
+.prompt-type-badge.image { background: hsl(280 50% 55% / 0.12); color: hsl(280 50% 60%); }
+.prompt-card-title { font-weight: 600; font-size: 14px; line-height: 1.4; flex: 1; }
+.prompt-card-desc { font-size: 12px; color: var(--muted-fg); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.prompt-card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.prompt-tag { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-fg); }
+.prompt-card-footer { display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--muted-fg); padding-top: 8px; border-top: 1px solid var(--border); margin-top: auto; }
+.prompt-card-footer span { display: flex; align-items: center; gap: 3px; }
+.prompt-card-footer .star { color: hsl(45 90% 55%); }
+
+/* List view */
+.prompt-list { display: flex; flex-direction: column; gap: 2px; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+.prompt-list-header { display: grid; grid-template-columns: 1fr 80px 100px 80px 80px 40px; gap: 12px; padding: 10px 16px; font-size: 11px; font-weight: 600; color: var(--muted-fg); text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--muted); }
+.prompt-list-row { display: grid; grid-template-columns: 1fr 80px 100px 80px 80px 40px; gap: 12px; padding: 12px 16px; font-size: 13px; align-items: center; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid var(--border); }
+.prompt-list-row:last-child { border-bottom: none; }
+.prompt-list-row:hover { background: var(--sidebar-accent); }
+.prompt-list-row .pl-title { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+
+/* Gallery view */
+.prompt-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.gallery-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: all 0.15s; }
+.gallery-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+.gallery-thumb { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+.gallery-thumb.text-grad { background: linear-gradient(135deg, hsl(210 60% 50% / 0.15), hsl(210 60% 65% / 0.05)); }
+.gallery-thumb.image-grad { background: linear-gradient(135deg, hsl(280 50% 55% / 0.15), hsl(320 50% 60% / 0.05)); }
+.gallery-body { padding: 12px; }
+.gallery-body h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.gallery-body p { font-size: 11px; color: var(--muted-fg); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SKILL CARDS
+   ═══════════════════════════════════════════════════════════════ */
+.skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.skill-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: all 0.15s;
+}
+.skill-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+.skill-card-header { display: flex; gap: 12px; align-items: flex-start; }
+.skill-icon-box {
+  width: 44px; height: 44px; border-radius: calc(var(--radius) - 2px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.skill-name { font-weight: 600; font-size: 14px; }
+.skill-author { font-size: 11px; color: var(--muted-fg); }
+.skill-desc { font-size: 12px; color: var(--muted-fg); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.skill-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.skill-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border); margin-top: auto; }
+.skill-meta { font-size: 11px; color: var(--muted-fg); display: flex; gap: 10px; }
+.skill-meta span { display: flex; align-items: center; gap: 3px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   AGENT CARDS / WORKSPACE
+   ═══════════════════════════════════════════════════════════════ */
+.agent-layout { display: flex; gap: 20px; height: 100%; }
+.agent-sidebar { width: 280px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.agent-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px; cursor: pointer; transition: all 0.12s;
+  display: flex; gap: 10px; align-items: center;
+}
+.agent-card:hover { border-color: var(--muted-fg); }
+.agent-card.active { border-color: var(--primary); background: var(--accent); }
+.agent-avatar { width: 40px; height: 40px; border-radius: calc(var(--radius) - 4px); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.agent-info { flex: 1; min-width: 0; }
+.agent-name { font-size: 13px; font-weight: 600; }
+.agent-status { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; }
+.status-dot.ok { background: #28c840; }
+.status-dot.warn { background: #febc2e; }
+.status-dot.err { background: #ff5f57; }
+.status-dot.muted { background: var(--muted-fg); }
+.agent-workspace { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; }
+.ws-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.ws-tabs { display: flex; gap: 0; padding: 0 20px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.ws-tab { padding: 10px 14px; font-size: 13px; color: var(--muted-fg); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.12s; white-space: nowrap; }
+.ws-tab:hover { color: var(--fg); }
+.ws-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.ws-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* Stat cards */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.stat-label { font-size: 11px; color: var(--muted-fg); text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+.stat-sub { font-size: 11px; color: var(--muted-fg); margin-top: 2px; }
+
+/* Info grid */
+.info-grid { display: grid; grid-template-columns: 160px 1fr; gap: 0; }
+.info-grid dt { font-size: 13px; color: var(--muted-fg); padding: 8px 0; }
+.info-grid dd { font-size: 13px; padding: 8px 0; font-weight: 500; }
+
+/* Session list */
+.session-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; cursor: pointer; transition: all 0.12s; background: var(--bg); }
+.session-item:hover { border-color: var(--primary); }
+.session-title { font-size: 13px; font-weight: 500; flex: 1; }
+.session-meta { font-size: 11px; color: var(--muted-fg); }
+
+/* Usage ring */
+.usage-ring-wrap { display: flex; gap: 24px; }
+.usage-ring { text-align: center; }
+.usage-ring svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+.ring-fg { fill: none; stroke: var(--primary); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.3s; }
+.ring-label { font-size: 11px; color: var(--muted-fg); margin-top: 6px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   MCP / PLUGIN cards
+   ═══════════════════════════════════════════════════════════════ */
+.mcp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.mcp-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: all 0.15s; }
+.mcp-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+.mcp-card-header { display: flex; gap: 10px; align-items: flex-start; }
+.mcp-icon-box { width: 40px; height: 40px; border-radius: calc(var(--radius) - 4px); background: var(--accent); display: flex; align-items: center; justify-content: center; color: var(--accent-fg); flex-shrink: 0; }
+.mcp-config { font-family: var(--mono); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: calc(var(--radius) - 4px); padding: 8px 10px; color: var(--muted-fg); overflow-x: auto; white-space: nowrap; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RULES workspace
+   ═══════════════════════════════════════════════════════════════ */
+.rules-layout { display: flex; flex-direction: column; height: 100%; gap: 12px; }
+.rules-file-list { display: flex; flex-direction: column; gap: 4px; }
+.rule-file-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: calc(var(--radius) - 2px); cursor: pointer; font-size: 13px; transition: background 0.12s; }
+.rule-file-item:hover { background: var(--sidebar-accent); }
+.rule-file-item.active { background: var(--accent); color: var(--accent-fg); }
+.rule-editor-wrap { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; }
+.rule-editor-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 8px; }
+.rule-editor-body { flex: 1; overflow: hidden; display: flex; }
+.rule-textarea { flex: 1; border: none; outline: none; resize: none; padding: 16px; font-family: var(--mono); font-size: 13px; line-height: 1.6; background: var(--card); color: var(--fg); }
+.rule-preview { flex: 1; padding: 16px; overflow-y: auto; border-left: 1px solid var(--border); font-size: 13px; line-height: 1.7; }
+.rule-preview h1 { font-size: 20px; font-weight: 700; margin: 16px 0 8px; }
+.rule-preview h2 { font-size: 16px; font-weight: 600; margin: 14px 0 6px; }
+.rule-preview h3 { font-size: 14px; font-weight: 600; margin: 12px 0 4px; }
+.rule-preview p { margin: 6px 0; color: var(--muted-fg); }
+.rule-preview code { font-family: var(--mono); font-size: 12px; background: var(--muted); padding: 1px 5px; border-radius: 3px; }
+.rule-preview ul, .rule-preview ol { padding-left: 20px; margin: 6px 0; color: var(--muted-fg); }
+.rule-preview li { margin: 3px 0; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════════════════════════ */
+.settings-layout { display: flex; gap: 0; height: 100%; background: var(--bg); }
+.settings-nav { width: 220px; border-right: 1px solid var(--border); padding: 12px 8px; overflow-y: auto; flex-shrink: 0; }
+.settings-content { flex: 1; overflow-y: auto; padding: 28px; max-width: 720px; }
+.settings-content h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.settings-content .settings-desc { color: var(--muted-fg); font-size: 13px; margin-bottom: 24px; }
+.settings-section { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 0; margin-bottom: 16px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 16px; }
+.settings-row:last-child { border-bottom: none; }
+.settings-row-info { flex: 1; }
+.settings-row-label { font-size: 13px; font-weight: 500; }
+.settings-row-desc { font-size: 12px; color: var(--muted-fg); margin-top: 2px; }
+.settings-control { flex-shrink: 0; }
+
+/* Toggle switch */
+.toggle { width: 40px; height: 22px; border-radius: 999px; background: var(--input); position: relative; cursor: pointer; transition: background 0.2s; }
+.toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: white; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.toggle.on { background: var(--primary); }
+.toggle.on::after { transform: translateX(18px); }
+
+/* Theme swatches */
+.theme-swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.theme-swatch { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+.theme-swatch.active { border-color: var(--fg); box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--fg); }
+
+/* Text input */
+.text-input { background: var(--bg); border: 1px solid var(--input); border-radius: calc(var(--radius) - 2px); padding: 0 12px; height: 36px; color: var(--fg); outline: none; transition: border-color 0.15s; min-width: 180px; }
+.text-input:focus { border-color: var(--primary); }
+.select-input { background: var(--bg); border: 1px solid var(--input); border-radius: calc(var(--radius) - 2px); padding: 0 12px; height: 36px; color: var(--fg); outline: none; }
+
+/* API key rows */
+.provider-row { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.provider-row:last-child { border-bottom: none; }
+.provider-logo { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.provider-info { flex: 1; }
+.provider-name { font-size: 13px; font-weight: 500; }
+.provider-models { font-size: 11px; color: var(--muted-fg); }
+
+/* ═══════════════════════════════════════════════════════════════
+   MODALS
+   ═══════════════════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--popover); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  max-width: 90vw; max-height: 85vh; display: flex; flex-direction: column;
+  transform: scale(0.95); transition: transform 0.2s;
+}
+.modal-overlay.show .modal { transform: scale(1); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border); }
+
+/* Platform install grid */
+.platform-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-height: 400px; overflow-y: auto; padding: 4px; }
+.platform-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: calc(var(--radius) - 4px); cursor: pointer; transition: all 0.12s; font-size: 12px; }
+.platform-item:hover { border-color: var(--primary); background: var(--accent); }
+.platform-item.selected { border-color: var(--primary); background: var(--accent); }
+.platform-item .check { width: 16px; height: 16px; color: var(--primary); opacity: 0; }
+.platform-item.selected .check { opacity: 1; }
+
+/* Prompt detail modal */
+.prompt-detail-body { width: 700px; max-width: 90vw; }
+.detail-field { margin-bottom: 16px; }
+.detail-label { font-size: 12px; font-weight: 600; color: var(--muted-fg); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+.detail-textarea { width: 100%; min-height: 80px; background: var(--bg); border: 1px solid var(--input); border-radius: calc(var(--radius) - 2px); padding: 10px 12px; font-family: var(--mono); font-size: 13px; color: var(--fg); outline: none; resize: vertical; }
+.detail-textarea:focus { border-color: var(--primary); }
+
+/* Variable pills */
+.var-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.var-pill { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 4px; background: hsl(45 80% 50% / 0.12); color: hsl(40 70% 50%); border: 1px solid hsl(45 80% 50% / 0.2); }
+
+/* Empty state */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; color: var(--muted-fg); }
+.empty-state .ico-xl { opacity: 0.4; }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 8px; z-index: 2000; transform: translateY(80px); opacity: 0; transition: all 0.3s; max-width: 360px; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast .ico { color: #28c840; }
+
+/* Utility */
+.hidden { display: none !important; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+.text-muted { color: var(--muted-fg); }
+.text-sm { font-size: 12px; }
+.text-xs { font-size: 11px; }
+.font-mono { font-family: var(--mono); }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.flex-1 { flex: 1; }
+.flex-wrap { flex-wrap: wrap; }
+.w-full { width: 100%; }
+.rounded { border-radius: var(--radius); }
+.section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+.content-padded { padding: 24px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- ══ TITLE BAR ══ -->
+  <div class="titlebar">
+    <div class="titlebar-dots">
+      <div class="tdot tdot-r"></div>
+      <div class="tdot tdot-y"></div>
+      <div class="tdot tdot-g"></div>
+    </div>
+    <div class="titlebar-title">AgentsHub</div>
+    <div class="titlebar-actions">
+      <button class="btn-icon" onclick="toggleTheme()" title="切换主题" id="themeToggleBtn">
+        <svg class="ico" viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="btn-icon" onclick="showToast('已打开设置')" title="设置" onclick="switchModule('settings')">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ BODY ══ -->
+  <div class="app-body">
+    <!-- Icon Rail -->
+    <div class="icon-rail" id="iconRail">
+      <!-- Module buttons injected by JS -->
+    </div>
+
+    <!-- Nav Panel -->
+    <div class="nav-panel" id="navPanel">
+      <!-- Nav content injected by JS -->
+    </div>
+
+    <!-- Main Area -->
+    <div class="main-area">
+      <div class="topbar" id="topbar">
+        <!-- Topbar content injected by JS -->
+      </div>
+      <div class="content-scroll" id="contentScroll">
+        <!-- Main content injected by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal container -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modalContent" onclick="event.stopPropagation()">
+    <!-- Modal content injected by JS -->
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg class="ico" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ICON DEFINITIONS (Lucide-style SVG paths)
+// ═══════════════════════════════════════════════════════════════
+const ICONS = {
+  prompt: '<svg class="ico" viewBox="0 0 24 24"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg>',
+  agents: '<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>',
+  skill: '<svg class="ico" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+  mcp: '<svg class="ico" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
+  plugin: '<svg class="ico" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+  rules: '<svg class="ico" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  settings: '<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  // nav icons
+  allPrompts: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg>',
+  textType: '<svg class="ico-sm" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
+  imageType: '<svg class="ico-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  star: '<svg class="ico-sm" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  graph: '<svg class="ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="5" y1="16" x2="19" y2="16"/><line x1="12" y1="16" x2="5" y2="16"/><line x1="12" y1="16" x2="19" y2="16"/></svg>',
+  folder: '<svg class="ico-sm folder-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+  folderLock: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><rect x="9" y="12" width="6" height="5" rx="1"/></svg>',
+  tag: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+  resource: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  store: '<svg class="ico-sm" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
+  // topbar icons
+  search: '<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  card: '<svg class="ico-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  list: '<svg class="ico-sm" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+  gallery: '<svg class="ico-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  plus: '<svg class="ico-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  sort: '<svg class="ico-sm" viewBox="0 0 24 24"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="9" y2="14"/><line x1="21" y1="18" x2="13" y2="18"/></svg>',
+  download: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  copy: '<svg class="ico-sm" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  close: '<svg class="ico" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  check: '<svg class="ico-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
+  clock: '<svg class="ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  eye: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+  chevron: '<svg class="ico-sm folder-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>',
+  zap: '<svg class="ico-sm" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  shield: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  globe: '<svg class="ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  terminal: '<svg class="ico-sm" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>',
+  history: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><polyline points="12 7 12 12 15 14"/></svg>',
+  sun: '<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+  moon: '<svg class="ico" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  bot: '<svg class="ico-sm" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>',
+  refresh: '<svg class="ico-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+  alert: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  cpu: '<svg class="ico-sm" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>',
+  file: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  edit: '<svg class="ico-sm" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+};
+
+// ═══════════════════════════════════════════════════════════════
+// MODULE DEFINITIONS
+// ═══════════════════════════════════════════════════════════════
+const MODULES = [
+  { id: 'prompt',  label: 'Prompts', icon: 'prompt' },
+  { id: 'agents',  label: 'Agents',  icon: 'agents' },
+  { id: 'skill',   label: 'Skills',  icon: 'skill' },
+  { id: 'mcp',     label: 'MCP',     icon: 'mcp' },
+  { id: 'plugin',  label: 'Plugins', icon: 'plugin' },
+  { id: 'rules',   label: 'Rules',   icon: 'rules' },
+];
+
+let currentModule = 'prompt';
+let currentTheme = 'dark';
+let promptView = 'card'; // card | list | gallery
+let settingsSection = 'general';
+
+// ═══════════════════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════════════════
+const PROMPTS = [
+  { id:1, type:'text', title:'代码审查专家', desc:'对代码进行全面审查，包括安全性、性能、可维护性和最佳实践。支持多种编程语言。', tags:['开发','审查','代码'], folder:'开发工具', uses:128, fav:true, sys:'你是一位资深代码审查专家，拥有20年软件工程经验...', user:'请审查以下{{language}}代码，重点关注：\n1. 安全漏洞\n2. 性能问题\n3. 代码规范\n\n代码：\n{{code}}', vars:['language','code'] },
+  { id:2, type:'text', title:'学术论文写作助手', desc:'辅助学术论文的结构规划、文献综述、方法论撰写和格式排版。', tags:['学术','写作'], folder:'学习', uses:89, fav:true, sys:'你是一位学术写作导师...', user:'请帮我{{action}}关于{{topic}}的论文', vars:['action','topic'] },
+  { id:3, type:'image', title:'产品摄影风格', desc:'生成高端产品摄影图片，控制光影、构图、背景和产品质感。', tags:['Midjourney','产品','摄影'], folder:'绘图', uses:256, fav:false, sys:'', user:'Professional product photography of {{product}}, studio lighting, {{background}} background, 8K, sharp focus, commercial quality', vars:['product','background'] },
+  { id:4, type:'text', title:'SQL 查询优化器', desc:'分析并优化慢 SQL 查询，提供索引建议和重构方案。', tags:['SQL','数据库','优化'], folder:'开发工具', uses:67, fav:false, sys:'你是一位数据库性能优化专家...', user:'优化以下 SQL 查询：\n{{sql}}\n\n表结构：\n{{schema}}', vars:['sql','schema'] },
+  { id:5, type:'text', title:'邮件营销文案', desc:'撰写高转化率的营销邮件，含主题行、正文和 CTA。', tags:['营销','文案','邮件'], folder:'营销', uses:45, fav:true, sys:'', user:'为{{product}}撰写一封{{style}}风格的营销邮件，目标受众是{{audience}}', vars:['product','style','audience'] },
+  { id:6, type:'image', title:'动漫角色设计', desc:'设计原创动漫角色，包含性格、外观、服装和配饰设定。', tags:['Stable Diffusion','角色设计'], folder:'绘图', uses:178, fav:true, sys:'', user:'anime character design, {{style}} style, {{hair_color}} hair, {{outfit}}, full body, high quality, detailed', vars:['style','hair_color','outfit'] },
+  { id:7, type:'text', title:'技术文档翻译', desc:'中英双语技术文档翻译，保持术语一致性。', tags:['翻译','技术文档'], folder:'翻译', uses:203, fav:false, sys:'你是一位专业的技术翻译...', user:'将以下{{direction}}文本翻译：\n{{content}}', vars:['direction','content'] },
+  { id:8, type:'text', title:'API 接口文档生成', desc:'根据代码注释或函数签名自动生成 OpenAPI/Swagger 文档。', tags:['API','文档','自动化'], folder:'开发工具', uses:56, fav:false, sys:'', user:'根据以下代码生成 API 文档：\n{{code}}', vars:['code'] },
+  { id:9, type:'text', title:'产品需求文档', desc:'结构化撰写 PRD，包含用户故事、功能需求、验收标准。', tags:['产品','PRD'], folder:'产品', uses:34, fav:false, sys:'', user:'为{{feature}}撰写一份产品需求文档，目标用户是{{user_type}}', vars:['feature','user_type'] },
+  { id:10, type:'image', title:'Logo 设计灵感', desc:'生成现代简约风格的 Logo 设计方案和概念草图。', tags:['Logo','设计','品牌'], folder:'绘图', uses:145, fav:true, sys:'', user:'modern minimalist logo for {{brand_name}}, {{industry}} industry, {{color_scheme}}, vector style, clean lines', vars:['brand_name','industry','color_scheme'] },
+  { id:11, type:'text', title:'正则表达式生成器', desc:'描述需求自动生成正则表达式并解释匹配规则。', tags:['正则','开发'], folder:'开发工具', uses:92, fav:false, sys:'', user:'生成一个正则表达式来匹配{{pattern_desc}}', vars:['pattern_desc'] },
+  { id:12, type:'text', title:'面试题生成器', desc:'根据职位和难度级别生成技术面试题与参考答案。', tags:['面试','HR','招聘'], folder:'HR', uses:38, fav:false, sys:'你是一位技术招聘专家...', user:'为{{position}}职位生成{{count}}道{{difficulty}}面试题', vars:['position','count','difficulty'] },
+];
+
+const FOLDERS = [
+  { name:'开发工具', icon:'📁', count:4, children:[] },
+  { name:'绘图', icon:'🎨', count:3, children:[] },
+  { name:'学习', icon:'📚', count:1, children:[] },
+  { name:'营销', icon:'📢', count:1, children:[] },
+  { name:'翻译', icon:'🌐', count:1, children:[] },
+  { name:'产品', icon:'📋', count:1, children:[] },
+  { name:'HR', icon:'👤', count:1, children:[] },
+  { name:'私密文件夹', icon:'🔒', count:5, children:[], private:true },
+];
+
+const TAGS = ['开发','学术','Midjourney','SQL','营销','Stable Diffusion','翻译','API','产品','Logo','正则','面试','审查','写作','数据库','优化','文案','邮件','角色设计','设计','品牌','HR','招聘'];
+
+const SKILLS = [
+  { name:'PDF Skill', author:'Anthropic', emoji:'📄', desc:'Create, edit, analyze PDF documents with precision. Extract text, merge pages, fill forms.', tags:['document','pdf'], installs:'12.3k', updated:'3天前', installed:false },
+  { name:'Playwright CLI', author:'Microsoft', emoji:'🎭', desc:'Browser automation and E2E testing. Navigate, click, fill forms, screenshot, and verify.', tags:['testing','browser'], installs:'8.7k', updated:'1天前', installed:true },
+  { name:'Frontend Design', author:'PromptHub', emoji:'🎨', desc:'Convert designs to pixel-perfect frontend code. Supports React, Vue, Tailwind, and CSS.', tags:['frontend','design'], installs:'15.1k', updated:'5天前', installed:false },
+  { name:'Security Review', author:'PromptHub', emoji:'🛡️', desc:'Automated security audit of codebases. Detects vulnerabilities, injection, SSRF, and more.', tags:['security','audit'], installs:'6.4k', updated:'2天前', installed:false },
+  { name:'Deep Research', author:'OpenAI', emoji:'🔬', desc:'Multi-step research agent. Searches, synthesizes, and produces comprehensive reports.', tags:['research','agent'], installs:'9.8k', updated:'1周前', installed:false },
+  { name:'MCP Builder', author:'Anthropic', emoji:'🔧', desc:'Build custom MCP servers with type-safe schemas. Includes templates and testing utilities.', tags:['mcp','tools'], installs:'4.2k', updated:'4天前', installed:true },
+  { name:'Prompt Engineering', author:'PromptHub', emoji:'✏️', desc:'Systematic prompt optimization. Chain-of-thought, few-shot, and technique library.', tags:['prompt','ai'], installs:'21.5k', updated:'6天前', installed:false },
+  { name:'Git Worktrees', author:'Community', emoji:'🌳', desc:'Parallel development with git worktrees. Manage branches without switching directories.', tags:['git','workflow'], installs:'3.1k', updated:'2周前', installed:false },
+  { name:'Docker Compose', author:'Community', emoji:'🐳', desc:'Compose file generation and service orchestration. Includes health checks and networking.', tags:['docker','devops'], installs:'5.6k', updated:'1周前', installed:false },
+  { name:'D3 Visualization', author:'Observable', emoji:'📊', desc:'Create stunning data visualizations with D3.js. Charts, graphs, and interactive dashboards.', tags:['data','viz'], installs:'7.3k', updated:'3天前', installed:false },
+  { name:'Notion Knowledge', author:'Notion', emoji:'📝', desc:'Sync and query Notion databases. Search pages, extract content, and manage properties.', tags:['notion','integration'], installs:'4.8k', updated:'5天前', installed:false },
+  { name:'Linear', author:'Linear', emoji:'📐', desc:'Manage Linear issues, projects, and cycles. Create, update, and search issues.', tags:['linear','project'], installs:'3.5k', updated:'1周前', installed:false },
+];
+
+const PLATFORMS = [
+  'Claude Code','GitHub Copilot','Cursor','Cherry Studio','Windsurf','Kiro','Gemini','Antigravity',
+  'TRAE IDE','TRAE IDE (CN)','OpenCode','Cline','Codex','Kimi Code','Augment','ZCode (智谱)',
+  'Grok Build','Qwen Code','Amp','CoPaw','Qoder','Hermes Agent','CodeBuddy','WorkBuddy',
+];
+
+const AGENTS = [
+  { name:'Claude Code', emoji:'🤖', status:'ok', statusText:'CLI 已检测 · v1.0.28', installed:true, provider:'Anthropic', model:'claude-sonnet-4.5', sessions:142 },
+  { name:'Cursor', emoji:'🖱️', status:'ok', statusText:'已配置 · v0.42', installed:true, provider:'OpenAI/Anthropic', model:'gpt-4o / claude-3.5', sessions:89 },
+  { name:'GitHub Copilot', emoji:'🐙', status:'ok', statusText:'已登录', installed:true, provider:'GitHub', model:'GPT-4o / o1', sessions:256 },
+  { name:'Gemini CLI', emoji:'💎', status:'warn', statusText:'需要配置 API Key', installed:true, provider:'Google', model:'gemini-2.5-pro', sessions:12 },
+  { name:'Codex', emoji:'📦', status:'ok', statusText:'CLI 已检测 · v0.3.0', installed:true, provider:'OpenAI', model:'codex-mini', sessions:34 },
+  { name:'Cline', emoji:'➕', status:'warn', statusText:'VS Code 扩展未检测', installed:false, provider:'OpenRouter', model:'多模型', sessions:0 },
+  { name:'Windsurf', emoji:'🏄', status:'muted', statusText:'未安装', installed:false, provider:'Codeium', model:'Cascade', sessions:0 },
+  { name:'Augment', emoji:'⚡', status:'muted', statusText:'未安装', installed:false, provider:'Augment', model:'Augment Pro', sessions:0 },
+];
+
+const MCP_SERVERS = [
+  { name:'filesystem', display:'Filesystem', transport:'stdio', desc:'Read/write files with configurable access permissions', command:'npx', args:'-y @modelcontextprotocol/server-filesystem /Users/yzhu/project', installed:true, source:'Official' },
+  { name:'github', display:'GitHub', transport:'stdio', desc:'Manage repos, issues, PRs. Search code and create pull requests', command:'npx', args:'-y @modelcontextprotocol/server-github', installed:true, source:'Official' },
+  { name:'postgres', display:'PostgreSQL', transport:'stdio', desc:'Query and analyze PostgreSQL databases with read-only access', command:'npx', args:'-y @modelcontextprotocol/server-postgres', installed:false, source:'Official' },
+  { name:'puppeteer', display:'Puppeteer', transport:'stdio', desc:'Browser automation for scraping, screenshots, and web interaction', command:'npx', args:'-y @modelcontextprotocol/server-puppeteer', installed:false, source:'Official' },
+  { name:'brave-search', display:'Brave Search', transport:'stdio', desc:'Web search using Brave Search API with privacy protection', command:'npx', args:'-y @modelcontextprotocol/server-brave-search', installed:true, source:'Official' },
+  { name:'slack', display:'Slack', transport:'stdio', desc:'Send messages, search channels, and manage Slack workspace', command:'npx', args:'-y @modelcontextprotocol/server-slack', installed:false, source:'Community' },
+  { name:'memory', display:'Memory', transport:'stdio', desc:'Persistent knowledge graph for long-term memory across sessions', command:'npx', args:'-y @modelcontextprotocol/server-memory', installed:false, source:'Official' },
+  { name:'sqlite', display:'SQLite Explorer', transport:'stdio', desc:'Browse and query SQLite databases with schema introspection', command:'uvx', args:'mcp-server-sqlite --db-path {{db}}', installed:true, source:'Community' },
+];
+
+const PLUGINS = [
+  { name:'full-stack-dev', author:'PromptHub', emoji:'🚀', desc:'Complete full-stack development toolkit with frontend, backend, and database skills', inventory:{ skills:5, mcp:2, commands:8 }, safety:'high', safetyScore:95, installed:false },
+  { name:'devops-essentials', author:'Community', emoji:'⚙️', desc:'Docker, K8s, CI/CD, and monitoring utilities for DevOps workflows', inventory:{ skills:3, mcp:1, commands:6 }, safety:'high', safetyScore:88, installed:true },
+  { name:'data-science-pack', author:'PromptHub', emoji:'📈', desc:'Jupyter, pandas, matplotlib, and ML model training utilities', inventory:{ skills:4, mcp:2, commands:5 }, safety:'medium', safetyScore:72, installed:false },
+  { name:'creative-suite', author:'Community', emoji:'🎬', desc:'Image generation, video editing, and design automation skills', inventory:{ skills:6, mcp:1, commands:3 }, safety:'medium', safetyScore:68, installed:false },
+  { name:'security-toolkit', author:'PromptHub', emoji:'🔐', desc:'Code scanning, dependency audit, and vulnerability assessment', inventory:{ skills:3, mcp:1, commands:7 }, safety:'high', safetyScore:91, installed:false },
+  { name:'docs-generator', author:'Community', emoji:'📖', desc:'Auto-generate API docs, changelogs, and technical guides from code', inventory:{ skills:2, mcp:0, commands:4 }, safety:'high', safetyScore:84, installed:false },
+];
+
+const RULE_FILES = [
+  { group:'workspace', name:'AGENTS.md', path:'/project/AGENTS.md', size:'12.4 KB', modified:'2小时前' },
+  { group:'workspace', name:'.cursor/rules/global.mdc', path:'/project/.cursor/rules/global.mdc', size:'3.2 KB', modified:'昨天' },
+  { group:'workspace', name:'.claude/CLAUDE.md', path:'/project/.claude/CLAUDE.md', size:'8.7 KB', modified:'3天前' },
+  { group:'assistant', name:'Global Rules.md', path:'~/.prompthub/rules/global.md', size:'5.1 KB', modified:'1周前' },
+  { group:'tooling', name:'.windsurfrules', path:'/project/.windsurfrules', size:'2.3 KB', modified:'上周' },
+  { group:'tooling', name:'.github/copilot-instructions.md', path:'/project/.github/copilot-instructions.md', size:'4.6 KB', modified:'2周前' },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// NAV PANEL DEFINITIONS per module
+// ═══════════════════════════════════════════════════════════════
+function getNavPanel(moduleId) {
+  switch(moduleId) {
+    case 'prompt': return {
+      title: 'Prompts', sub: '提示词管理',
+      sections: [
+        { type:'items', items:[
+          { label:'全部 Prompts', icon:'allPrompts', count:PROMPTS.length, active:true, filter:'all' },
+          { label:'文本提示词', icon:'textType', count:PROMPTS.filter(p=>p.type==='text').length, filter:'text' },
+          { label:'绘图提示词', icon:'imageType', count:PROMPTS.filter(p=>p.type==='image').length, filter:'image' },
+          { label:'收藏', icon:'star', count:PROMPTS.filter(p=>p.fav).length, filter:'fav' },
+        ]},
+        { type:'section', label:'文件夹' },
+        { type:'folders' },
+        { type:'section', label:'标签' },
+        { type:'tags' },
+      ]
+    };
+    case 'skill': return {
+      title: 'Skills', sub: 'AI 技能管理',
+      sections: [
+        { type:'items', items:[
+          { label:'所有 Skill', icon:'allPrompts', count:SKILLS.length, active:true, filter:'all' },
+          { label:'Skill 库', icon:'store', count:SKILLS.length },
+          { label:'我的 Skill', icon:'star', count:SKILLS.filter(s=>s.installed).length },
+          { label:'项目 Skill', icon:'folder', count:3 },
+          { label:'Agent Skill', icon:'agents', count:5 },
+        ]},
+        { type:'section', label:'推荐' },
+        { type:'items', items:[
+          { label:'Skill 商店', icon:'store', count:24 },
+          { label:'推荐资源', icon:'resource', count:8 },
+        ]},
+      ]
+    };
+    case 'agents': return {
+      title: 'Agents', sub: 'AI 编程助手',
+      sections: [
+        { type:'items', items:[
+          { label:'全部 Agent', icon:'allPrompts', count:AGENTS.length, active:true },
+          { label:'已安装', icon:'check', count:AGENTS.filter(a=>a.installed).length },
+          { label:'需要关注', icon:'alert', count:AGENTS.filter(a=>a.status==='warn').length },
+          { label:'未检测', icon:'folder', count:AGENTS.filter(a=>a.status==='muted').length },
+        ]},
+      ]
+    };
+    case 'mcp': return {
+      title: 'MCP', sub: 'MCP 服务器',
+      sections: [
+        { type:'items', items:[
+          { label:'My MCP', icon:'allPrompts', count:MCP_SERVERS.filter(m=>m.installed).length, active:true },
+          { label:'Agent MCP', icon:'agents', count:4 },
+          { label:'Project MCP', icon:'folder', count:2 },
+          { label:'MCP Store', icon:'store', count:45 },
+        ]},
+      ]
+    };
+    case 'plugin': return {
+      title: 'Plugins', sub: '插件包管理',
+      sections: [
+        { type:'items', items:[
+          { label:'My Plugins', icon:'allPrompts', count:PLUGINS.filter(p=>p.installed).length, active:true },
+          { label:'Plugins Store', icon:'store', count:PLUGINS.length },
+          { label:'Agent Plugin', icon:'agents', count:3 },
+        ]},
+      ]
+    };
+    case 'rules': return {
+      title: 'Rules', sub: 'AI 规则工作区',
+      sections: [
+        { type:'items', items:[
+          { label:'工作区规则', icon:'folder', count:3, active:true },
+          { label:'助手规则', icon:'agents', count:1 },
+          { label:'工具规则', icon:'file', count:2 },
+          { label:'全局规则', icon:'globe', count:1 },
+        ]},
+      ]
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER: Icon Rail
+// ═══════════════════════════════════════════════════════════════
+function renderIconRail() {
+  const rail = document.getElementById('iconRail');
+  rail.innerHTML = MODULES.map(m => `
+    <button class="rail-btn ${m.id === currentModule ? 'active' : ''}" onclick="switchModule('${m.id}')" title="${m.label}">
+      ${ICONS[m.icon]}
+    </button>
+  `).join('') + `
+    <div class="rail-sep"></div>
+    <button class="rail-btn ${currentModule === 'settings' ? 'active' : ''}" onclick="switchModule('settings')" title="设置">
+      ${ICONS.settings}
+    </button>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER: Nav Panel
+// ═══════════════════════════════════════════════════════════════
+function renderNavPanel() {
+  const panel = document.getElementById('navPanel');
+  if (currentModule === 'settings') {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+  const nav = getNavPanel(currentModule);
+  let html = `
+    <div class="nav-panel-header">
+      <div class="nav-panel-title">${nav.title}</div>
+      <div class="nav-panel-sub">${nav.sub}</div>
+    </div>
+    <div class="nav-list">
+  `;
+  for (const sec of nav.sections) {
+    if (sec.type === 'items') {
+      html += sec.items.map(it => `
+        <button class="nav-item ${it.active ? 'active' : ''}" ${it.filter ? `onclick="filterPrompts('${it.filter}')"` : `onclick="showToast('已切换到 ${it.label}')"`}>
+          ${ICONS[it.icon] || ICONS.allPrompts}
+          <span>${it.label}</span>
+          ${it.count !== undefined ? `<span class="nav-item-count">${it.count}</span>` : ''}
+        </button>
+      `).join('');
+    } else if (sec.type === 'section') {
+      html += `<div class="nav-section">${sec.label}</div>`;
+    } else if (sec.type === 'folders') {
+      html += '<div class="folder-tree">';
+      FOLDERS.forEach((f, i) => {
+        html += `
+          <div class="folder-row ${i < 2 ? 'expanded' : ''}" onclick="toggleFolder(this)">
+            ${ICONS.chevron}
+            <span>${f.private ? ICONS.folderLock : ICONS.folder}</span>
+            <span style="flex:1">${f.private ? '🔒 ' : ''}${f.name}</span>
+            <span class="nav-item-count">${f.count}</span>
+          </div>
+        `;
+      });
+      html += '</div>';
+    } else if (sec.type === 'tags') {
+      html += '<div class="tag-cloud">';
+      TAGS.slice(0, 14).forEach(t => {
+        html += `<span class="tag-chip" onclick="showToast('筛选标签: ${t}')">${t}</span>`;
+      });
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  panel.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER: Topbar
+// ═══════════════════════════════════════════════════════════════
+function renderTopbar() {
+  const tb = document.getElementById('topbar');
+  if (currentModule === 'settings') { tb.style.display = 'none'; return; }
+  tb.style.display = '';
+
+  if (currentModule === 'prompt') {
+    tb.innerHTML = `
+      <div class="search-box">
+        ${ICONS.search}
+        <input type="text" placeholder="搜索 Prompt..." oninput="filterPromptSearch(this.value)">
+      </div>
+      <div class="view-toggle">
+        <button class="${promptView==='card'?'active':''}" onclick="setPromptView('card')" title="卡片视图">${ICONS.card}</button>
+        <button class="${promptView==='list'?'active':''}" onclick="setPromptView('list')" title="列表视图">${ICONS.list}</button>
+        <button class="${promptView==='gallery'?'active':''}" onclick="setPromptView('gallery')" title="画廊视图">${ICONS.gallery}</button>
+      </div>
+      <button class="select-pill">
+        ${ICONS.sort}
+        <span>最近修改</span>
+      </button>
+      <div class="topbar-spacer"></div>
+      <button class="btn btn-primary" onclick="openQuickAdd()">
+        ${ICONS.plus}
+        <span>新建</span>
+      </button>
+    `;
+  } else if (currentModule === 'skill' || currentModule === 'mcp' || currentModule === 'plugin') {
+    tb.innerHTML = `
+      <div class="search-box">
+        ${ICONS.search}
+        <input type="text" placeholder="搜索..." oninput="showToast('搜索中...')">
+      </div>
+      <div class="topbar-spacer"></div>
+      <button class="btn btn-ghost">
+        ${ICONS.refresh}
+        <span>刷新</span>
+      </button>
+      <button class="btn btn-primary" onclick="showToast('打开添加对话框')">
+        ${ICONS.plus}
+        <span>${currentModule==='skill'?'安装 Skill':currentModule==='mcp'?'添加 MCP':'安装 Plugin'}</span>
+      </button>
+    `;
+  } else if (currentModule === 'agents') {
+    tb.innerHTML = `
+      <div class="search-box">
+        ${ICONS.search}
+        <input type="text" placeholder="搜索 Agent..." oninput="showToast('搜索中...')">
+      </div>
+      <div class="topbar-spacer"></div>
+    `;
+  } else if (currentModule === 'rules') {
+    tb.innerHTML = `
+      <div class="search-box">
+        ${ICONS.search}
+        <input type="text" placeholder="搜索规则..." oninput="showToast('搜索中...')">
+      </div>
+      <div class="topbar-spacer"></div>
+      <button class="btn btn-ghost" onclick="showToast('AI 改写中...')">
+        ${ICONS.zap}
+        <span>AI 改写</span>
+      </button>
+      <button class="btn btn-primary" onclick="showToast('已保存')">
+        ${ICONS.check}
+        <span>保存</span>
+      </button>
+    `;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER: Main Content
+// ═══════════════════════════════════════════════════════════════
+let promptFilter = 'all';
+let promptSearch = '';
+
+function renderContent() {
+  const el = document.getElementById('contentScroll');
+  if (currentModule === 'settings') { renderSettings(); return; }
+
+  if (currentModule === 'prompt') {
+    let list = PROMPTS;
+    if (promptFilter === 'text') list = list.filter(p => p.type === 'text');
+    if (promptFilter === 'image') list = list.filter(p => p.type === 'image');
+    if (promptFilter === 'fav') list = list.filter(p => p.fav);
+    if (promptSearch) {
+      const q = promptSearch.toLowerCase();
+      list = list.filter(p => p.title.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q) || p.tags.some(t => t.toLowerCase().includes(q)));
+    }
+    el.innerHTML = renderPromptView(list);
+  } else if (currentModule === 'skill') {
+    el.innerHTML = renderSkillView();
+  } else if (currentModule === 'agents') {
+    el.innerHTML = renderAgentsView();
+  } else if (currentModule === 'mcp') {
+    el.innerHTML = renderMCPView();
+  } else if (currentModule === 'plugin') {
+    el.innerHTML = renderPluginView();
+  } else if (currentModule === 'rules') {
+    el.innerHTML = renderRulesView();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROMPT VIEWS
+// ═══════════════════════════════════════════════════════════════
+function renderPromptView(list) {
+  if (list.length === 0) {
+    return `<div class="empty-state">
+      ${ICONS.prompt.replace('class="ico"','class="ico-xl"')}
+      <div>没有找到匹配的 Prompt</div>
+    </div>`;
+  }
+  if (promptView === 'card') {
+    return `<div class="prompt-grid">` + list.map(p => `
+      <div class="prompt-card" onclick="openPromptDetail(${p.id})">
+        <div class="prompt-card-header">
+          <div class="prompt-type-badge ${p.type}">${p.type === 'text' ? '📝' : '🎨'}</div>
+          <div style="flex:1;min-width:0">
+            <div class="prompt-card-title">${p.fav ? '<span style="color:hsl(45 90% 55%)">★</span> ' : ''}${p.title}</div>
+            <div class="prompt-card-desc">${p.desc}</div>
+          </div>
+        </div>
+        <div class="prompt-card-tags">
+          ${p.tags.map(t => `<span class="prompt-tag">${t}</span>`).join('')}
+        </div>
+        <div class="prompt-card-footer">
+          <span>${ICONS.folder.replace('class="ico-sm folder-icon"','class="ico-sm" style="width:13px;height:13px;color:hsl(45 80% 55%)"')} ${p.folder}</span>
+          <span>${ICONS.zap.replace('class="ico-sm"','class="ico-sm" style="width:13px;height:13px"')} ${p.uses}</span>
+          ${p.vars.length ? `<span style="font-family:var(--mono);font-size:11px;color:hsl(40 70% 50%)">{{${p.vars.length}}}</span>` : ''}
+        </div>
+      </div>
+    `).join('') + `</div>`;
+  }
+  if (promptView === 'list') {
+    return `<div class="prompt-list">
+      <div class="prompt-list-header">
+        <span>标题</span><span>类型</span><span>文件夹</span><span>使用</span><span>收藏</span><span></span>
+      </div>
+      ${list.map(p => `
+        <div class="prompt-list-row" onclick="openPromptDetail(${p.id})">
+          <span class="pl-title">${p.type === 'text' ? '📝' : '🎨'} ${p.title}</span>
+          <span class="text-muted text-sm">${p.type === 'text' ? '文本' : '绘图'}</span>
+          <span class="text-muted text-sm">${p.folder}</span>
+          <span class="text-muted text-sm">${p.uses}</span>
+          <span>${p.fav ? '⭐' : '—'}</span>
+          <span class="text-muted">${ICONS.edit}</span>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+  // gallery
+  return `<div class="prompt-gallery">` + list.map(p => `
+    <div class="gallery-card" onclick="openPromptDetail(${p.id})">
+      <div class="gallery-thumb ${p.type === 'text' ? 'text-grad' : 'image-grad'}">${p.type === 'text' ? '📝' : '🎨'}</div>
+      <div class="gallery-body">
+        <h4>${p.title}</h4>
+        <p>${p.tags.join(' · ')}</p>
+      </div>
+    </div>
+  `).join('') + `</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SKILL VIEW
+// ═══════════════════════════════════════════════════════════════
+const skillGradients = [
+  'hsl(220 70% 55%)','hsl(260 50% 55%)','hsl(150 45% 45%)','hsl(25 70% 50%)','hsl(340 60% 55%)',
+  'hsl(190 60% 45%)','hsl(50 70% 45%)','hsl(120 40% 40%)','hsl(280 45% 50%)','hsl(10 65% 50%)',
+  'hsl(175 50% 40%)','hsl(230 50% 50%)',
+];
+
+function renderSkillView() {
+  return `<div class="skill-grid">` + SKILLS.map((s, i) => {
+    const c = skillGradients[i % skillGradients.length];
+    return `
+    <div class="skill-card">
+      <div class="skill-card-header">
+        <div class="skill-icon-box" style="background:${c}1a;color:${c}">${s.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div class="skill-name">${s.name}</div>
+          <div class="skill-author">by ${s.author}</div>
+        </div>
+      </div>
+      <div class="skill-desc">${s.desc}</div>
+      <div class="skill-tags">
+        ${s.tags.map(t => `<span class="prompt-tag">${t}</span>`).join('')}
+      </div>
+      <div class="skill-footer">
+        <div class="skill-meta">
+          <span>${ICONS.download} ${s.installs}</span>
+          <span>${ICONS.clock} ${s.updated}</span>
+        </div>
+        ${s.installed
+          ? `<button class="btn btn-sm btn-ghost" style="color:#28c840;border-color:#28c84040">${ICONS.check} 已安装</button>`
+          : `<button class="btn btn-sm btn-primary" onclick="openInstallModal('${s.name}')">${ICONS.download} 安装</button>`
+        }
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AGENTS VIEW
+// ═══════════════════════════════════════════════════════════════
+let currentAgent = 0;
+let agentTab = 'overview';
+
+const agentGradients = ['hsl(25 80% 55%)','hsl(210 70% 55%)','hsl(140 50% 45%)','hsl(280 50% 55%)','hsl(190 60% 45%)','hsl(340 60% 55%)','hsl(50 70% 45%)','hsl(230 50% 50%)'];
+
+function renderAgentsView() {
+  const ag = AGENTS[currentAgent];
+  const c = agentGradients[currentAgent];
+  return `
+    <div class="agent-layout">
+      <div class="agent-sidebar">
+        ${AGENTS.map((a, i) => `
+          <div class="agent-card ${i === currentAgent ? 'active' : ''}" onclick="selectAgent(${i})">
+            <div class="agent-avatar" style="background:${agentGradients[i]}1a">${a.emoji}</div>
+            <div class="agent-info">
+              <div class="agent-name">${a.name}</div>
+              <div class="agent-status">
+                <span class="status-dot ${a.status}"></span>
+                <span class="text-muted">${a.statusText}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="agent-workspace">
+        <div class="ws-header">
+          <div class="agent-avatar" style="width:36px;height:36px;background:${c}1a">${ag.emoji}</div>
+          <div style="flex:1">
+            <div class="fw-700">${ag.name}</div>
+            <div class="text-muted text-sm">${ag.provider} · ${ag.model}</div>
+          </div>
+          ${ag.installed ? `<span class="prompt-tag" style="background:#28c84020;color:#28c840">已安装</span>` : `<button class="btn btn-sm btn-primary" onclick="showToast('正在安装 ${ag.name}...')">安装</button>`}
+        </div>
+        <div class="ws-tabs">
+          ${['overview','cli','provider','sessions','usage','skills','mcp','rules','plugins'].map(t => `
+            <div class="ws-tab ${agentTab === t ? 'active' : ''}" onclick="setAgentTab('${t}')">${tabLabel(t)}</div>
+          `).join('')}
+        </div>
+        <div class="ws-body">${renderAgentTab(ag)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function tabLabel(t){ return {overview:'概览',cli:'CLI 诊断',provider:'Provider & 模型',sessions:'会话历史',usage:'用量',skills:'Skills',mcp:'MCP',rules:'Rules',plugins:'Plugins'}[t]; }
+
+function renderAgentTab(ag) {
+  switch(agentTab) {
+    case 'overview': return `
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-label">会话总数</div><div class="stat-value">${ag.sessions}</div><div class="stat-sub">最近 30 天</div></div>
+        <div class="stat-card"><div class="stat-label">已安装 Skills</div><div class="stat-value">${Math.floor(Math.random()*20)+5}</div><div class="stat-sub">个</div></div>
+        <div class="stat-card"><div class="stat-label">MCP 服务器</div><div class="stat-value">${Math.floor(Math.random()*8)+1}</div><div class="stat-sub">个活动</div></div>
+        <div class="stat-card"><div class="stat-label">规则文件</div><div class="stat-value">${Math.floor(Math.random()*5)+1}</div><div class="stat-sub">个</div></div>
+      </div>
+      <div class="section-title">基本信息</div>
+      <div class="info-grid" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:4px 16px">
+        <dt>CLI 版本</dt><dd>${ag.installed ? 'v' + (1 + Math.random() * 0.5).toFixed(2) : '未检测'}</dd>
+        <dt>安装来源</dt><dd>${ag.installed ? ['npm','Homebrew','官方安装包'][Math.floor(Math.random()*3)] : '—'}</dd>
+        <dt>Provider</dt><dd>${ag.provider}</dd>
+        <dt>默认模型</dt><dd>${ag.model}</dd>
+        <dt>配置文件</dt><dd style="font-family:var(--mono);font-size:12px">~/.${ag.name.toLowerCase().replace(/\s/g,'-')}/config.json</dd>
+      </div>
+    `;
+    case 'cli': return `
+      <div class="section-title">CLI 诊断</div>
+      <div class="info-grid" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:4px 16px;margin-bottom:16px">
+        <dt>可执行路径</dt><dd style="font-family:var(--mono);font-size:12px">/usr/local/bin/${ag.name.toLowerCase().replace(/\s/g,'-')}</dd>
+        <dt>版本</dt><dd style="color:#28c840">v1.0.28 (最新)</dd>
+        <dt>安装来源</dt><dd>Homebrew</dd>
+        <dt>健康状态</dt><dd><span class="status-dot ok" style="display:inline-block;vertical-align:middle"></span> 正常运行</dd>
+      </div>
+      <div style="background:#1a1a1a;border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:12px;color:#a0a0a0;line-height:1.6">
+        <span style="color:#28c840">$</span> ${ag.name.toLowerCase().replace(/\s/g,'-')} --version<br>
+        <span style="color:#5599ff">${ag.name} v1.0.28</span><br><br>
+        <span style="color:#28c840">$</span> ${ag.name.toLowerCase().replace(/\s/g,'-')} doctor<br>
+        ✓ CLI 可执行文件正常<br>
+        ✓ 配置文件有效<br>
+        ✓ Provider 已配置<br>
+        ✓ 网络连接正常
+      </div>
+    `;
+    case 'provider': return `
+      <div class="section-title">Provider 配置</div>
+      <div class="settings-section">
+        <div class="provider-row">
+          <div class="provider-logo" style="background:hsl(25 80% 55% / 0.12)">${ag.emoji}</div>
+          <div class="provider-info"><div class="provider-name">${ag.provider}</div><div class="provider-models">${ag.model}</div></div>
+          <span class="prompt-tag" style="background:#28c84020;color:#28c840">${ICONS.check} 已连接</span>
+        </div>
+      </div>
+      <div class="section-title mt-4">模型列表</div>
+      <div class="settings-section">
+        ${['claude-sonnet-4.5','claude-opus-4','claude-haiku-3.5'].map((m,i) => `
+          <div class="provider-row">
+            <div class="provider-logo" style="background:var(--accent);color:var(--accent-fg)">AI</div>
+            <div class="provider-info"><div class="provider-name">${m}</div><div class="provider-models">200K context · ${i===0?'默认':''}</div></div>
+            ${i===0 ? '<span class="prompt-tag" style="background:var(--primary);color:var(--primary-fg)">默认</span>' : '<button class="btn btn-sm btn-ghost">设为默认</button>'}
+          </div>
+        `).join('')}
+      </div>
+    `;
+    case 'sessions': return `
+      <div class="section-title">会话历史 (${ag.sessions})</div>
+      ${Array.from({length:6}).map((_,i) => {
+        const titles = ['重构认证模块','修复数据库迁移问题','添加用户头像上传功能','优化搜索性能','编写 API 集成测试','配置 CI/CD 流水线'];
+        return `
+          <div class="session-item" onclick="showToast('打开会话: ${titles[i]}')">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:var(--accent-fg)">${ICONS.history}</div>
+            <div style="flex:1">
+              <div class="session-title">${titles[i]}</div>
+              <div class="session-meta">${i+1}小时前 · ${Math.floor(Math.random()*30)+5} 条消息 · ${Math.floor(Math.random()*5000)+500} tokens</div>
+            </div>
+            <button class="btn-icon" onclick="event.stopPropagation();showToast('已导出 Markdown')">${ICONS.download}</button>
+            <button class="btn-icon" onclick="event.stopPropagation();showToast('移交到其他 Agent')">${ICONS.agents}</button>
+          </div>
+        `;
+      }).join('')}
+    `;
+    case 'usage': return `
+      <div class="section-title">订阅用量</div>
+      <div class="usage-ring-wrap" style="margin-bottom:24px">
+        ${[
+          { label:'5 小时窗口', pct: 68, val: '68%' },
+          { label:'7 天窗口', pct: 42, val: '42%' },
+          { label:'本周', pct: 85, val: '85%' },
+        ].map(r => {
+          const circ = 2 * Math.PI * 36;
+          return `<div class="usage-ring">
+            <svg width="88" height="88">
+              <circle class="ring-bg" cx="44" cy="44" r="36"/>
+              <circle class="ring-fg" cx="44" cy="44" r="36" stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - r.pct/100)}"/>
+            </svg>
+            <div style="margin-top:-58px;margin-bottom:34px;font-size:18px;font-weight:700">${r.val}</div>
+            <div class="ring-label">${r.label}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="stat-card" style="background:var(--card)">
+        <div class="stat-label">下次重置</div>
+        <div class="stat-value" style="font-size:16px">2 小时 34 分钟</div>
+        <div class="stat-sub">5 小时窗口将在 2:34 后重置</div>
+      </div>
+    `;
+    default:
+      const items = agentTab === 'skills' ? SKILLS.slice(0,4) : agentTab === 'mcp' ? MCP_SERVERS.slice(0,4) : agentTab === 'rules' ? RULE_FILES : PLUGINS.slice(0,4);
+      return `
+        <div class="section-title">${tabLabel(agentTab)} (${items.length})</div>
+        ${agentTab === 'rules' ? items.map(r => `
+          <div class="session-item">
+            ${ICONS.file}
+            <div style="flex:1"><div class="session-title">${r.name}</div><div class="session-meta">${r.path}</div></div>
+            <span class="text-muted text-sm">${r.size}</span>
+          </div>
+        `).join('') : items.map(it => `
+          <div class="session-item">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center">${it.emoji || '📦'}</div>
+            <div style="flex:1"><div class="session-title">${it.name}</div><div class="session-meta">${it.desc || ''}</div></div>
+            <span class="prompt-tag" style="background:#28c84020;color:#28c840">${ICONS.check}</span>
+          </div>
+        `).join('')}
+      `;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MCP VIEW
+// ═══════════════════════════════════════════════════════════════
+function renderMCPView() {
+  return `<div class="mcp-grid">` + MCP_SERVERS.map(m => `
+    <div class="mcp-card">
+      <div class="mcp-card-header">
+        <div class="mcp-icon-box">${ICONS.mcp.replace('class="ico"','class="ico-lg"')}</div>
+        <div style="flex:1;min-width:0">
+          <div class="skill-name">${m.display}</div>
+          <div class="skill-author">${m.transport} · ${m.source}</div>
+        </div>
+        ${m.installed
+          ? `<span class="prompt-tag" style="background:#28c84020;color:#28c840">${ICONS.check} 已启用</span>`
+          : `<button class="btn btn-sm btn-primary" onclick="showToast('正在添加 ${m.display}...')">${ICONS.plus} 添加</button>`
+        }
+      </div>
+      <div class="skill-desc">${m.desc}</div>
+      <div class="mcp-config">${m.command} ${m.args}</div>
+    </div>
+  `).join('') + `</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PLUGIN VIEW
+// ═══════════════════════════════════════════════════════════════
+function renderPluginView() {
+  const safetyColors = { high: '#28c840', medium: '#febc2e', low: '#ff5f57' };
+  return `<div class="skill-grid">` + PLUGINS.map((p, i) => {
+    const c = skillGradients[i % skillGradients.length];
+    return `
+    <div class="skill-card">
+      <div class="skill-card-header">
+        <div class="skill-icon-box" style="background:${c}1a;color:${c}">${p.emoji}</div>
+        <div style="flex:1;min-width:0">
+          <div class="skill-name">${p.name}</div>
+          <div class="skill-author">by ${p.author}</div>
+        </div>
+      </div>
+      <div class="skill-desc">${p.desc}</div>
+      <div class="skill-tags">
+        <span class="prompt-tag" style="background:${safetyColors[p.safety]}20;color:${safetyColors[p.safety]}">${ICONS.shield} 安全 ${p.safetyScore}</span>
+        <span class="prompt-tag">${p.inventory.skills} Skills</span>
+        <span class="prompt-tag">${p.inventory.mcp} MCP</span>
+        <span class="prompt-tag">${p.inventory.commands} 命令</span>
+      </div>
+      <div class="skill-footer">
+        <div class="skill-meta">
+          <span>${ICONS.cpu} ${p.inventory.skills + p.inventory.mcp + p.inventory.commands} 组件</span>
+        </div>
+        ${p.installed
+          ? `<button class="btn btn-sm btn-ghost" style="color:#28c840;border-color:#28c84040">${ICONS.check} 已安装</button>`
+          : `<button class="btn btn-sm btn-primary" onclick="showToast('安装 ${p.name}...')">${ICONS.download} 安装</button>`
+        }
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RULES VIEW
+// ═══════════════════════════════════════════════════════════════
+let currentRule = 0;
+let ruleEditorMode = 'edit';
+
+const RULE_CONTENT = `# Project Rules — AgentsHub
+
+## Code Style
+- Use TypeScript strict mode for all new code
+- Prefer \`const\` over \`let\` where possible
+- Use named exports for all modules
+
+## Architecture
+- Follow the monorepo structure defined in AGENTS.md
+- Shared logic goes in \`packages/core\`
+- Storage primitives in \`packages/db\`
+- UI components must use Tailwind CSS only
+
+## Testing
+- Every new feature requires tests before merge
+- Use Vitest for unit tests
+- Use Playwright for E2E tests
+- Target 100% coverage for changed code
+
+## Commits
+- Follow Conventional Commits format
+- Use imperative mood: "add feature" not "added feature"
+`;
+
+function renderRulesView() {
+  const rule = RULE_FILES[currentRule];
+  return `
+    <div class="rules-layout">
+      <div style="display:flex;gap:16px;flex:1;overflow:hidden">
+        <div style="width:300px;display:flex;flex-direction:column;gap:4px;overflow-y:auto">
+          <div class="nav-section">规则文件</div>
+          ${RULE_FILES.map((r, i) => `
+            <div class="rule-file-item ${i === currentRule ? 'active' : ''}" onclick="selectRule(${i})">
+              ${ICONS.file}
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:500">${r.name}</div>
+                <div class="text-xs text-muted">${r.group}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="rule-editor-wrap">
+          <div class="ws-header" style="padding:12px 16px">
+            <div style="flex:1">
+              <div class="fw-600">${rule.name}</div>
+              <div class="text-xs text-muted">${rule.path} · ${rule.size} · 修改于 ${rule.modified}</div>
+            </div>
+            <button class="btn-icon" onclick="showToast('版本历史')" title="历史">${ICONS.history}</button>
+            <button class="btn-icon" onclick="showToast('AI 改写')" title="AI改写">${ICONS.zap}</button>
+          </div>
+          <div class="rule-editor-tabs">
+            <div class="ws-tab ${ruleEditorMode==='edit'?'active':''}" onclick="setRuleMode('edit')" style="padding:8px 14px">${ICONS.edit} 编辑</div>
+            <div class="ws-tab ${ruleEditorMode==='preview'?'active':''}" onclick="setRuleMode('preview')" style="padding:8px 14px">${ICONS.eye} 预览</div>
+          </div>
+          <div class="rule-editor-body">
+            ${ruleEditorMode === 'edit'
+              ? `<textarea class="rule-textarea" onchange="showToast('草稿已保存')">${RULE_CONTENT}</textarea>`
+              : `<div class="rule-preview">${renderMarkdown(RULE_CONTENT)}</div>`
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMarkdown(md) {
+  return md
+    .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.*)$/gm, '<h1>$1</h1>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^- (.*)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul])(.+)$/gm, '<p>$1</p>')
+    .replace(/<p><\/p>/g, '');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════════
+const SETTINGS_SECTIONS = [
+  { id:'general', label:'应用设置', icon:'settings' },
+  { id:'appearance', label:'显示设置', icon:'sun' },
+  { id:'data', label:'数据同步', icon:'download' },
+  { id:'network', label:'网络设置', icon:'globe' },
+  { id:'ai', label:'模型服务', icon:'cpu' },
+  { id:'shortcuts', label:'快捷键', icon:'zap' },
+  { id:'security', label:'安全设置', icon:'shield' },
+  { id:'about', label:'关于应用', icon:'agents' },
+];
+
+const THEMES = [
+  { id:'royal-blue', hue:220, sat:70, name:'Royal Blue', color:'hsl(220,70%,55%)' },
+  { id:'blue', hue:210, sat:35, name:'Misty Blue', color:'hsl(210,35%,55%)' },
+  { id:'purple', hue:260, sat:30, name:'Smoky Purple', color:'hsl(260,30%,55%)' },
+  { id:'green', hue:150, sat:30, name:'Bean Green', color:'hsl(150,30%,45%)' },
+  { id:'orange', hue:25, sat:40, name:'Apricot Orange', color:'hsl(25,40%,55%)' },
+  { id:'teal', hue:175, sat:30, name:'Teal Blue', color:'hsl(175,30%,40%)' },
+];
+
+let currentThemeColor = 'royal-blue';
+const settingsState = {
+  autoStart: false, minimizeOnLaunch: true, closeToTray: true,
+  autoSave: true, lineNumbers: false, motionPref: 'standard',
+  autoBackup: true, syncWebDAV: false, syncS3: false,
+  proxyMode: 'system', masterPassword: false,
+};
+
+function renderSettings() {
+  // Render nav panel as settings nav
+  const panel = document.getElementById('navPanel');
+  panel.style.display = '';
+  panel.innerHTML = `
+    <div class="nav-panel-header">
+      <div class="nav-panel-title">设置</div>
+      <div class="nav-panel-sub">应用偏好设置</div>
+    </div>
+    <div class="nav-list">
+      ${SETTINGS_SECTIONS.map(s => `
+        <button class="nav-item ${s.id === settingsSection ? 'active' : ''}" onclick="setSettingsSection('${s.id}')">
+          ${ICONS[s.icon] || ICONS.settings}
+          <span>${s.label}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+
+  // Topbar hidden
+  document.getElementById('topbar').style.display = 'none';
+
+  // Content
+  const el = document.getElementById('contentScroll');
+  el.innerHTML = renderSettingsContent();
+}
+
+function renderSettingsContent() {
+  switch(settingsSection) {
+    case 'general': return `
+      <h2>应用设置</h2>
+      <p class="settings-desc">配置启动行为和编辑器偏好</p>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">开机自启动</div><div class="settings-row-desc">系统启动时自动打开 AgentsHub</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.autoStart?'on':''}" onclick="toggleSetting('autoStart',this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">启动时最小化</div><div class="settings-row-desc">启动后最小化到系统托盘</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.minimizeOnLaunch?'on':''}" onclick="toggleSetting('minimizeOnLaunch',this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">关闭时最小化到托盘</div><div class="settings-row-desc">点击关闭按钮时最小化而非退出</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.closeToTray?'on':''}" onclick="toggleSetting('closeToTray',this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">语言</div><div class="settings-row-desc">界面显示语言</div></div>
+          <div class="settings-control"><select class="select-input"><option>简体中文</option><option>English</option><option>日本語</option><option>繁體中文</option><option>Français</option><option>Deutsch</option><option>Español</option></select></div>
+        </div>
+      </div>
+      <div class="section-title">编辑器</div>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">自动保存</div><div class="settings-row-desc">编辑时自动保存更改</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.autoSave?'on':''}" onclick="toggleSetting('autoSave',this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">显示行号</div><div class="settings-row-desc">在编辑器中显示行号</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.lineNumbers?'on':''}" onclick="toggleSetting('lineNumbers',this)"></div></div>
+        </div>
+      </div>
+    `;
+    case 'appearance': return `
+      <h2>显示设置</h2>
+      <p class="settings-desc">自定义界面外观和主题</p>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">主题模式</div><div class="settings-row-desc">选择浅色、深色或跟随系统</div></div>
+          <div class="settings-control">
+            <select class="select-input" onchange="setThemeMode(this.value)">
+              <option value="dark" ${currentTheme==='dark'?'selected':''}>深色</option>
+              <option value="light" ${currentTheme==='light'?'selected':''}>浅色</option>
+              <option value="system">跟随系统</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:12px">
+          <div class="settings-row-info"><div class="settings-row-label">主题颜色</div><div class="settings-row-desc">莫兰迪色系，点击切换主题主色</div></div>
+          <div class="theme-swatches">
+            ${THEMES.map(t => `<div class="theme-swatch ${t.id===currentThemeColor?'active':''}" style="background:${t.color}" onclick="setThemeColor('${t.id}',${t.hue},${t.sat})" title="${t.name}"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="section-title">界面</div>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">字体大小</div><div class="settings-row-desc">界面字体大小</div></div>
+          <div class="settings-control"><select class="select-input"><option>小</option><option selected>中</option><option>大</option></select></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">动效偏好</div><div class="settings-row-desc">控制界面动画效果</div></div>
+          <div class="settings-control"><select class="select-input"><option>关闭</option><option>减弱</option><option selected>标准</option></select></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">工作区模块</div><div class="settings-row-desc">选择侧边栏显示的模块</div></div>
+          <div class="settings-control"><button class="btn btn-sm btn-ghost">自定义</button></div>
+        </div>
+      </div>
+    `;
+    case 'data': return `
+      <h2>数据同步</h2>
+      <p class="settings-desc">管理数据备份、同步和恢复</p>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">自动备份</div><div class="settings-row-desc">定期自动备份到本地</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.autoBackup?'on':''}" onclick="toggleSetting('autoBackup',this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">手动备份</div><div class="settings-row-desc">导出完整备份文件 (.phub.gz)</div></div>
+          <div class="settings-control"><button class="btn btn-sm btn-primary" onclick="showToast('正在备份...')">立即备份</button></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">恢复数据</div><div class="settings-row-desc">从备份文件恢复</div></div>
+          <div class="settings-control"><button class="btn btn-sm btn-ghost" onclick="showToast('选择备份文件')">选择文件</button></div>
+        </div>
+      </div>
+      <div class="section-title">云同步</div>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">WebDAV 同步</div><div class="settings-row-desc">通过 WebDAV 服务器同步数据</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.syncWebDAV?'on':''}" onclick="toggleSetting('syncWebDAV',this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">S3 同步</div><div class="settings-row-desc">使用 S3 兼容存储同步</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.syncS3?'on':''}" onclick="toggleSetting('syncS3',this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">自托管 Web</div><div class="settings-row-desc">连接到自托管的 AgentsHub Web 实例</div></div>
+          <div class="settings-control"><button class="btn btn-sm btn-ghost" onclick="showToast('配置连接')">配置</button></div>
+        </div>
+      </div>
+    `;
+    case 'network': return `
+      <h2>网络设置</h2>
+      <p class="settings-desc">配置代理和网络连接</p>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">代理模式</div><div class="settings-row-desc">选择网络代理方式</div></div>
+          <div class="settings-control">
+            <select class="select-input">
+              <option ${settingsState.proxyMode==='system'?'selected':''}>系统代理</option>
+              <option ${settingsState.proxyMode==='direct'?'selected':''}>直连</option>
+              <option ${settingsState.proxyMode==='manual'?'selected':''}>手动配置</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">协议</div><div class="settings-row-desc">代理服务器协议</div></div>
+          <div class="settings-control"><select class="select-input"><option>HTTP</option><option>HTTPS</option><option>SOCKS5</option></select></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">服务器地址</div><div class="settings-row-desc">代理服务器地址和端口</div></div>
+          <div class="settings-control"><input class="text-input" placeholder="127.0.0.1:7890" style="width:180px"></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">镜像源</div><div class="settings-row-desc">API 请求镜像源（如需）</div></div>
+          <div class="settings-control"><input class="text-input" placeholder="可选" style="width:180px"></div>
+        </div>
+      </div>
+    `;
+    case 'ai': return `
+      <h2>模型服务</h2>
+      <p class="settings-desc">配置 AI 模型 API 密钥和参数</p>
+      <div class="settings-section">
+        ${[
+          { name:'OpenAI', emoji:'🟢', models:'GPT-4o, o1, o3-mini', configured:true },
+          { name:'Anthropic', emoji:'🟠', models:'Claude 4 Opus/Sonnet, Haiku 3.5', configured:true },
+          { name:'Google Gemini', emoji:'🔵', models:'Gemini 2.5 Pro/Flash', configured:false },
+          { name:'DeepSeek', emoji:'🔴', models:'DeepSeek-V3, DeepSeek-R1', configured:false },
+          { name:'通义千问', emoji:'🟣', models:'Qwen-Max, Qwen-Plus', configured:false },
+          { name:'智谱 GLM', emoji:'🟡', models:'GLM-4-Plus, GLM-4-Flash', configured:true },
+        ].map(p => `
+          <div class="provider-row">
+            <div class="provider-logo" style="background:var(--accent)">${p.emoji}</div>
+            <div class="provider-info"><div class="provider-name">${p.name}</div><div class="provider-models">${p.models}</div></div>
+            ${p.configured
+              ? `<span class="prompt-tag" style="background:#28c84020;color:#28c840">${ICONS.check} 已配置</span>`
+              : `<button class="btn btn-sm btn-ghost" onclick="showToast('配置 ${p.name}')">配置</button>`
+            }
+          </div>
+        `).join('')}
+      </div>
+    `;
+    case 'shortcuts': return `
+      <h2>快捷键</h2>
+      <p class="settings-desc">自定义应用快捷键</p>
+      <div class="settings-section">
+        ${[
+          { label:'新建 Prompt', key:'Cmd+N' },
+          { label:'搜索', key:'Cmd+F' },
+          { label:'打开设置', key:'Cmd+,' },
+          { label:'显示应用', key:'Cmd+Shift+P' },
+          { label:'切换主题', key:'Cmd+Shift+T' },
+          { label:'AI 测试', key:'Cmd+Enter' },
+        ].map(s => `
+          <div class="settings-row">
+            <div class="settings-row-info"><div class="settings-row-label">${s.label}</div></div>
+            <div class="settings-control">
+              <kbd style="font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 8px">${s.key}</kbd>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    case 'security': return `
+      <h2>安全设置</h2>
+      <p class="settings-desc">密码保护和数据加密</p>
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">主密码</div><div class="settings-row-desc">使用 AES-256-GCM 加密保护敏感数据</div></div>
+          <div class="settings-control"><div class="toggle ${settingsState.masterPassword?'on':''}" onclick="toggleSetting('masterPassword',this)"></div></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">私密文件夹</div><div class="settings-row-desc">加密文件夹需要密码才能查看 (Beta)</div></div>
+          <div class="settings-control"><button class="btn btn-sm btn-ghost" onclick="showToast('设置私密文件夹')">管理</button></div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">调试模式</div><div class="settings-row-desc">显示开发者工具和调试信息</div></div>
+          <div class="settings-control"><div class="toggle" onclick="this.classList.toggle('on');showToast('调试模式已切换')"></div></div>
+        </div>
+      </div>
+      <div class="section-title" style="color:var(--destructive)">⚠ 危险操作</div>
+      <div class="settings-section" style="border-color:var(--destructive)">
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label" style="color:var(--destructive)">清除所有数据</div><div class="settings-row-desc">永久删除所有 Prompts、Skills 和设置</div></div>
+          <div class="settings-control"><button class="btn btn-sm" style="background:var(--destructive);color:white" onclick="showToast('需要主密码确认')">清除数据</button></div>
+        </div>
+      </div>
+    `;
+    case 'about': return `
+      <h2>关于 AgentsHub</h2>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:40px 0;gap:12px">
+        <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,hsl(220 70% 55%),hsl(260 50% 55%));display:flex;align-items:center;justify-content:center;font-size:40px">🤖</div>
+        <div style="font-size:24px;font-weight:700">AgentsHub</div>
+        <div class="text-muted">本地优先的 Prompt、Skill 与 AI 编程资产工作台</div>
+        <div class="text-muted text-sm">版本 0.6.0 · AGPL-3.0</div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">Electron</div></div><div class="text-muted">33.x</div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">React</div></div><div class="text-muted">18.x</div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">TypeScript</div></div><div class="text-muted">5.x</div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">数据库</div></div><div class="text-muted">SQLite (WASM)</div></div>
+        <div class="settings-row"><div class="settings-row-info"><div class="settings-row-label">许可证</div></div><div class="text-muted">AGPL-3.0</div></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:20px">
+        <button class="btn btn-ghost" onclick="showToast('检查更新')">检查更新</button>
+        <button class="btn btn-ghost" onclick="showToast('打开 GitHub')">GitHub</button>
+        <button class="btn btn-ghost" onclick="showToast('打开文档')">文档</button>
+      </div>
+    `;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════════
+function openPromptDetail(id) {
+  const p = PROMPTS.find(x => x.id === id);
+  const modal = document.getElementById('modalContent');
+  modal.className = 'modal prompt-detail-body';
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="prompt-type-badge ${p.type}" style="width:32px;height:32px">${p.type === 'text' ? '📝' : '🎨'}</div>
+        <div class="modal-title">${p.title}</div>
+      </div>
+      <button class="btn-icon" onclick="closeModal()">${ICONS.close}</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-field">
+        <div class="detail-label">描述</div>
+        <div class="text-muted" style="font-size:13px">${p.desc}</div>
+      </div>
+      ${p.tags.length ? `<div class="detail-field"><div class="detail-label">标签</div><div class="prompt-card-tags">${p.tags.map(t=>`<span class="prompt-tag">${t}</span>`).join('')}</div></div>` : ''}
+      ${p.sys ? `<div class="detail-field"><div class="detail-label">System Prompt</div><textarea class="detail-textarea" readonly>${p.sys}</textarea></div>` : ''}
+      <div class="detail-field">
+        <div class="detail-label">User Prompt</div>
+        <textarea class="detail-textarea" readonly>${p.user}</textarea>
+      </div>
+      ${p.vars.length ? `<div class="detail-field"><div class="detail-label">变量 (${p.vars.length})</div><div class="var-pills">${p.vars.map(v=>`<span class="var-pill">{{${v}}}</span>`).join('')}</div></div>` : ''}
+      <div class="detail-field">
+        <div class="detail-label">操作</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" onclick="showToast('AI 测试中...')">${ICONS.zap} AI 测试</button>
+          <button class="btn btn-sm btn-ghost" onclick="showToast('已复制')">${ICONS.copy} 复制</button>
+          <button class="btn btn-sm btn-ghost" onclick="showToast('版本历史')">${ICONS.history} 版本历史</button>
+          <button class="btn btn-sm btn-ghost" onclick="showToast('已收藏')">${ICONS.star} 收藏</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function openInstallModal(skillName) {
+  const modal = document.getElementById('modalContent');
+  modal.className = 'modal';
+  modal.style.width = '600px';
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div class="modal-title">安装 Skill — ${skillName}</div>
+      <button class="btn-icon" onclick="closeModal()">${ICONS.close}</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-label mb-2">选择安装目标平台</div>
+      <div class="platform-grid" id="platformGrid">
+        ${PLATFORMS.map(p => `
+          <div class="platform-item" onclick="this.classList.toggle('selected')">
+            ${ICONS.check}
+            <span>${p}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="detail-field mt-4">
+        <div class="detail-label">安装模式</div>
+        <div style="display:flex;gap:8px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="mode" checked> 符号链接 (Symlink)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="mode"> 复制 (Copy)</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="closeModal();showToast('安装成功!')">${ICONS.check} 确认安装</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function openQuickAdd() {
+  const modal = document.getElementById('modalContent');
+  modal.className = 'modal';
+  modal.style.width = '520px';
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div class="modal-title">新建 Prompt</div>
+      <button class="btn-icon" onclick="closeModal()">${ICONS.close}</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        ${[
+          { emoji:'✏️', label:'手动添加', desc:'填写详细信息' },
+          { emoji:'🔍', label:'智能分析', desc:'粘贴内容,AI 自动提取' },
+          { emoji:'✨', label:'AI 生成', desc:'描述需求,AI 自动编写' },
+          { emoji:'🖼️', label:'图片反推', desc:'上传图片反推 Prompt' },
+        ].map((m,i) => `
+          <div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s;text-align:center" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'" onclick="closeModal();showToast('${m.label}模式')">
+            <div style="font-size:28px;margin-bottom:8px">${m.emoji}</div>
+            <div class="fw-600" style="font-size:14px">${m.label}</div>
+            <div class="text-muted text-sm mt-2">${m.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+function closeModalOnOverlay(e) { closeModal(); }
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function switchModule(id) {
+  currentModule = id;
+  renderIconRail();
+  renderNavPanel();
+  renderTopbar();
+  renderContent();
+}
+
+function setPromptView(v) { promptView = v; renderTopbar(); renderContent(); }
+
+function filterPrompts(f) {
+  promptFilter = f;
+  document.querySelectorAll('#navPanel .nav-item').forEach(el => el.classList.remove('active'));
+  event?.target?.closest('.nav-item')?.classList.add('active');
+  renderContent();
+}
+
+function filterPromptSearch(v) { promptSearch = v; renderContent(); }
+
+function toggleFolder(el) { el.classList.toggle('expanded'); }
+
+function selectAgent(i) { currentAgent = i; agentTab = 'overview'; renderContent(); }
+function setAgentTab(t) { agentTab = t; renderContent(); }
+
+function selectRule(i) { currentRule = i; renderContent(); }
+function setRuleMode(m) { ruleEditorMode = m; renderContent(); }
+
+function setSettingsSection(id) { settingsSection = id; renderContent(); }
+
+function toggleSetting(key, el) {
+  settingsState[key] = !settingsState[key];
+  el.classList.toggle('on');
+}
+
+// Theme
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+  document.getElementById('themeIcon').outerHTML = currentTheme === 'dark'
+    ? '<svg class="ico" viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+    : '<svg class="ico" viewBox="0 0 24 24" id="themeIcon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  showToast(currentTheme === 'dark' ? '已切换到深色模式' : '已切换到浅色模式');
+}
+
+function setThemeMode(mode) {
+  if (mode === 'system') mode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  currentTheme = mode;
+  document.documentElement.classList.toggle('dark', mode === 'dark');
+  document.getElementById('themeIcon').outerHTML = mode === 'dark'
+    ? '<svg class="ico" viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+    : '<svg class="ico" viewBox="0 0 24 24" id="themeIcon"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+}
+
+function setThemeColor(id, hue, sat) {
+  currentThemeColor = id;
+  document.documentElement.style.setProperty('--theme-hue', hue);
+  document.documentElement.style.setProperty('--theme-sat', sat);
+  document.querySelectorAll('.theme-swatch').forEach(el => el.classList.remove('active'));
+  event?.target?.classList.add('active');
+  showToast(`主题已切换为 ${id}`);
+}
+
+// Toast
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.querySelector('.search-box input')?.focus(); }
+  if (e.key === 'Escape') closeModal();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+renderIconRail();
+renderNavPanel();
+renderTopbar();
+renderContent();
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1200" height="420" viewBox="0 0 1200 420"
+     role="img" aria-labelledby="title desc">
+  <title id="title">AgentsHub — 本地优先的 Prompt、Skill 与 AI 编程资产工作台</title>
+  <desc id="desc">左侧为产品名与价值描述，右侧为等距 3D 资产分发中心场景：五层叠块代表 Prompt、Skill、MCP、Plugin、Rules 五类资产，光线分发到多个 AI 工具节点。</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1220"/>
+      <stop offset="0.55" stop-color="#0E1628"/>
+      <stop offset="1" stop-color="#0A0F1C"/>
+    </linearGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0B1220" stop-opacity="1"/>
+      <stop offset="0.55" stop-color="#0B1220" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#0B1220" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="chipBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#152A4F"/>
+      <stop offset="1" stop-color="#101F3B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1200" height="420" fill="url(#bg)"/>
+
+  <!-- 右侧：AI 生成的等距 3D 资产分发场景（裁切填充，不破坏左侧排版区） -->
+  <image x="560" y="-12" width="668" height="446"
+         preserveAspectRatio="xMidYMid slice"
+         href="hero-scene.png" alt=""/>
+  <!-- 左侧文字区与场景的融合渐变 -->
+  <rect x="420" y="0" width="420" height="420" fill="url(#fade)"/>
+
+  <!-- 顶部细线：母题呼应（叠块轮廓） -->
+  <g stroke="#1F3557" stroke-width="1" fill="none" opacity="0.9">
+    <rect x="56" y="46" width="22" height="10" rx="2"/>
+    <rect x="48" y="60" width="38" height="10" rx="2"/>
+  </g>
+
+  <!-- 左侧排版区 -->
+  <g id="title-block" font-family="-apple-system, 'PingFang SC', 'Segoe UI', 'Microsoft YaHei', sans-serif">
+
+    <!-- eyebrow -->
+    <text x="56" y="78" font-size="15" letter-spacing="4" fill="#6EC6FF" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-weight="600">LOCAL-FIRST AI ASSET WORKSPACE</text>
+
+    <!-- 标题 -->
+    <text x="56" y="158" font-size="70" font-weight="700" fill="#F8FAFC">AgentsHub</text>
+
+    <!-- 描述 -->
+    <text x="56" y="216" font-size="26" fill="#D7E3F8">本地优先的 Prompt、Skill</text>
+    <text x="56" y="254" font-size="26" fill="#D7E3F8">与 AI 编程资产工作台</text>
+
+    <!-- 功能标签 -->
+    <g font-size="16" font-weight="500" fill="#C9D8F0">
+      <rect x="56" y="286" width="128" height="34" rx="17" fill="url(#chipBg)" stroke="#2C4468" stroke-width="1"/>
+      <text x="120" y="308" text-anchor="middle">Prompt 管理</text>
+
+      <rect x="198" y="286" width="172" height="34" rx="17" fill="url(#chipBg)" stroke="#2C4468" stroke-width="1"/>
+      <text x="284" y="308" text-anchor="middle">一键分发 15+ 平台</text>
+
+      <rect x="384" y="286" width="170" height="34" rx="17" fill="url(#chipBg)" stroke="#2C4468" stroke-width="1"/>
+      <text x="469" y="308" text-anchor="middle">版本 · 同步 · 备份</text>
+    </g>
+
+    <!-- 元数据 -->
+    <text x="56" y="372" font-size="15" fill="#7B93B8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">v0.6.0&#160;&#160;·&#160;&#160;macOS / Windows / Linux&#160;&#160;·&#160;&#160;7 种界面语言</text>
+  </g>
+</svg>
