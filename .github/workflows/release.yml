@@ -501,13 +501,16 @@ jobs:
 
           | 平台 | 下载 |
           |------|------|
-          | Windows | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-Setup-${VERSION}-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-Setup-${VERSION}-arm64.exe) |
-          | macOS | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-x64.dmg) |
+          | Windows | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-Setup-${VERSION}-x64.exe) |
+          | macOS | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-arm64.dmg) |
           | Linux | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](${DOWNLOAD_BASE_URL}/AgentsHub-${VERSION}-amd64.deb) |
           | 预览版 | [![Preview Prereleases](https://img.shields.io/badge/Preview_Prereleases-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](${PREVIEW_RELEASE_URL}) |
 
           ### macOS 安全说明
-          macOS 安装包已使用 Developer ID 签名并完成 Apple 公证。请优先从本 Release 或官网镜像下载；如果系统仍提示无法验证，请重新下载当前 Release 中的 DMG。
+          AgentsHub 是社区维护的 fork 构建，未配置 Apple Developer 签名。首次启动时 macOS Gatekeeper 可能拦截；如提示"已损坏"或"无法验证开发者"，请运行：
+          ```bash
+          sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
+          ```
 
           ${PREVIEW_NOTE}
 
@@ -546,17 +549,43 @@ jobs:
             cp "${matches[0]}" "release_assets/$(basename "${matches[0]}")"
           }
 
-          copy_unique "AgentsHub-${VERSION}-x64.dmg"
+          # copy_optional copies an asset when present and silently skips it
+          # when the platform/arch is not built in this run (for example macOS
+          # x64, which is retired in favor of arm64-only).
+          copy_optional() {
+            local pattern="$1"
+            local matches=()
+
+            while IFS= read -r line; do
+              matches+=("$line")
+            done < <(find artifacts -type f -name "$pattern" | sort)
+
+            if [ "${#matches[@]}" -eq 0 ]; then
+              echo "Skipping optional release asset (not built): $pattern"
+              return 0
+            fi
+
+            if [ "${#matches[@]}" -gt 1 ]; then
+              echo "Ambiguous release asset for pattern $pattern:"
+              printf '  %s\n' "${matches[@]}"
+              exit 1
+            fi
+
+            cp "${matches[0]}" "release_assets/$(basename "${matches[0]}")"
+          }
+
+          # macOS is arm64-only; x64 macOS artifacts are optional for backfill runs.
+          copy_optional "AgentsHub-${VERSION}-x64.dmg"
           copy_unique "AgentsHub-${VERSION}-arm64.dmg"
-          copy_unique "AgentsHub-${VERSION}-x64.dmg.blockmap"
+          copy_optional "AgentsHub-${VERSION}-x64.dmg.blockmap"
           copy_unique "AgentsHub-${VERSION}-arm64.dmg.blockmap"
-          copy_unique "AgentsHub-${VERSION}-x64.zip"
+          copy_optional "AgentsHub-${VERSION}-x64.zip"
           copy_unique "AgentsHub-${VERSION}-arm64.zip"
-          copy_unique "AgentsHub-${VERSION}-x64.zip.blockmap"
+          copy_optional "AgentsHub-${VERSION}-x64.zip.blockmap"
           copy_unique "AgentsHub-${VERSION}-arm64.zip.blockmap"
           copy_unique "AgentsHub-${VERSION}-x64.AppImage"
           copy_unique "AgentsHub-Setup-${VERSION}-x64.exe"
-          copy_unique "AgentsHub-Setup-${VERSION}-arm64.exe"
+          copy_optional "AgentsHub-Setup-${VERSION}-arm64.exe"
           copy_unique "AgentsHub-${VERSION}-amd64.deb"
           copy_unique "prompthub-cli-${VERSION}.tgz"
           copy_unique "latest.yml"
@@ -579,29 +608,34 @@ jobs:
               --arm64 release_assets/latest-mac-arm64.yml \
               --output release_assets/latest-mac.yml
             echo "Merged macOS manifests into release_assets/latest-mac.yml"
+          elif [ -f "release_assets/latest-mac-arm64.yml" ]; then
+            # arm64-only build (macOS x64 retired): publish the arm64 manifest as canonical.
+            cp release_assets/latest-mac-arm64.yml release_assets/latest-mac.yml
+            echo "Published arm64-only macOS manifest as release_assets/latest-mac.yml"
           fi
 
           # 4. Reconcile manifest hashes with actual binary files.
           # electron-builder on macOS may emit manifests before the final
           # DMG/ZIP is fully written, causing SHA512/size drift.  Patch the
           # manifests so published updater metadata always matches the real
-          # artifacts that users will download.
-          node apps/desktop/scripts/fix-manifest-hashes.js \
+          # artifacts that users will download. Only existing manifests are
+          # patched so retired architectures do not fail the step.
+          EXISTING_MANIFESTS=()
+          for f in \
             release_assets/latest.yml \
             release_assets/latest-arm64.yml \
             release_assets/latest-x64.yml \
             release_assets/latest-mac.yml \
             release_assets/latest-mac-arm64.yml \
-            release_assets/latest-mac-x64.yml
+            release_assets/latest-mac-x64.yml; do
+            if [ -f "$f" ]; then
+              EXISTING_MANIFESTS+=("$f")
+            fi
+          done
+          node apps/desktop/scripts/fix-manifest-hashes.js "${EXISTING_MANIFESTS[@]}"
 
           # 5. Verify manifest hashes before publishing. A mismatch here would become a broken auto update.
-          node apps/desktop/scripts/verify-update-manifest.js \
-            release_assets/latest.yml \
-            release_assets/latest-arm64.yml \
-            release_assets/latest-x64.yml \
-            release_assets/latest-mac.yml \
-            release_assets/latest-mac-arm64.yml \
-            release_assets/latest-mac-x64.yml
+          node apps/desktop/scripts/verify-update-manifest.js "${EXISTING_MANIFESTS[@]}"
 
           # 6. Create or refresh the Release as a DRAFT.
           # 所有 tag 打包产物默认为 Draft Release，不会被 auto-updater 拉取，
