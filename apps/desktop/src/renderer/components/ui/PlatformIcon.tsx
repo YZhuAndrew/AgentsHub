@@ -50,6 +50,7 @@ import reasonixIcon from "../../assets/platforms/reasonix.svg";
 import augmentIcon from "../../assets/platforms/augment.svg";
 import kimiIcon from "../../assets/platforms/kimi.png";
 import qwenIcon from "../../assets/platforms/qwen.png";
+import qwenworkIcon from "../../assets/platforms/qwenwork.png";
 import piIcon from "../../assets/platforms/pi.svg";
 import ohMyPiIcon from "../../assets/platforms/oh-my-pi.svg";
 import chatgptLightIcon from "../../assets/platforms/chatgpt-light.png";
@@ -98,6 +99,7 @@ const PLATFORM_ICONS: Record<string, PlatformIconSource> = {
   qclaw: qclawIcon,
   qoder: qoderIcon,
   qoderwork: qoderworkIcon,
+  qwenwork: qwenworkIcon,
   reasonix: reasonixIcon,
   augment: augmentIcon,
   kimi: kimiIcon,
@@ -142,6 +144,7 @@ const FALLBACK_ICONS: Record<string, React.ReactNode> = {
   qclaw: <BugIcon />,
   qoder: <BotIcon />,
   qoderwork: <BotIcon />,
+  qwenwork: <BotIcon />,
   qwen: <BotIcon />,
   kimi: <CommandIcon />,
   reasonix: <CodeIcon />,

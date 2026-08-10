@@ -189,6 +189,7 @@ export const DEFAULT_SKILL_PLATFORM_ORDER = [
   "qclaw",
   "qoder",
   "qoderwork",
+  "qwenwork",
   "workbuddy",
   "codebuddy",
   "hermes",
@@ -807,8 +808,19 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
     icon: "Code",
     rootDir: {
       darwin: "~/.qoderwork",
-      win32: "%USERPROFILE%\\.qoderwork",
+      win32: "%USERPROFILE%\\.qwenwork",
       linux: "~/.qoderwork",
+    },
+    skillsRelativePath: "skills",
+  },
+  {
+    id: "qwenwork",
+    name: "QwenWork",
+    icon: "Bot",
+    rootDir: {
+      darwin: "~/.qwenwork",
+      win32: "%USERPROFILE%\\.qwenwork",
+      linux: "~/.qwenwork",
     },
     skillsRelativePath: "skills",
   },

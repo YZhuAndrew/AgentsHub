@@ -209,6 +209,20 @@ describe("PlatformIcon", () => {
     expect(asset.readUInt32BE(20)).toBe(512);
   });
 
+  it("renders the official QwenWork mark instead of the generic fallback", () => {
+    render(<PlatformIcon platformId="qwenwork" size={20} />);
+
+    const icon = screen.getByRole("img", { name: "qwenwork icon" });
+    expect(icon).toHaveAttribute(
+      "src",
+      expect.stringContaining("qwenwork.png"),
+    );
+    const asset = readFileSync(join(platformAssetsDir, "qwenwork.png"));
+    expect(asset.subarray(0, 8).toString("hex")).toBe(PNG_SIGNATURE);
+    expect(asset.readUInt32BE(16)).toBe(180);
+    expect(asset.readUInt32BE(20)).toBe(180);
+  });
+
   it("renders the official Pi badge instead of a generic fallback", () => {
     render(<PlatformIcon platformId="pi" size={20} />);
 

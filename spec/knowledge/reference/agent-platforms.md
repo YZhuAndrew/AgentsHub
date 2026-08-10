@@ -235,6 +235,7 @@ Stable product rule:
 | TRAE Work CN | `trae-work-cn` | `~/.trae-work-cn`                                               | TRAE Work is a separate China-region client; PromptHub assigns an isolated root + `skills/` convention | Product confirmed; local path PromptHub inferred                           |
 | Qoder        | `qoder`        | `~/.qoder`                                                      | Official transcript JSONL read-only history; root dir + `skills/` remains a compatibility convention   | Official Qoder Hooks/CLI docs; local Skill path remains PromptHub inferred |
 | QoderWorker  | `qoderwork`    | `~/.qoderwork`                                                  | root dir + `skills/` convention only                                                                   | PromptHub inferred                                                         |
+| QwenWork     | `qwenwork`     | `~/.qwenwork`                                                   | root dir + `skills/` convention only; minimal skeleton placeholder                                     | User-specified root; local Skill path PromptHub inferred                                                  |
 | Hermes Agent | `hermes`       | macOS/Linux `~/.hermes`; Windows Native `%LOCALAPPDATA%\hermes` | root dir + `skills/` convention only                                                                   | Windows Native root officially documented; skills path PromptHub inferred  |
 
 Qoder and Qwen Code are separate products and remain separate PromptHub targets.

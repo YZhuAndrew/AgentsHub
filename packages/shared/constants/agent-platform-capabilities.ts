@@ -174,6 +174,7 @@ export const AGENT_PLATFORM_DEPTH_CAPABILITIES = {
     sessions: declaration("supported", "verified-qoder-transcript-jsonl-v1"),
   }),
   qoderwork: depthCapabilities(),
+  qwenwork: depthCapabilities(),
   hermes: depthCapabilities({
     sessions: declaration("supported", "verified-hermes-state-db"),
   }),
