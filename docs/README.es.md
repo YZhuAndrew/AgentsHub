@@ -1,17 +1,15 @@
 <div align="center">
-  <img src="./imgs/icon.png" alt="AgentsHub Logo" width="128" height="128" />
+  <img src="../assets/readme/hero.png" width="100%" alt="AgentsHub — un workspace local-first para prompts, skills y activos de programación con IA" />
 
 # AgentsHub
 
 Un espacio de trabajo local-first para prompts, skills y assets de codificación con IA.
 
-> 🔖 Este proyecto es un fork de [PromptHub](https://github.com/legeling/PromptHub) (AGPL-3.0), extendido sobre él. Gracias al autor original [legeling](https://github.com/legeling) por su contribución de código abierto.
-
   <br/>
 
-[![GitHub Stars](https://img.shields.io/github/stars/legeling/PromptHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/legeling/PromptHub/stargazers)
-[![Downloads](https://img.shields.io/github/downloads/legeling/PromptHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/legeling/PromptHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.5.9_stable-22C55E?style=for-the-badge)](https://github.com/legeling/PromptHub/releases/latest)
+[![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
+[![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
+[![Version](https://img.shields.io/badge/release-v0.6.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -34,7 +32,7 @@ Un espacio de trabajo local-first para prompts, skills y assets de codificación
 
   <br/>
 
-  <a href="https://github.com/legeling/PromptHub/releases/latest">
+  <a href="https://github.com/YZhuAndrew/AgentsHub/releases/latest">
     <img src="https://img.shields.io/badge/📥_Descargar-Releases-blue?style=for-the-badge&logo=github" alt="Descargar"/>
   </a>
 </div>
@@ -60,7 +58,7 @@ Tus datos se quedan en tu máquina.
 - [Desde el código fuente](#dev)
 - [Estructura del repositorio](#project-structure)
 - [Contribuir y docs](#contributing)
-- [Licencia / créditos / comunidad](#meta)
+- [Licencia / créditos](#meta)
 
 ---
 
@@ -68,35 +66,22 @@ Tus datos se quedan en tu máquina.
 
 ## 📥 Descarga
 
-Última estable: **v0.5.9**. Los enlaces directos apuntan a los assets estables de GitHub Latest; volverán a nombres fijos del CDN cuando el mirror esté sincronizado:
+Las compilaciones de escritorio se publican en GitHub Releases para macOS / Windows / Linux.
 
-- **Descarga directa** — apunta a los assets estables de GitHub Latest para evitar un mirror CDN vacío; volverá a nombres fijos del CDN cuando el mirror esté sincronizado.
-- **GitHub Releases** — página oficial de releases con archivos de versiones, firmas y notas completas.
+| Plataforma | Instalador |
+| ---- | ------ |
+| macOS (Apple Silicon) | [arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS (Intel) | [x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS (Apple Silicon / Intel) | [zip portátil](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Windows / Linux | ver la [página Releases](https://github.com/YZhuAndrew/AgentsHub/releases) |
 
-| Plataforma   | Descarga directa                                                                                                                                                                                                                                                                                                                                                                                                                        | GitHub Releases                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Windows      | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-arm64.exe) | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-arm64.exe) |
-| macOS        | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.dmg)     | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.dmg)     |
-| Linux        | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-amd64.deb)              | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-amd64.deb)              |
-| Vista previa | [![Preview anterior](https://img.shields.io/badge/Preview-v0.5.9--beta.2-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](https://github.com/legeling/PromptHub/releases/tag/v0.5.9-beta.2)                                                                                                                                                                                                                                     | [GitHub Prerelease v0.5.9-beta.2](https://github.com/legeling/PromptHub/releases/tag/v0.5.9-beta.2)                                                                                                                                                                                                                                                                                                                                     |
-
-> **Apple Silicon o Intel?** M1/M2/M3/M4 → `arm64`. Macs Intel → `x64`.
-> **Windows arch?** La mayoría → `x64`. Solo en hardware ARM tipo Surface Pro X → `arm64`.
-
-### macOS via Homebrew
-
-```bash
-brew tap legeling/tap
-brew install --cask prompthub
-```
-
-Para actualizar usa `brew upgrade --cask prompthub`. No mezcles Homebrew con el actualizador interno o la versión registrada por Homebrew dejará de coincidir con la realmente instalada.
+> **¿Apple Silicon o Intel?** M1/M2/M3/M4 → `arm64`. Los Mac Intel → `x64`. El zip portátil se descomprime y usa sin instalación.
 
 ### Verificación de seguridad en macOS
 
-Los paquetes para macOS se firman con Developer ID y se notarizan con Apple. Instala desde GitHub Releases, el espejo oficial o Homebrew. Si macOS aún no puede verificar la app, vuelve a descargar el DMG de la versión actual e instálalo de nuevo.
+Los paquetes para macOS se firman con Developer ID y se notarizan con Apple. Instala desde GitHub Releases; si macOS aún no puede verificar la app, vuelve a descargar el DMG de la versión actual e instálalo de nuevo.
 
-Las primeras previews de `0.5.9` y compilaciones históricas anteriores pueden no estar firmadas ni notarizadas. Si descargaste intencionalmente una de esas versiones y macOS indica que AgentsHub está dañado o que no se puede verificar al desarrollador, ejecuta:
+Las compilaciones históricas más antiguas y las primeras previews pueden no estar firmadas ni notarizadas. Si descargaste intencionalmente una de esas versiones y macOS indica que AgentsHub está dañado o que no se puede verificar al desarrollador, ejecuta:
 
 ```bash
 sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
@@ -116,7 +101,7 @@ Vuelve a abrir la app. Sustituye la ruta si la instalaste en otro sitio.
 
 ## Capturas
 
-> Las siguientes capturas cubren los cinco espacios de trabajo de escritorio de la estable v0.5.9: Prompt, Skill, MCP, Plugin y Rules.
+> Las siguientes capturas cubren los espacios de trabajo de escritorio de la versión estable: Prompt, Skill, MCP, Plugin y Rules.
 
 <div align="center">
   <p><strong>Home en dos columnas</strong></p>
@@ -407,7 +392,7 @@ Changelog completo: **[CHANGELOG.md](../CHANGELOG.md)**
 
 ## Hoja de ruta
 
-### v0.5.9 ← estable actual
+### v0.5.9
 
 - Plugin / MCP se alinean con la experiencia Skill en tiendas, distribución Agent, detalles, filtros de etiquetas, revisión de actualización y safety checks
 - Sync de assets Agent, proxy de red, instalaciones CLI de proyecto y checks de actualización de origen Skill pasan a estable
@@ -530,8 +515,7 @@ Para cambios no triviales, crea una carpeta de cambio en `spec/changes/active/<c
 
 ## Comentarios
 
-- Issues: [GitHub Issues](https://github.com/legeling/PromptHub/issues)
-- Ideas: [GitHub Discussions](https://github.com/legeling/PromptHub/discussions)
+- Issues: [GitHub Issues](https://github.com/YZhuAndrew/AgentsHub/issues)
 
 ## Construido con
 
@@ -539,54 +523,30 @@ Para cambios no triviales, crea una carpeta de cambio en `spec/changes/active/<c
 
 ## Colaboradores
 
-Gracias a todas las personas que han contribuido a PromptHub.
+Gracias a todas las personas que han contribuido a AgentsHub.
 
-<a href="https://github.com/legeling/PromptHub/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=legeling/PromptHub" alt="Contributors" />
+<a href="https://github.com/YZhuAndrew/AgentsHub/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=YZhuAndrew/AgentsHub" alt="Contributors" />
 </a>
 
 ## Historial de stars
 
-<a href="https://star-history.com/#legeling/PromptHub&Date">
+<a href="https://star-history.com/#YZhuAndrew/AgentsHub&Date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=legeling/PromptHub&type=Date&theme=dark" />
-    <img alt="Historial de stars" src="https://api.star-history.com/svg?repos=legeling/PromptHub&type=Date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=YZhuAndrew/AgentsHub&type=Date&theme=dark" />
+    <img alt="Historial de stars" src="https://api.star-history.com/svg?repos=YZhuAndrew/AgentsHub&type=Date" />
   </picture>
 </a>
 
-## Comunidad
-
-Únete a la comunidad de PromptHub para soporte, comentarios, novedades de release y vistas previas tempranas.
-
-<div align="center">
-  <a href="https://discord.gg/zmfWguWFB">
-    <img src="https://img.shields.io/badge/Discord-Join%20PromptHub%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join PromptHub Discord Community" />
-  </a>
-  <p><strong>Discord es el canal recomendado: anuncios, soporte, novedades de release.</strong></p>
-</div>
-
-<br/>
-
-### Grupo QQ (chino)
-
-Si prefieres QQ, el grupo QQ de PromptHub también está abierto:
-
-- ID del grupo: `704298939`
-
-<div align="center">
-  <img src="./imgs/qq-group.jpg" width="320" alt="QR del grupo QQ de PromptHub"/>
-  <p><strong>Escanea para unirte al grupo QQ de PromptHub</strong></p>
-</div>
-
 ## Patrocinar
 
-Si PromptHub te resulta útil, invita un café al autor.
+Si AgentsHub te resulta útil, invita al mantenedor a un café ☕
 
 <div align="center">
   <table>
     <tr>
       <td align="center">
-        <img src="./imgs/donate/wechat.png" width="200" alt="WeChat Pay"/>
+        <img src="./imgs/donate/wechat.jpg" width="200" alt="WeChat Pay"/>
         <br/>
         <b>WeChat Pay</b>
       </td>
@@ -595,23 +555,18 @@ Si PromptHub te resulta útil, invita un café al autor.
         <br/>
         <b>Alipay</b>
       </td>
-      <td align="center">
-        <a href="https://www.buymeacoffee.com/legeling" target="_blank">
-          <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50" />
-        </a>
-        <br/>
-        <b>Buy Me A Coffee</b>
-      </td>
     </tr>
   </table>
 </div>
 
-Contacto: legeling567@gmail.com
+---
 
-Los patrocinadores anteriores están archivados en [`docs/sponsors.md`](./sponsors.md).
+## Agradecimientos
+
+AgentsHub es un fork de [PromptHub](https://github.com/legeling/PromptHub) (AGPL-3.0). Gracias al autor original [legeling](https://github.com/legeling) por su contribución de código abierto. Este proyecto lo amplía con gestión de activos de Agent, diagnóstico CLI y seguimiento de uso.
 
 ---
 
 <div align="center">
-  <p>Si PromptHub te resulta útil, una ⭐ siempre se agradece.</p>
+  <p>Si AgentsHub te resulta útil, una ⭐ siempre se agradece.</p>
 </div>

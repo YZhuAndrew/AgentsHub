@@ -14,8 +14,6 @@
 
 数据默认只存在你自己的电脑上。
 
-> 🔖 本项目 fork 自 [PromptHub](https://github.com/legeling/PromptHub)（AGPL-3.0），并在此基础上扩展。感谢原作者 [legeling](https://github.com/legeling) 的开源贡献。
-
 <br/>
 
 [![Release](https://img.shields.io/github/v/release/YZhuAndrew/AgentsHub?style=for-the-badge&color=4F6EF5)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
@@ -55,18 +53,20 @@
 - [路线图](#路线图)
 - [贡献与文档](#贡献与文档)
 - [许可证 / 反馈](#许可证--反馈)
+- [赞助](#赞助)
+- [致谢](#致谢)
 
 ---
 
 ## 下载安装
 
-最新稳定版 **v0.6.0** 已发布（GitHub Releases）。
+桌面版构建发布在 GitHub Releases，覆盖 macOS / Windows / Linux。
 
 | 平台 | 安装包 |
 | ---- | ------ |
-| macOS（Apple Silicon） | [v0.6.0 · arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS（Intel） | [v0.6.0 · x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
-| macOS（Apple Silicon / Intel） | [v0.6.0 · zip 便携版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS（Apple Silicon） | [arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS（Intel） | [x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS（Apple Silicon / Intel） | [zip 便携版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
 | Windows / Linux | 前往 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases) 查看可用构建 |
 
 > **macOS 选哪个？** Apple Silicon（M1/M2/M3/M4）选 `arm64`，Intel Mac 选 `x64`。便携版 zip 解压即用，无需安装。
@@ -96,7 +96,7 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 
 ## 截图
 
-> 以下截图覆盖桌面端主要工作区：Prompt、Skill、MCP、Plugin 和 Rules。
+> 以下截图覆盖桌面端主要工作区：Prompt、Skill、Agent、MCP、Plugin 与 Rules。
 
 <div align="center">
   <p><strong>主界面（双栏首页）</strong></p>
@@ -105,8 +105,20 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
   <p><strong>Skill 商店</strong></p>
   <img src="./docs/imgs/10-skill-store.png" width="80%" alt="Skill 商店"/>
   <br/><br/>
-  <p><strong>Skill 详情与一键安装到平台</strong></p>
+  <p><strong>Skill 详情与一键安装到 15+ 平台</strong></p>
   <img src="./docs/imgs/11-skill-platform-install.png" width="80%" alt="Skill 平台安装"/>
+  <br/><br/>
+  <p><strong>Agent 工作区：统一管理多个 AI 编程助手</strong></p>
+  <img src="./docs/imgs/20-agents-workspace.png" width="80%" alt="Agent 工作区概览"/>
+  <br/><br/>
+  <p><strong>Agent CLI 诊断：检测已安装工具的版本与健康状态</strong></p>
+  <img src="./docs/imgs/21-agents-cli-doctor.png" width="80%" alt="Agent CLI 诊断"/>
+  <br/><br/>
+  <p><strong>Agent 用量监控：按时间窗口统计订阅消耗</strong></p>
+  <img src="./docs/imgs/22-agents-usage.png" width="80%" alt="Agent 用量监控"/>
+  <br/><br/>
+  <p><strong>Agent 会话历史：集中浏览、导出与移交各工具会话</strong></p>
+  <img src="./docs/imgs/23-agents-sessions.png" width="80%" alt="Agent 会话历史"/>
   <br/><br/>
   <p><strong>MCP 工作区</strong></p>
   <img src="./docs/imgs/18-mcp-workspace.png" width="80%" alt="MCP 工作区"/>
@@ -156,12 +168,14 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 - 支持手动添加项目级 Rules，按目录分组浏览
 - 与 ZIP 导出、WebDAV、自托管备份恢复、Web 导入导出全链路打通
 
-### 🤖 项目与 Agent 资产工作区
+### 🤖 Agent 工作区：多 AI 编程助手的统一指挥台
 
-- 扫描项目里的 `.claude/skills`、`.agents/skills`、`skills`、`.gemini` 等常见目录
-- 为单个项目建立独立 Skill 工作区，不污染全局库
-- 个人库、本地仓库、项目资产同一界面切换，不用在多个工具目录之间跳来跳去
-- 全局 Prompt 标签管理：集中搜索、重命名、合并、删除标签，数据库与工作区文件一并同步
+- 在一个界面管理 Claude Code、Cursor、Copilot、Gemini、Codex、Cline、Windsurf、Augment 等多个 AI 编程工具
+- **CLI 诊断**：自动检测每个工具的安装状态、CLI 版本与配置健康度，问题一目了然
+- **用量监控**：按 5 小时 / 7 天 / 本周等时间窗口统计订阅消耗，把握额度节奏
+- **会话历史**：集中浏览各工具的会话，支持导出与跨工具移交，不用在多个终端和窗口间翻找
+- 扫描项目里的 `.claude/skills`、`.agents/skills`、`skills`、`.gemini` 等目录，为单个项目建立独立 Skill 工作区，不污染全局库
+- 个人库、本地仓库、项目资产同一界面切换；全局 Prompt 标签可集中搜索、重命名、合并、删除，数据库与工作区文件一并同步
 
 ### 🧪 AI 测试与生成
 
@@ -180,7 +194,7 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 ### 💾 数据、同步与备份
 
 - 本地优先：所有数据默认存在你自己的电脑上
-- 全量备份 / 恢复使用 `.phub.gz` 压缩格式
+- 全量备份 / 恢复使用 `.phub.gz` 压缩格式（沿用自上游的备份格式）
 - WebDAV 同步（坚果云、Nextcloud 等），只允许一个活动同步源，避免多源冲突写入
 - 自部署 AgentsHub Web 独立保存不可变快照；启动和定时任务只上传，绝不会自动拉取或覆盖本地数据
 - 桌面版与 Web 版必须完全同版本才会备份；恢复由用户显式触发，并先创建本地安全快照
@@ -246,7 +260,10 @@ docker compose up -d --build
 
 ## 命令行 CLI
 
-CLI 适合脚本化管理、批量导入导出、自动化扫描。当前桌面版**不会**自动安装 `prompthub` 命令，需要你从仓库自己打包再装：
+AgentsHub 还附带一个命令行工具，适合脚本化管理、批量导入导出与自动化扫描。它需要从仓库自行打包安装。
+
+<details>
+<summary>安装步骤与命令一览（展开查看）</summary>
 
 ```bash
 pnpm pack:cli
@@ -260,9 +277,6 @@ prompthub --help
 pnpm --filter @prompthub/cli dev -- prompt list
 pnpm --filter @prompthub/cli dev -- skill scan
 ```
-
-<details>
-<summary>支持的资源命令一览（展开查看）</summary>
 
 每个命令都有 `--help`：
 
@@ -316,8 +330,6 @@ sync      status / push / pull
 doctor    database-lock [--recover]
 ```
 
-</details>
-
 Skill 导入、版本快照和分发统一应用内置忽略规则与根目录 `.prompthubignore`，并在写入前阻止疑似私钥、访问令牌和密码。默认成功输出是有界摘要；只有明确使用 `--full` 才返回 Skill 正文与完整文件快照。
 
 常用全局参数：
@@ -329,6 +341,10 @@ Skill 导入、版本快照和分发统一应用内置忽略规则与根目录 `
 - `--data-dir <path>` — 显式指定 AgentsHub 的 `userData` 目录
 - `--app-data-dir <path>` — 显式指定应用数据根目录
 - `--version|-v` — 打印 CLI 版本
+
+</details>
+
+> 注：CLI 二进制名 `prompthub`、包名 `@prompthub/*` 与备份格式 `.phub.gz` 沿用自上游，暂未重命名，不影响功能。
 
 ---
 
@@ -439,6 +455,35 @@ AgentsHub/
 
 - 问题反馈：[GitHub Issues](https://github.com/YZhuAndrew/AgentsHub/issues/new)
 - 联系维护者：yzhu.andrew@163.com
+
+---
+
+## 赞助
+
+如果 AgentsHub 对你有帮助，欢迎请维护者喝杯咖啡 ☕
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="./docs/imgs/donate/wechat.jpg" width="200" alt="微信支付"/>
+        <br/>
+        <b>微信支付</b>
+      </td>
+      <td align="center">
+        <img src="./docs/imgs/donate/alipay.jpg" width="200" alt="支付宝"/>
+        <br/>
+        <b>支付宝</b>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## 致谢
+
+AgentsHub fork 自 [PromptHub](https://github.com/legeling/PromptHub)（AGPL-3.0），感谢原作者 [legeling](https://github.com/legeling) 的开源贡献。本项目在其基础上扩展了 Agent 资产管理、CLI 诊断、用量监控等能力。
 
 ---
 

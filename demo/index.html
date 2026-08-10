@@ -708,11 +708,11 @@ const TAGS = ['开发','学术','Midjourney','SQL','营销','Stable Diffusion','
 const SKILLS = [
   { name:'PDF Skill', author:'Anthropic', emoji:'📄', desc:'Create, edit, analyze PDF documents with precision. Extract text, merge pages, fill forms.', tags:['document','pdf'], installs:'12.3k', updated:'3天前', installed:false },
   { name:'Playwright CLI', author:'Microsoft', emoji:'🎭', desc:'Browser automation and E2E testing. Navigate, click, fill forms, screenshot, and verify.', tags:['testing','browser'], installs:'8.7k', updated:'1天前', installed:true },
-  { name:'Frontend Design', author:'PromptHub', emoji:'🎨', desc:'Convert designs to pixel-perfect frontend code. Supports React, Vue, Tailwind, and CSS.', tags:['frontend','design'], installs:'15.1k', updated:'5天前', installed:false },
-  { name:'Security Review', author:'PromptHub', emoji:'🛡️', desc:'Automated security audit of codebases. Detects vulnerabilities, injection, SSRF, and more.', tags:['security','audit'], installs:'6.4k', updated:'2天前', installed:false },
+  { name:'Frontend Design', author:'AgentsHub', emoji:'🎨', desc:'Convert designs to pixel-perfect frontend code. Supports React, Vue, Tailwind, and CSS.', tags:['frontend','design'], installs:'15.1k', updated:'5天前', installed:false },
+  { name:'Security Review', author:'AgentsHub', emoji:'🛡️', desc:'Automated security audit of codebases. Detects vulnerabilities, injection, SSRF, and more.', tags:['security','audit'], installs:'6.4k', updated:'2天前', installed:false },
   { name:'Deep Research', author:'OpenAI', emoji:'🔬', desc:'Multi-step research agent. Searches, synthesizes, and produces comprehensive reports.', tags:['research','agent'], installs:'9.8k', updated:'1周前', installed:false },
   { name:'MCP Builder', author:'Anthropic', emoji:'🔧', desc:'Build custom MCP servers with type-safe schemas. Includes templates and testing utilities.', tags:['mcp','tools'], installs:'4.2k', updated:'4天前', installed:true },
-  { name:'Prompt Engineering', author:'PromptHub', emoji:'✏️', desc:'Systematic prompt optimization. Chain-of-thought, few-shot, and technique library.', tags:['prompt','ai'], installs:'21.5k', updated:'6天前', installed:false },
+  { name:'Prompt Engineering', author:'AgentsHub', emoji:'✏️', desc:'Systematic prompt optimization. Chain-of-thought, few-shot, and technique library.', tags:['prompt','ai'], installs:'21.5k', updated:'6天前', installed:false },
   { name:'Git Worktrees', author:'Community', emoji:'🌳', desc:'Parallel development with git worktrees. Manage branches without switching directories.', tags:['git','workflow'], installs:'3.1k', updated:'2周前', installed:false },
   { name:'Docker Compose', author:'Community', emoji:'🐳', desc:'Compose file generation and service orchestration. Includes health checks and networking.', tags:['docker','devops'], installs:'5.6k', updated:'1周前', installed:false },
   { name:'D3 Visualization', author:'Observable', emoji:'📊', desc:'Create stunning data visualizations with D3.js. Charts, graphs, and interactive dashboards.', tags:['data','viz'], installs:'7.3k', updated:'3天前', installed:false },
@@ -749,11 +749,11 @@ const MCP_SERVERS = [
 ];
 
 const PLUGINS = [
-  { name:'full-stack-dev', author:'PromptHub', emoji:'🚀', desc:'Complete full-stack development toolkit with frontend, backend, and database skills', inventory:{ skills:5, mcp:2, commands:8 }, safety:'high', safetyScore:95, installed:false },
+  { name:'full-stack-dev', author:'AgentsHub', emoji:'🚀', desc:'Complete full-stack development toolkit with frontend, backend, and database skills', inventory:{ skills:5, mcp:2, commands:8 }, safety:'high', safetyScore:95, installed:false },
   { name:'devops-essentials', author:'Community', emoji:'⚙️', desc:'Docker, K8s, CI/CD, and monitoring utilities for DevOps workflows', inventory:{ skills:3, mcp:1, commands:6 }, safety:'high', safetyScore:88, installed:true },
-  { name:'data-science-pack', author:'PromptHub', emoji:'📈', desc:'Jupyter, pandas, matplotlib, and ML model training utilities', inventory:{ skills:4, mcp:2, commands:5 }, safety:'medium', safetyScore:72, installed:false },
+  { name:'data-science-pack', author:'AgentsHub', emoji:'📈', desc:'Jupyter, pandas, matplotlib, and ML model training utilities', inventory:{ skills:4, mcp:2, commands:5 }, safety:'medium', safetyScore:72, installed:false },
   { name:'creative-suite', author:'Community', emoji:'🎬', desc:'Image generation, video editing, and design automation skills', inventory:{ skills:6, mcp:1, commands:3 }, safety:'medium', safetyScore:68, installed:false },
-  { name:'security-toolkit', author:'PromptHub', emoji:'🔐', desc:'Code scanning, dependency audit, and vulnerability assessment', inventory:{ skills:3, mcp:1, commands:7 }, safety:'high', safetyScore:91, installed:false },
+  { name:'security-toolkit', author:'AgentsHub', emoji:'🔐', desc:'Code scanning, dependency audit, and vulnerability assessment', inventory:{ skills:3, mcp:1, commands:7 }, safety:'high', safetyScore:91, installed:false },
   { name:'docs-generator', author:'Community', emoji:'📖', desc:'Auto-generate API docs, changelogs, and technical guides from code', inventory:{ skills:2, mcp:0, commands:4 }, safety:'high', safetyScore:84, installed:false },
 ];
 
@@ -761,7 +761,7 @@ const RULE_FILES = [
   { group:'workspace', name:'AGENTS.md', path:'/project/AGENTS.md', size:'12.4 KB', modified:'2小时前' },
   { group:'workspace', name:'.cursor/rules/global.mdc', path:'/project/.cursor/rules/global.mdc', size:'3.2 KB', modified:'昨天' },
   { group:'workspace', name:'.claude/CLAUDE.md', path:'/project/.claude/CLAUDE.md', size:'8.7 KB', modified:'3天前' },
-  { group:'assistant', name:'Global Rules.md', path:'~/.prompthub/rules/global.md', size:'5.1 KB', modified:'1周前' },
+  { group:'assistant', name:'Global Rules.md', path:'~/.agentshub/rules/global.md', size:'5.1 KB', modified:'1周前' },
   { group:'tooling', name:'.windsurfrules', path:'/project/.windsurfrules', size:'2.3 KB', modified:'上周' },
   { group:'tooling', name:'.github/copilot-instructions.md', path:'/project/.github/copilot-instructions.md', size:'4.6 KB', modified:'2周前' },
 ];
@@ -1575,7 +1575,7 @@ function renderSettingsContent() {
           <div class="settings-control"><div class="toggle ${settingsState.autoBackup?'on':''}" onclick="toggleSetting('autoBackup',this)"></div></div>
         </div>
         <div class="settings-row">
-          <div class="settings-row-info"><div class="settings-row-label">手动备份</div><div class="settings-row-desc">导出完整备份文件 (.phub.gz)</div></div>
+          <div class="settings-row-info"><div class="settings-row-label">手动备份</div><div class="settings-row-desc">导出完整备份文件 (.ahub.gz)</div></div>
           <div class="settings-control"><button class="btn btn-sm btn-primary" onclick="showToast('正在备份...')">立即备份</button></div>
         </div>
         <div class="settings-row">

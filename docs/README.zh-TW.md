@@ -1,17 +1,15 @@
 <div align="center">
-  <img src="./imgs/icon.png" alt="AgentsHub Logo" width="128" height="128" />
+  <img src="../assets/readme/hero.png" width="100%" alt="AgentsHub — 本機優先的 Prompt、Skill 與 AI 程式設計資產工作台" />
 
 # AgentsHub
 
-本機優先的 Prompt、Skill 與 AI 編程資產工作台。
-
-> 🔖 本專案 fork 自 [PromptHub](https://github.com/legeling/PromptHub)（AGPL-3.0），並在此基礎上擴展。感謝原作者 [legeling](https://github.com/legeling) 的開源貢獻。
+本機優先的 Prompt、Skill 與 AI 程式設計資產工作台。
 
   <br/>
 
-[![GitHub Stars](https://img.shields.io/github/stars/legeling/PromptHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/legeling/PromptHub/stargazers)
-[![Downloads](https://img.shields.io/github/downloads/legeling/PromptHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/legeling/PromptHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.5.9_stable-22C55E?style=for-the-badge)](https://github.com/legeling/PromptHub/releases/latest)
+[![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
+[![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
+[![Version](https://img.shields.io/badge/release-v0.6.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -34,7 +32,7 @@
 
   <br/>
 
-  <a href="https://github.com/legeling/PromptHub/releases/latest">
+  <a href="https://github.com/YZhuAndrew/AgentsHub/releases/latest">
     <img src="https://img.shields.io/badge/📥_下載桌面版-Releases-blue?style=for-the-badge&logo=github" alt="Download"/>
   </a>
 </div>
@@ -60,7 +58,7 @@ AgentsHub 把你的 Prompt、SKILL.md 和專案級 AI 編程資產放進一個�
 - [從原始碼執行](#dev)
 - [儲存庫結構](#project-structure)
 - [貢獻與文件](#contributing)
-- [授權 / 致謝 / 社群](#meta)
+- [授權 / 回饋 / 致謝](#meta)
 
 ---
 
@@ -68,35 +66,22 @@ AgentsHub 把你的 Prompt、SKILL.md 和專案級 AI 編程資產放進一個�
 
 ## 📥 桌面版下載
 
-最新穩定版 **v0.5.9** 已發布。直鏈下載指向 GitHub Latest 穩定版資產；鏡像同步完成後會切回固定檔名 CDN 直鏈：
+桌面版建構發布在 GitHub Releases，支援 macOS / Windows / Linux。
 
-- **直鏈下載** — 目前暫時指向 GitHub 穩定版資產，避免 CDN 鏡像尚未就緒時出現 404；鏡像同步完成後會切回固定檔名 CDN 直鏈
-- **GitHub Releases** — 官方發佈頁，可下載歷史版本、查看簽章與完整 Release Notes。
-
-| 平台    | 直鏈下載                                                                                                                                                                                                                                                                                                                                                                                                                                | GitHub Releases                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Windows | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-arm64.exe) | [![Windows x64](https://img.shields.io/badge/Windows_x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-x64.exe) [![Windows arm64](https://img.shields.io/badge/Windows_arm64-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-Setup-0.5.9-arm64.exe) |
-| macOS   | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.dmg)     | [![macOS Apple Silicon](https://img.shields.io/badge/macOS_Apple_Silicon-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-arm64.dmg) [![macOS Intel](https://img.shields.io/badge/macOS_Intel-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.dmg)     |
-| Linux   | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-amd64.deb)              | [![Linux AppImage](https://img.shields.io/badge/Linux_AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-x64.AppImage) [![Linux deb](https://img.shields.io/badge/Linux_deb-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/legeling/PromptHub/releases/latest/download/PromptHub-0.5.9-amd64.deb)              |
-| 預覽版  | [![歷史預覽版](https://img.shields.io/badge/Preview-v0.5.9--beta.2-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](https://github.com/legeling/PromptHub/releases/tag/v0.5.9-beta.2)                                                                                                                                                                                                                                           | [GitHub Prerelease v0.5.9-beta.2](https://github.com/legeling/PromptHub/releases/tag/v0.5.9-beta.2)                                                                                                                                                                                                                                                                                                                                     |
+| 平台 | 安裝包 |
+| ---- | ------ |
+| macOS（Apple Silicon） | [arm64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS（Intel） | [x64 DMG](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| macOS（Apple Silicon / Intel） | [zip 可攜版](https://github.com/YZhuAndrew/AgentsHub/releases/latest) |
+| Windows / Linux | 前往 [Releases 頁](https://github.com/YZhuAndrew/AgentsHub/releases) 查看 |
 
 > **macOS 選哪個？** Apple Silicon（M1/M2/M3/M4）選 `arm64`，Intel Mac 選 `x64`。
-> **Windows 選哪個？** 絕大多數選 `x64`，只有 Surface Pro X 這類 ARM 裝置選 `arm64`。
-
-### macOS 透過 Homebrew
-
-```bash
-brew tap legeling/tap
-brew install --cask prompthub
-```
-
-後續升級請用 `brew upgrade --cask prompthub`，**不要**和應用內自動更新混用，否則可能出現 Homebrew 記錄的版本和實際安裝不一致。
 
 ### macOS 安全驗證
 
-macOS 安裝包會使用 Developer ID 簽章並完成 Apple 公證。請優先從 GitHub Release、官方鏡像或 Homebrew 安裝；如果系統仍提示無法驗證，請重新下載目前 Release 的 DMG 後再安裝。
+macOS 安裝包會使用 Developer ID 簽章並完成 Apple 公證。請優先從 GitHub Release 下載；如果系統仍提示無法驗證，請重新下載目前 Release 的 DMG 後再安裝。
 
-`0.5.9` 早期預覽包和更早的歷史包可能尚未完成簽章公證。如果你明確下載的是這些歷史版本，且 macOS 提示「已損壞」或「無法驗證開發者」，可以在終端機執行：
+如果系統提示「已損壞」或「無法驗證開發者」，可以在終端機執行：
 
 ```bash
 sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
@@ -116,7 +101,7 @@ sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
 
 ## 螢幕截圖
 
-> 以下截圖涵蓋目前穩定版 0.5.9 的五個桌面工作區：Prompt、Skill、MCP、Plugin 與 Rules。
+> 以下截圖涵蓋桌面端主要工作區：Prompt、Skill、MCP、Plugin 與 Rules。
 
 <div align="center">
   <p><strong>主介面（雙欄首頁）</strong></p>
@@ -407,7 +392,7 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 
 ## 路線圖
 
-### v0.5.9 ← 目前穩定版
+### v0.5.9
 
 - Plugin / MCP 管理對齊 Skill 體驗，覆蓋商店、Agent 分發、詳情、標籤篩選、更新確認和安全檢查
 - Agent 資產同步、網路代理、CLI 專案安裝和 Skill 來源更新檢查進入穩定版
@@ -532,88 +517,58 @@ AgentsHub/
 
 ## 回饋
 
-- 問題：[GitHub Issues](https://github.com/legeling/PromptHub/issues)
-- 想法：[GitHub Discussions](https://github.com/legeling/PromptHub/discussions)
+- 問題：[GitHub Issues](https://github.com/YZhuAndrew/AgentsHub/issues)
 
-## 致謝
+## 贊助
 
-[Electron](https://www.electronjs.org/) · [React](https://react.dev/) · [TailwindCSS](https://tailwindcss.com/) · [Zustand](https://zustand-demo.pmnd.rs/) · [Lucide](https://lucide.dev/) · [@tanstack/react-virtual](https://tanstack.com/virtual) · [tailwindcss-animate](https://github.com/jamiebuilds/tailwindcss-animate)
-
-## 貢獻者
-
-感謝所有為 PromptHub 做出貢獻的開發者。
-
-<a href="https://github.com/legeling/PromptHub/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=legeling/PromptHub" alt="Contributors" />
-</a>
-
-## Star History
-
-<a href="https://star-history.com/#legeling/PromptHub&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=legeling/PromptHub&type=Date&theme=dark" />
-    <img alt="Star History" src="https://api.star-history.com/svg?repos=legeling/PromptHub&type=Date" />
-  </picture>
-</a>
-
-## 社群
-
-歡迎加入 PromptHub 社群，回饋問題、交流使用方式、討論新功能、搶先體驗預覽版。
-
-<div align="center">
-  <a href="https://discord.gg/zmfWguWFB">
-    <img src="https://img.shields.io/badge/Discord-Join%20PromptHub%20Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join PromptHub Discord Community" />
-  </a>
-  <p><strong>推薦優先加入 Discord 社群，獲取公告、交流支援與新版本動態</strong></p>
-</div>
-
-<br/>
-
-### QQ 交流群
-
-如果你更習慣用 QQ，可以加入 PromptHub QQ 交流群：
-
-- 群號：`704298939`
-
-<div align="center">
-  <img src="./imgs/qq-group.jpg" width="320" alt="PromptHub QQ 交流群 QR"/>
-  <p><strong>掃碼加入 PromptHub QQ 交流群</strong></p>
-</div>
-
-## 贊助支援 / Sponsor
-
-如果 PromptHub 對你的工作有幫助，歡迎請作者喝杯咖啡。
+如果 AgentsHub 對你有幫助，歡迎請維護者喝杯咖啡 ☕
 
 <div align="center">
   <table>
     <tr>
       <td align="center">
-        <img src="./imgs/donate/wechat.png" width="200" alt="WeChat Pay"/>
+        <img src="./imgs/donate/wechat.jpg" width="200" alt="微信支付"/>
         <br/>
-        <b>微信支付 / WeChat Pay</b>
+        <b>微信支付</b>
       </td>
       <td align="center">
-        <img src="./imgs/donate/alipay.jpg" width="200" alt="Alipay"/>
+        <img src="./imgs/donate/alipay.jpg" width="200" alt="支付寶"/>
         <br/>
-        <b>支付寶 / Alipay</b>
-      </td>
-      <td align="center">
-        <a href="https://www.buymeacoffee.com/legeling" target="_blank">
-          <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50" />
-        </a>
-        <br/>
-        <b>Buy Me A Coffee</b>
+        <b>支付寶</b>
       </td>
     </tr>
   </table>
 </div>
 
-聯絡：legeling567@gmail.com
+---
 
-歷史贊助記錄歸檔在 [`docs/sponsors.md`](./sponsors.md)。
+## 致謝
+
+AgentsHub fork 自 [PromptHub](https://github.com/legeling/PromptHub)（AGPL-3.0），感謝原作者 [legeling](https://github.com/legeling) 的開源貢獻。本專案在其基礎上擴展了 Agent 資產管理、CLI 診斷、用量監控等能力。
+
+## 開源依賴
+
+[Electron](https://www.electronjs.org/) · [React](https://react.dev/) · [TailwindCSS](https://tailwindcss.com/) · [Zustand](https://zustand-demo.pmnd.rs/) · [Lucide](https://lucide.dev/) · [@tanstack/react-virtual](https://tanstack.com/virtual) · [tailwindcss-animate](https://github.com/jamiebuilds/tailwindcss-animate)
+
+## 貢獻者
+
+感謝所有為 AgentsHub 做出貢獻的開發者。
+
+<a href="https://github.com/YZhuAndrew/AgentsHub/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=YZhuAndrew/AgentsHub" alt="Contributors" />
+</a>
+
+## Star History
+
+<a href="https://star-history.com/#YZhuAndrew/AgentsHub&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=YZhuAndrew/AgentsHub&type=Date&theme=dark" />
+    <img alt="Star History" src="https://api.star-history.com/svg?repos=YZhuAndrew/AgentsHub&type=Date" />
+  </picture>
+</a>
 
 ---
 
 <div align="center">
-  <p>如果 PromptHub 對你有幫助，請給個 ⭐ 支持一下。</p>
+  <p>如果 AgentsHub 對你有幫助，請給個 ⭐ 支持一下。</p>
 </div>
