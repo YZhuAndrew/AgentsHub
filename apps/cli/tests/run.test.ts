@@ -40,7 +40,7 @@ describe("standalone cli wiring", () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(stdout.join("\n")).toContain("PromptHub CLI");
+    expect(stdout.join("\n")).toContain("AgentsHub CLI");
     expect(stderr).toEqual([]);
   });
 
@@ -48,7 +48,7 @@ describe("standalone cli wiring", () => {
     const result = await execCli(["--version"]);
 
     expect(result.exitCode).toBe(0);
-    expect(result.joinedStdout.trim()).toBe("0.6.1");
+    expect(result.joinedStdout.trim()).toBe("0.6.2");
     expect(result.stderr).toEqual([]);
   });
 

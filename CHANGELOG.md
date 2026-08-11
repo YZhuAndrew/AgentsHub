@@ -1,5 +1,14 @@
 ## [Unreleased]
 
+## [0.6.2] - 2026-08-11
+
+### 新功能 / Features
+
+- 📋 **技能列表视图增强**：列表视图改为默认展示并新增列头表格布局，直接显示名称（含描述）、来源、作者、版本、创建时间、更新时间、平台状态与行内操作；筛选栏新增作者筛选；新增"检查全部更新"批量操作（按来源指纹逐个校验、有限并发）与对所选技能的批量更新，原有画廊视图保留
+  - **Skill List View Enhancement**: The list view is now the default and uses a column-header table layout showing name (with description), source, author, version, created/updated time, platform status, and inline actions; an author filter joins the existing tag filter; a new "check all updates" batch action runs per-source fingerprint checks with bounded concurrency, and selected skills can be updated together. The gallery view is retained
+- 🔄 **Git 仓库导入进度**：从 Git 仓库安装技能时，扫描与导入两个阶段都展示详细进度——阶段标签、当前批次计数（`index / total` + 技能名）以及从 `git clone --progress` 解析的实时克隆百分比，取代原来长时间无反馈的单一 spinner
+  - **Git Skill Import Progress**: Installing skills from a Git repository now reports detailed progress for both the Scan and Import phases — phase label, batch counter (`index / total` + skill name), and live clone percentage parsed from `git clone --progress` — replacing the single opaque spinner
+
 ## [0.6.1] - 2026-08-10
 
 ### 新功能 / Features

@@ -125,3 +125,5 @@ packages/shared/types/index.js.map
 *.temp
 *.tsbuildinfo
 .omx/
+.workbuddy/
+.zcode/

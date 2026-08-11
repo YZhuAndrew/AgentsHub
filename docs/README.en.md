@@ -9,7 +9,7 @@ A local-first workspace for prompts, skills, and AI coding assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -326,6 +326,20 @@ Common global flags:
 ## Changelog
 
 Full changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.6.2 (2026-08-11, stable)
+
+- Skill list view enhancement: the list view is now the default, with a column-header table layout (name + description / source / author / version / created / updated / platform status / actions), an author filter, and a "check all updates" batch action with batch update for selected skills
+- Git Skill import progress: installing skills from a Git repository now reports detailed progress for both the Scan and Import phases (phase label, `index / total` + skill name, live clone percentage), replacing the single opaque spinner
+
+### v0.6.1 (2026-08-10, stable)
+
+- Added the QwenWork built-in agent platform target so Skills can be distributed to it directly
+- Startup behavior settings: the main window opens by default on launch, a new "startup view" selector (defaults to last-used), and launch-at-system-startup
+
+### v0.6.0 (2026-08-09, stable)
+
+- First AgentsHub fork baseline; aligned the Desktop, CLI, self-hosted Web, Cloudflare Worker, and Mobile build versions
 
 ### v0.5.9 (2026-07-09, stable)
 

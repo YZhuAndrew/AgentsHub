@@ -9,7 +9,7 @@ Ein Local-First-Arbeitsbereich für Prompts, Skills und KI-Coding-Assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -309,6 +309,20 @@ Häufige globale Flags:
 ## Änderungsprotokoll
 
 Vollständiges Changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.6.2 (2026-08-11, Stable)
+
+- Erweiterte Skill-Listenansicht: Die Listenansicht ist nun die Standardansicht mit einem Tabellenlayout und Spaltenüberschriften (Name + Beschreibung / Quelle / Autor / Version / erstellt / aktualisiert / Plattformstatus / Aktionen), einem Autor-Filter und einer Stapelaktion „alle Updates prüfen" mit Massenaktualisierung ausgewählter Skills
+- Git-Import-Fortschritt: Die Installation von Skills aus einem Git-Repository zeigt detaillierten Fortschritt für die Scan- und Importphase (Phasenbezeichnung, `index/total` + Skill-Name, Live-Klon-Prozentsatz) und ersetzt den einzelnen starren Spinner
+
+### v0.6.1 (2026-08-10, Stable)
+
+- Eingebautes QwenWork-Agent-Plattformziel hinzugefügt, sodass Skills direkt dorthin verteilt werden können
+- Startverhalten-Einstellungen: Das Hauptfenster öffnet sich beim Start standardmäßig, ein neuer „Startansicht"-Wähler (standardmäßig die zuletzt verwendete) und der automatische Start beim Systemstart
+
+### v0.6.0 (2026-08-09, Stable)
+
+- Erste AgentsHub-Fork-Baseline; Desktop-, CLI-, selbstgehostete Web-, Cloudflare-Worker- und Mobile-Build-Versionen abgestimmt
 
 ### v0.5.9 (2026-07-09, Stable)
 

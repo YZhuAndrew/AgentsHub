@@ -1,5 +1,23 @@
 ## [Unreleased]
 
+## [0.6.2] - 2026-08-11
+
+### 新功能 / Features
+
+- 📋 **技能列表视图增强**：列表视图改为默认展示并新增列头表格布局，直接显示名称（含描述）、来源、作者、版本、创建时间、更新时间、平台状态与行内操作；筛选栏新增作者筛选；新增"检查全部更新"批量操作（按来源指纹逐个校验、有限并发）与对所选技能的批量更新，原有画廊视图保留
+  - **Skill List View Enhancement**: The list view is now the default and uses a column-header table layout showing name (with description), source, author, version, created/updated time, platform status, and inline actions; an author filter joins the existing tag filter; a new "check all updates" batch action runs per-source fingerprint checks with bounded concurrency, and selected skills can be updated together. The gallery view is retained
+- 🔄 **Git 仓库导入进度**：从 Git 仓库安装技能时，扫描与导入两个阶段都展示详细进度——阶段标签、当前批次计数（`index / total` + 技能名）以及从 `git clone --progress` 解析的实时克隆百分比，取代原来长时间无反馈的单一 spinner
+  - **Git Skill Import Progress**: Installing skills from a Git repository now reports detailed progress for both the Scan and Import phases — phase label, batch counter (`index / total` + skill name), and live clone percentage parsed from `git clone --progress` — replacing the single opaque spinner
+
+## [0.6.1] - 2026-08-10
+
+### 新功能 / Features
+
+- 🤖 **千问办公 (QwenWork) Agent 平台**：新增内置 `qwenwork` 平台目标（`~/.qwenwork` 根目录 + `skills/` 约定），使用官方绿色章鱼吉祥物图标；用户可直接向其分发 Skill，无需创建自定义 Agent。当前为最小骨架（MCP / 会话 / Provider 适配待后续确认官方本地契约后扩展）
+  - **QwenWork Agent Platform**: Added a built-in `qwenwork` platform target (`~/.qwenwork` root + `skills/` convention) with the official green octopus mascot mark; users can distribute Skills to it without creating a custom agent. Minimal skeleton for now — MCP / session / provider adapters are deferred until the official local contracts are confirmed
+- 🚀 **启动行为设置**：新增三项启动控制——① 应用启动后默认打开主界面（`minimizeOnLaunch` 默认值由开启改为关闭，用户仍可手动开启"启动时最小化到托盘"）；② 新增"启动界面"设置（默认恢复上次界面，可固定为提示词 / Agents / 技能 / MCP / 插件 / 规则）；③ 开机自启动（`launchAtStartup`，默认关闭，复用既有实现）
+  - **Startup Behavior Settings**: Three startup controls — ① the main window now opens by default on launch (`minimizeOnLaunch` default flipped to off; users can still enable "minimize on launch"); ② new "Startup View" setting (defaults to last-used; can be pinned to Prompts / Agents / Skills / MCP / Plugins / Rules); ③ launch at system startup (`launchAtStartup`, default off, reusing the existing implementation)
+
 ### 维护 / Maintenance
 
 - **0.6.0 版本准备**：统一 Desktop、CLI、自部署 Web、Cloudflare Worker 与 Mobile 的构建版本；在正式发布前，官网稳定版徽标和下载链接继续指向已发布的 `0.5.9`

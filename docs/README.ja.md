@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,20 @@ Skill のインポート、バージョンスナップショット、配布で�
 ## 変更履歴
 
 完全な変更履歴: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.6.2（2026-08-11、正式版）
+
+- スキール一覧ビューの強化：一覧ビューを既定の表示にし、列ヘッダーのテーブルレイアウト（名前+説明 / 出典 / 作成者 / バージョン / 作成日時 / 更新日時 / プラットフォーム状態 / 操作）、作成者フィルター、「すべての更新を確認」バッチ操作を追加。選択したスキールを一括更新可能
+- Git リポジトリからのインポート進捗：Git リポジトリからスキールをインストールする際、スキャンとインポートの両フェーズで詳細な進捗（フェーズラベル、`index/total` + スキール名、リアルタイムのクローン進捗）を表示し、反応のない単一スピナーを置き換え
+
+### v0.6.1（2026-08-10、正式版）
+
+- 千問弁公（QwenWork）の組み込み Agent プラットフォームターゲットを追加し、Skill を直接配布可能に
+- 起動時の挙動設定：起動後にメインウィンドウを既定で開く、「起動ビュー」の選択（既定は前回のビューを復元）、システム起動時に自動起動
+
+### v0.6.0（2026-08-09、正式版）
+
+- AgentsHub 初の fork ベースラインバージョン。Desktop、CLI、セルフホスト Web、Cloudflare Worker、Mobile のビルドバージョンを統一
 
 ### v0.5.9（2026-07-09、正式版）
 

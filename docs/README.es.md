@@ -9,7 +9,7 @@ Un espacio de trabajo local-first para prompts, skills y assets de codificación
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -309,6 +309,20 @@ Flags globales habituales:
 ## Registro de cambios
 
 Changelog completo: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.6.2 (2026-08-11, estable)
+
+- Mejora de la vista de lista de Skills: la vista de lista pasa a ser la predeterminada, con un diseño tabular con encabezados de columna (nombre + descripción / origen / autor / versión / creado / actualizado / estado de plataforma / acciones), un filtro por autor y una acción por lotes «comprobar todas las actualizaciones» con actualización masiva de los Skills seleccionados
+- Progreso de importación desde Git: la instalación de Skills desde un repositorio Git muestra el progreso detallado de las fases de escaneo e importación (etiqueta de fase, `index/total` + nombre del Skill, porcentaje de clonación en vivo), reemplazando el único indicador congelado
+
+### v0.6.1 (2026-08-10, estable)
+
+- Se añadió el objetivo de plataforma Agent integrada QwenWork, permitiendo distribuir Skills directamente
+- Ajustes de comportamiento de inicio: la ventana principal se abre por defecto al iniciar, un nuevo selector de «vista de inicio» (por defecto la última usada) y el inicio automático al arrancar el sistema
+
+### v0.6.0 (2026-08-09, estable)
+
+- Primera versión base del fork de AgentsHub; se alinearon las versiones de build de Desktop, CLI, Web autoalojado, Cloudflare Worker y Mobile
 
 ### v0.5.9 (2026-07-09, estable)
 

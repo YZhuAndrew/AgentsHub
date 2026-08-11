@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -309,6 +309,20 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 ## 更新日誌
 
 完整版本說明：**[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.6.2（2026-08-11，正式版）
+
+- 技能列表檢視增強：列表檢視改為預設展示，新增欄位標題表格版面（名稱+描述 / 來源 / 作者 / 版本 / 建立時間 / 更新時間 / 平台狀態 / 操作）、作者篩選與「檢查全部更新」批次操作，支援對所選技能批次更新
+- Git 倉庫匯入進度：從 Git 倉庫安裝技能時，掃描與匯入兩階段都顯示詳細進度（階段標籤、`index/total` + 技能名、即時複製百分比），取代原本長時間無回饋的單一 spinner
+
+### v0.6.1（2026-08-10，正式版）
+
+- 新增千問辦公（QwenWork）內建 Agent 平台目標，可直接向其分發 Skill
+- 啟動行為設定：應用啟動後預設開啟主介面、新增「啟動介面」選擇（預設恢復上次介面）、開機自動啟動
+
+### v0.6.0（2026-08-09，正式版）
+
+- AgentsHub 首個 fork 基線版本，統一 Desktop、CLI、自部署 Web、Cloudflare Worker 與 Mobile 的建置版本
 
 ### v0.5.9（2026-07-09，正式版）
 

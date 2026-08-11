@@ -43,27 +43,27 @@ const USE_CDN_MIRROR = process.env.PROMPTHUB_USE_CDN_MIRROR === "1";
 const CDN_PUBLIC_BASE = "https://pub-fff1cbc0121241d480624bd3de5a2735.r2.dev";
 
 const githubReleaseDownloadBase =
-  "https://github.com/legeling/PromptHub/releases/latest/download";
+  "https://github.com/YZhuAndrew/AgentsHub/releases/latest/download";
 
 const downloadUrls = USE_CDN_MIRROR
   ? {
       // Stable + CDN: hit the public mirror directly. The release CI uploads
       // these version-less filenames into the latest/ prefix on every
       // stable tag.
-      macArm64: `${CDN_PUBLIC_BASE}/latest/PromptHub-arm64.dmg`,
-      macX64: `${CDN_PUBLIC_BASE}/latest/PromptHub-x64.dmg`,
-      windowsX64: `${CDN_PUBLIC_BASE}/latest/PromptHub-Setup-x64.exe`,
-      windowsArm64: `${CDN_PUBLIC_BASE}/latest/PromptHub-Setup-arm64.exe`,
-      linuxAppImage: `${CDN_PUBLIC_BASE}/latest/PromptHub-x64.AppImage`,
-      linuxDeb: `${CDN_PUBLIC_BASE}/latest/PromptHub-amd64.deb`,
+      macArm64: `${CDN_PUBLIC_BASE}/latest/AgentsHub-arm64.dmg`,
+      macX64: `${CDN_PUBLIC_BASE}/latest/AgentsHub-x64.dmg`,
+      windowsX64: `${CDN_PUBLIC_BASE}/latest/AgentsHub-Setup-x64.exe`,
+      windowsArm64: `${CDN_PUBLIC_BASE}/latest/AgentsHub-Setup-arm64.exe`,
+      linuxAppImage: `${CDN_PUBLIC_BASE}/latest/AgentsHub-x64.AppImage`,
+      linuxDeb: `${CDN_PUBLIC_BASE}/latest/AgentsHub-amd64.deb`,
     }
   : {
-      macArm64: `${githubReleaseDownloadBase}/PromptHub-${version}-arm64.dmg`,
-      macX64: `${githubReleaseDownloadBase}/PromptHub-${version}-x64.dmg`,
-      windowsX64: `${githubReleaseDownloadBase}/PromptHub-Setup-${version}-x64.exe`,
-      windowsArm64: `${githubReleaseDownloadBase}/PromptHub-Setup-${version}-arm64.exe`,
-      linuxAppImage: `${githubReleaseDownloadBase}/PromptHub-${version}-x64.AppImage`,
-      linuxDeb: `${githubReleaseDownloadBase}/PromptHub-${version}-amd64.deb`,
+      macArm64: `${githubReleaseDownloadBase}/AgentsHub-${version}-arm64.dmg`,
+      macX64: `${githubReleaseDownloadBase}/AgentsHub-${version}-x64.dmg`,
+      windowsX64: `${githubReleaseDownloadBase}/AgentsHub-Setup-${version}-x64.exe`,
+      windowsArm64: `${githubReleaseDownloadBase}/AgentsHub-Setup-${version}-arm64.exe`,
+      linuxAppImage: `${githubReleaseDownloadBase}/AgentsHub-${version}-x64.AppImage`,
+      linuxDeb: `${githubReleaseDownloadBase}/AgentsHub-${version}-amd64.deb`,
     };
 
 const generatedReleaseSource = `export const RELEASE_VERSION = "${version}";
