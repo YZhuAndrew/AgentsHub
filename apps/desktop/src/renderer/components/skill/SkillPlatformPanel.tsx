@@ -694,7 +694,7 @@ export function SkillPlatformPanel({
                   {installMode === "copy"
                     ? t(
                         "skill.copyModeDesc",
-                        "Copy: Copies the SKILL.md file to each platform directory. Each copy is independent — edits in PromptHub won't sync automatically.",
+                        "Copy: Copies the SKILL.md file to each platform directory. Each copy is independent — edits in AgentsHub won't sync automatically.",
                       )
                     : t(
                         "skill.symlinkDesc",

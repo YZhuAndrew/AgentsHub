@@ -23,7 +23,7 @@ const registrySkill: RegistrySkill = {
   name: "Writer",
   description: "Write better",
   category: "general",
-  author: "PromptHub",
+  author: "AgentsHub",
   source_id: "source-writer",
   source_url: "https://gitea.example.com/team/skills",
   source_branch: "main",
@@ -452,6 +452,25 @@ describe("Skill package operation policy", () => {
     expectInvalidRequest(
       { safetyScan: [] as never },
       /safetyScan must be an object/,
+    );
+  });
+
+  it("accepts an optional requestId and rejects non-string values", () => {
+    // Absent requestId is valid (legacy callers).
+    expect(() =>
+      validateSkillPackageOperationRequest(installRequest()),
+    ).not.toThrow();
+    // A bounded string requestId is valid.
+    expect(
+      validateSkillPackageOperationRequest(
+        installRequest({ requestId: "skill-abc-123" }),
+      ).requestId,
+    ).toBe("skill-abc-123");
+    // Non-string requestId is rejected.
+    expectInvalidRequest({ requestId: 123 as never }, /requestId/);
+    expectInvalidRequest(
+      { requestId: { id: 1 } as never },
+      /requestId/,
     );
   });
 

@@ -708,18 +708,18 @@ function HandoffDialog({
               {preview.transport === "direct"
                 ? t(
                     "agents.handoffDirectHint",
-                    "PromptHub can start {{agent}} with this reviewed context in the selected project.",
+                    "AgentsHub can start {{agent}} with this reviewed context in the selected project.",
                     { agent: targetName },
                   )
                 : preview.transport === "launch"
                   ? t(
                       "agents.handoffLaunchHint",
-                      "PromptHub will copy the handoff context and open {{agent}}. Paste it to continue in the selected project.",
+                      "AgentsHub will copy the handoff context and open {{agent}}. Paste it to continue in the selected project.",
                       { agent: targetName },
                     )
                   : t(
                       "agents.handoffCopyOnlyHint",
-                      "PromptHub cannot open {{agent}} automatically, but you can copy this context and paste it into the Agent manually.",
+                      "AgentsHub cannot open {{agent}} automatically, but you can copy this context and paste it into the Agent manually.",
                       { agent: targetName },
                     )}
             </p>

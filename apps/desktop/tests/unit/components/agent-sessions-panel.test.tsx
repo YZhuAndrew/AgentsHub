@@ -34,8 +34,8 @@ function metadata(index: number): AgentSessionMetadata {
   return {
     id: `session-${index}`,
     title: `Session ${index}`,
-    projectLabel: "PromptHub",
-    projectPath: "/workspace/PromptHub",
+    projectLabel: "AgentsHub",
+    projectPath: "/workspace/AgentsHub",
     createdAt: index,
     updatedAt: index,
     model: null,
@@ -145,7 +145,7 @@ describe("AgentSessionsPanel", () => {
       resume: {
         executable: "codex",
         args: ["resume", "session-1"],
-        cwd: "/workspace/PromptHub",
+        cwd: "/workspace/AgentsHub",
       },
     };
     const resumeConversation = vi.fn().mockResolvedValue({
@@ -158,12 +158,12 @@ describe("AgentSessionsPanel", () => {
       sourceTitle: "Session 1",
       targetAgentId: "claude",
       projectId: "project-1",
-      projectPath: "/workspace/PromptHub",
+      projectPath: "/workspace/AgentsHub",
       payload: "# Portable handoff\n\nContinue the updater fix.",
       payloadDigest: `sha256:${"a".repeat(64)}`,
       transport: "direct",
       cliCommand:
-        "cd '/workspace/PromptHub' && claude '# Portable handoff\n\nContinue the updater fix.'",
+        "cd '/workspace/AgentsHub' && claude '# Portable handoff\n\nContinue the updater fix.'",
     };
     const previewConversationHandoff = vi
       .fn()
@@ -232,8 +232,8 @@ describe("AgentSessionsPanel", () => {
         projects={[
           {
             id: "project-1",
-            name: "PromptHub",
-            rootPath: "/workspace/PromptHub",
+            name: "AgentsHub",
+            rootPath: "/workspace/AgentsHub",
             scanPaths: [],
             createdAt: 1,
             updatedAt: 1,
@@ -338,7 +338,7 @@ describe("AgentSessionsPanel", () => {
     fireEvent.click(screen.getByLabelText("Project for continuation"));
     fireEvent.click(
       screen
-        .getAllByRole("option", { name: "PromptHub" })
+        .getAllByRole("option", { name: "AgentsHub" })
         .find(
           (option) =>
             option.tagName === "BUTTON" &&
@@ -351,7 +351,7 @@ describe("AgentSessionsPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Copy CLI command" }));
     await waitFor(() =>
       expect(copyTextToClipboard).toHaveBeenCalledWith(
-        "cd '/workspace/PromptHub' && claude '# Portable handoff\n\nContinue the updater fix.'",
+        "cd '/workspace/AgentsHub' && claude '# Portable handoff\n\nContinue the updater fix.'",
       ),
     );
     fireEvent.click(
@@ -381,7 +381,7 @@ describe("AgentSessionsPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Preview handoff" }));
     expect(
       await screen.findByText(
-        "PromptHub will copy the handoff context and open Antigravity. Paste it to continue in the selected project.",
+        "AgentsHub will copy the handoff context and open Antigravity. Paste it to continue in the selected project.",
       ),
     ).toBeVisible();
     expect(
@@ -424,7 +424,7 @@ describe("AgentSessionsPanel", () => {
     expect(await screen.findByText("Conversation exported.")).toBeVisible();
   });
 
-  it("edits PromptHub metadata and soft-removes a native conversation", async () => {
+  it("edits AgentsHub metadata and soft-removes a native conversation", async () => {
     const current = metadata(2);
     const updateConversationMetadata = vi.fn().mockResolvedValue({
       id: "metadata-2",

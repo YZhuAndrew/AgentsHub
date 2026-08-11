@@ -21,7 +21,7 @@ describe("Qwen Code platform support", () => {
     });
   });
 
-  it("discovers native extension bundles without claiming PromptHub installation ownership", () => {
+  it("discovers native extension bundles without claiming AgentsHub installation ownership", () => {
     expect(
       getPluginTargetMatrix().find((target) => target.id === "qwen"),
     ).toMatchObject({

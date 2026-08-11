@@ -65,7 +65,7 @@ async function uploadFile(
       headers: {
         Authorization: buildAuthHeader(config),
         "Content-Type": "application/json",
-        "User-Agent": "PromptHub/1.0",
+        "User-Agent": "AgentsHub/1.0",
       },
       body: content,
     });
@@ -100,7 +100,7 @@ async function downloadFile(
       method: "GET",
       headers: {
         Authorization: buildAuthHeader(config),
-        "User-Agent": "PromptHub/1.0",
+        "User-Agent": "AgentsHub/1.0",
       },
     });
 
@@ -141,7 +141,7 @@ async function ensureDirectory(url: string, config: WebDAVConfig): Promise<void>
       headers: {
         Authorization: authHeader,
         Depth: "0",
-        "User-Agent": "PromptHub/1.0",
+        "User-Agent": "AgentsHub/1.0",
       },
     });
 
@@ -153,7 +153,7 @@ async function ensureDirectory(url: string, config: WebDAVConfig): Promise<void>
       method: "MKCOL",
       headers: {
         Authorization: authHeader,
-        "User-Agent": "PromptHub/1.0",
+        "User-Agent": "AgentsHub/1.0",
       },
     });
   } catch (error) {
@@ -248,7 +248,7 @@ export async function testConnection(
       headers: {
         Authorization: buildAuthHeader(config),
         Depth: "0",
-        "User-Agent": "PromptHub/1.0",
+        "User-Agent": "AgentsHub/1.0",
       },
     });
 

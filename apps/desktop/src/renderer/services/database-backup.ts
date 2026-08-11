@@ -646,7 +646,7 @@ async function unzipExportToText(file: File): Promise<string> {
   const jsonEntry = unzipped["import-with-prompthub.json"];
   if (!jsonEntry) {
     throw new Error(
-      "ZIP 文件中缺少 import-with-prompthub.json，无法导入。请使用 PromptHub 导出的 ZIP 文件。",
+      "ZIP 文件中缺少 import-with-prompthub.json，无法导入。请使用 AgentsHub 导出的 ZIP 文件。",
     );
   }
   return new TextDecoder().decode(jsonEntry);
@@ -1403,7 +1403,7 @@ export async function downloadSelectiveExport(
     return;
   }
 
-  // Fallback for web / non-Electron: download as PromptHub JSON format
+  // Fallback for web / non-Electron: download as AgentsHub JSON format
   const blob = new Blob([exportJson], { type: "application/json" });
   triggerBlobDownload(
     blob,
@@ -1435,26 +1435,26 @@ export function formatBackupImportError(error: unknown): string {
   const normalizedMessage = message.toLowerCase();
 
   if (normalizedMessage.includes("unsupported file format")) {
-    return "不是 PromptHub 可识别的备份文件，请选择 PromptHub 导出的 JSON、PHUB 或 ZIP 文件。";
+    return "不是 AgentsHub 可识别的备份文件，请选择 AgentsHub 导出的 JSON、PHUB 或 ZIP 文件。";
   }
 
   if (
     normalizedMessage.includes("unexpected end of json input") ||
     normalizedMessage.includes("unterminated string")
   ) {
-    return "备份文件不是完整 JSON，可能在导出、复制或上传过程中被截断。请重新从 PromptHub 导出完整的 JSON、PHUB 或 ZIP 文件后再导入。";
+    return "备份文件不是完整 JSON，可能在导出、复制或上传过程中被截断。请重新从 AgentsHub 导出完整的 JSON、PHUB 或 ZIP 文件后再导入。";
   }
 
   if (normalizedMessage.includes("imported backup is empty")) {
-    return "该备份内容为空。为避免覆盖当前数据，PromptHub 已阻止这次导入。";
+    return "该备份内容为空。为避免覆盖当前数据，AgentsHub 已阻止这次导入。";
   }
 
   if (normalizedMessage.includes("payload is malformed")) {
-    return "备份文件结构不完整或部分字段缺失，PromptHub 无法安全恢复。";
+    return "备份文件结构不完整或部分字段缺失，AgentsHub 无法安全恢复。";
   }
 
   if (normalizedMessage.includes("foreign key constraint failed")) {
-    return "备份中的文件夹或 Prompt 引用关系不完整，PromptHub 无法安全导入。建议重新导出一份新备份后再试。";
+    return "备份中的文件夹或 Prompt 引用关系不完整，AgentsHub 无法安全导入。建议重新导出一份新备份后再试。";
   }
 
   if (normalizedMessage.includes("file errors:")) {

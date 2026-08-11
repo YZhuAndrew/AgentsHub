@@ -17,11 +17,11 @@ describe("Qoder session adapter", () => {
   beforeEach(async () => {
     homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "prompthub-qoder-"));
     rootPath = path.join(homeDir, ".qoder");
-    projectPath = path.join(homeDir, "Projects", "PromptHub");
+    projectPath = path.join(homeDir, "Projects", "AgentsHub");
     transcriptPath = path.join(
       rootPath,
       "projects",
-      "-Users-test-Projects-PromptHub",
+      "-Users-test-Projects-AgentsHub",
       "transcript",
       `${nativeSessionId}.jsonl`,
     );
@@ -139,7 +139,7 @@ describe("Qoder session adapter", () => {
       sessions: [
         {
           title: "Repair the Qoder transcript parser",
-          projectLabel: "PromptHub",
+          projectLabel: "AgentsHub",
           projectPath,
           createdAt: Date.parse("2026-08-01T08:00:00.000Z"),
           updatedAt: Date.parse("2026-08-01T08:00:05.000Z"),

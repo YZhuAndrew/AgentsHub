@@ -94,7 +94,7 @@ function makeSkill(): Skill {
     instructions: "# Async Actions\n\nHelp test duplicate clicks.",
     content: "# Async Actions\n\nHelp test duplicate clicks.",
     protocol_type: "skill",
-    author: "PromptHub",
+    author: "AgentsHub",
     source_url: "https://github.com/example/skills/tree/main/async-actions",
     content_url:
       "https://raw.githubusercontent.com/example/skills/main/async-actions/SKILL.md",
@@ -116,7 +116,7 @@ function makeUpdateCheck(skill: Skill): RegistrySkillUpdateCheck {
       name: "Async Actions",
       description: "Async action regression skill",
       category: "general",
-      author: "PromptHub",
+      author: "AgentsHub",
       source_url: skill.source_url || "",
       content_url: skill.content_url || "",
       tags: [],
@@ -424,7 +424,7 @@ describe("SkillFullDetailPage async actions", () => {
       source_url: "/Users/demo/.claude/skills/local-writer",
       content_url: undefined,
       local_repo_path:
-        "/Users/demo/Library/Application Support/PromptHub/data/skills/local-writer/repo",
+        "/Users/demo/Library/Application Support/AgentsHub/data/skills/local-writer/repo",
     };
     const check = makeUpdateCheck(selectedSkill);
     storeState.getInstalledSkillSourceUpdateStatus = vi

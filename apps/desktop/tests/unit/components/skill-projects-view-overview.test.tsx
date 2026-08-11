@@ -154,7 +154,7 @@ describe("SkillProjectsView", () => {
             {
               name: "novel-auditor",
               description: "Audit long-form fiction structure",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: ["writing"],
               instructions: "# novel-auditor\n\nHelp audit fiction.",
               filePath: "/tmp/novel/.claude/skills/novel-auditor/SKILL.md",
@@ -164,7 +164,7 @@ describe("SkillProjectsView", () => {
             {
               name: "novel-builder",
               description: "Build story arcs and chapter beats",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: ["outline"],
               instructions: "# novel-builder\n\nBuild stories.",
               filePath: "/tmp/novel/.claude/skills/novel-builder/SKILL.md",
@@ -385,7 +385,7 @@ describe("SkillProjectsView", () => {
             {
               name: "external-writer",
               description: "External linked writer",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: [],
               instructions: "# external-writer",
               filePath: "/tmp/novel/.agents/skills/external-writer/SKILL.md",
@@ -466,7 +466,7 @@ describe("SkillProjectsView", () => {
             {
               name: "external-writer",
               description: "External linked writer",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: [],
               instructions: "# external-writer",
               filePath: "/tmp/novel/.agents/skills/external-writer/SKILL.md",
@@ -548,7 +548,7 @@ describe("SkillProjectsView", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Remove project "{{name}}" from PromptHub? This only removes the project workspace record and does not delete any files.',
+        'Remove project "{{name}}" from AgentsHub? This only removes the project workspace record and does not delete any files.',
       ),
     ).toBeInTheDocument();
 

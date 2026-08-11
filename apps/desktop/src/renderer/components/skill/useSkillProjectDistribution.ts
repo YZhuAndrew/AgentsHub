@@ -325,7 +325,7 @@ async function deploySelectedProjectTargets({
     showToast(
       t(
         "skill.projectImportLibraryRescanFailed",
-        "Import completed, but PromptHub could not refresh the project list. Please rescan manually.",
+        "Import completed, but AgentsHub could not refresh the project list. Please rescan manually.",
       ),
       "warning",
     );

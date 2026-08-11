@@ -53,13 +53,13 @@ describe("CLISettings", () => {
             packageManagerVersion: "9.15.0",
             releaseTag: "v0.5.8-beta.2",
             installCommand:
-              "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+              "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
             manualInstallCommands: {
-              pnpm: "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
-              npm: "npm install -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+              pnpm: "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+              npm: "npm install -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
             },
             installSource:
-              "https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+              "https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
           }),
         },
       },
@@ -85,7 +85,7 @@ describe("CLISettings", () => {
       success: true,
       method: "pnpm",
       command:
-        "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+        "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
     });
     const getStatus = vi
       .fn()
@@ -97,13 +97,13 @@ describe("CLISettings", () => {
         packageManagerVersion: "9.15.0",
         releaseTag: "v0.5.8-beta.2",
         installCommand:
-          "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+          "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
         manualInstallCommands: {
-          pnpm: "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
-          npm: "npm install -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+          pnpm: "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+          npm: "npm install -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
         },
         installSource:
-          "https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+          "https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
       })
       .mockResolvedValueOnce({
         installed: true,
@@ -113,13 +113,13 @@ describe("CLISettings", () => {
         packageManagerVersion: "9.15.0",
         releaseTag: "v0.5.8-beta.2",
         installCommand:
-          "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+          "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
         manualInstallCommands: {
-          pnpm: "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
-          npm: "npm install -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+          pnpm: "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+          npm: "npm install -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
         },
         installSource:
-          "https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+          "https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
       });
 
     installWindowMocks({
@@ -171,14 +171,14 @@ describe("CLISettings", () => {
       expect(install).toHaveBeenCalledWith("pnpm");
     });
     expect(showToast).toHaveBeenCalledWith(
-      "PromptHub CLI installed successfully",
+      "AgentsHub CLI installed successfully",
       "success",
     );
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it("explains and completes migration from the retired desktop wrapper", async () => {
-    const legacyCommandPath = "/tmp/PromptHub/bin/prompthub";
+    const legacyCommandPath = "/tmp/AgentsHub/bin/prompthub";
     const install = vi.fn().mockResolvedValue({
       success: true,
       method: "pnpm",
@@ -215,7 +215,7 @@ describe("CLISettings", () => {
 
     await waitFor(() => expect(install).toHaveBeenCalledWith("pnpm"));
     expect(showToast).toHaveBeenCalledWith(
-      "Standalone PromptHub CLI installed; the legacy desktop wrapper was removed",
+      "Standalone AgentsHub CLI installed; the legacy desktop wrapper was removed",
       "success",
     );
   });
@@ -238,11 +238,11 @@ describe("CLISettings", () => {
             releaseTag: "v0.5.8-beta.2",
             installCommand: null,
             manualInstallCommands: {
-              pnpm: "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
-              npm: "npm install -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+              pnpm: "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+              npm: "npm install -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
             },
             installSource:
-              "https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+              "https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
           }),
           install,
         },
@@ -264,17 +264,17 @@ describe("CLISettings", () => {
     expect(installWithNpm).toBeDisabled();
     expect(
       screen.getByText(
-        "PromptHub could not see pnpm or npm from this app window. You can still copy a command and run it in your terminal.",
+        "AgentsHub could not see pnpm or npm from this app window. You can still copy a command and run it in your terminal.",
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+        "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
       ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "npm install -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+        "npm install -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
       ),
     ).toBeInTheDocument();
 
@@ -287,7 +287,7 @@ describe("CLISettings", () => {
 
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith(
-        "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+        "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
       );
     });
     expect(showToast).toHaveBeenCalledWith("Install command copied", "success");

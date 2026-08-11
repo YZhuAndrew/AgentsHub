@@ -519,6 +519,37 @@ export interface SkillPackageOperationRequest {
     aiConfig?: SafetyScanAIConfig;
   };
   approvedPackageFingerprint?: string;
+  /**
+   * Optional client-generated correlation id. When present, the main process
+   * emits progress events keyed by this id so the renderer can show detailed
+   * install progress. Absent on legacy callers; progress reporting degrades to
+   * a no-op.
+   */
+  requestId?: string;
+}
+
+/**
+ * Progress detail emitted by the main process during a Skill Git import
+ * (scan or install). Carried over the dedicated progress IPC channels and
+ * correlated by `requestId`. Non-durable UI state; never persisted.
+   */
+export interface SkillImportProgressDetail {
+  /** Which top-level flow the progress belongs to. */
+  kind: "scan" | "install";
+  /** Lifecycle phase, reusing the package-operation phase vocabulary. */
+  phase: SkillPackageOperationPhase;
+  /** Short English label / structured hint the renderer maps to i18n. */
+  message: string;
+  /** Batch position (1-based) of the current skill, when importing many. */
+  index?: number;
+  /** Total skills in the batch, when importing many. */
+  total?: number;
+  /** Name of the skill currently being processed. */
+  skillName?: string;
+  /** Live git clone object-transfer percentage in the range 0–100. */
+  clonePercent?: number;
+  /** Client-generated correlation id matching the originating request. */
+  requestId: string;
 }
 
 export type SkillPackageOperationResult =

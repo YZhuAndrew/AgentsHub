@@ -170,7 +170,7 @@ const DATA_SETTINGS_SUBMENU_GROUPS: Array<{
       {
         id: "selfHosted",
         labelKey: "settings.selfHostedSyncMenu",
-        fallback: "Self-Hosted PromptHub",
+        fallback: "Self-Hosted AgentsHub",
         icon: ServerCogIcon,
       },
       {

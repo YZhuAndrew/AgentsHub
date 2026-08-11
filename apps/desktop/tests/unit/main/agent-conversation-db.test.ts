@@ -35,7 +35,7 @@ describe("AgentConversationDB", () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it("stores only PromptHub metadata and continuation lineage", () => {
+  it("stores only AgentsHub metadata and continuation lineage", () => {
     const tables = database
       .prepare(
         `SELECT name, sql FROM sqlite_master

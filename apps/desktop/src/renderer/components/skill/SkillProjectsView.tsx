@@ -692,7 +692,7 @@ export function SkillProjectsView() {
           showToast(
             t("skill.projectImportLibraryRescanFailed", {
               defaultValue:
-                "Import completed, but PromptHub could not refresh the project list. Please rescan manually.",
+                "Import completed, but AgentsHub could not refresh the project list. Please rescan manually.",
             }),
             "warning",
           );
@@ -981,7 +981,7 @@ export function SkillProjectsView() {
                         <div className="mt-2 max-w-xl text-sm text-muted-foreground">
                           {t(
                             "skill.projectNoScanResultsHint",
-                            "Run a scan to discover SKILL.md files inside this project, then choose whether to import them into PromptHub or just manage the source paths directly.",
+                            "Run a scan to discover SKILL.md files inside this project, then choose whether to import them into AgentsHub or just manage the source paths directly.",
                           )}
                         </div>
                       </div>
@@ -1280,7 +1280,7 @@ export function SkillProjectsView() {
         message={t("skill.deleteProjectMessage", {
           name: projectPendingDelete?.name || "",
           defaultValue:
-            'Remove project "{{name}}" from PromptHub? This only removes the project workspace record and does not delete any files.',
+            'Remove project "{{name}}" from AgentsHub? This only removes the project workspace record and does not delete any files.',
         })}
         confirmText={t("common.delete", "Delete")}
         cancelText={t("common.cancel", "Cancel")}

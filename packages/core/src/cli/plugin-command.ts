@@ -29,7 +29,7 @@ export const PLUGIN_HELP = [
   "  prompthub plugin create-version <id|name> [--note <text>]",
   "",
   "说明:",
-  "  Plugin CLI 读写与桌面端相同的 PromptHub Plugin library。",
+  "  Plugin CLI 读写与桌面端相同的 AgentsHub Plugin library。",
   "  install 使用官方/内置 market 条目 id；交互终端在 query 多匹配时可选择。",
 ].join("\n");
 

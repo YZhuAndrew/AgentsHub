@@ -39,11 +39,11 @@ describe("expandShellOpenPath", () => {
   });
 
   it("expands APPDATA tokens case-insensitively", () => {
-    expect(expandShellOpenPath("%APPDATA%\\PromptHub", tokenPaths)).toBe(
-      "/Users/test/Library/Application Support\\PromptHub",
+    expect(expandShellOpenPath("%APPDATA%\\AgentsHub", tokenPaths)).toBe(
+      "/Users/test/Library/Application Support\\AgentsHub",
     );
-    expect(expandShellOpenPath("%appdata%\\PromptHub", tokenPaths)).toBe(
-      "/Users/test/Library/Application Support\\PromptHub",
+    expect(expandShellOpenPath("%appdata%\\AgentsHub", tokenPaths)).toBe(
+      "/Users/test/Library/Application Support\\AgentsHub",
     );
   });
 

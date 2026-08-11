@@ -166,7 +166,7 @@ async function fetchSelfHosted(
     } catch (error) {
       if (controller.signal.aborted) {
         throw new Error(
-          `Self-hosted PromptHub request timed out after ${SELF_HOSTED_REQUEST_TIMEOUT_MS / 1000} seconds`,
+          `Self-hosted AgentsHub request timed out after ${SELF_HOSTED_REQUEST_TIMEOUT_MS / 1000} seconds`,
         );
       }
       if (attempt === retries) {
@@ -179,7 +179,7 @@ async function fetchSelfHosted(
     await waitForRetry();
   }
 
-  throw new Error("Self-hosted PromptHub request failed");
+  throw new Error("Self-hosted AgentsHub request failed");
 }
 
 function normalizeBaseUrl(url: string): string {
@@ -214,7 +214,7 @@ async function buildDesktopHeartbeatPayload(): Promise<DeviceHeartbeatPayload> {
   return {
     id: getOrCreateDesktopDeviceId(),
     type: "desktop",
-    name: "PromptHub Desktop",
+    name: "AgentsHub Desktop",
     platform: detectDesktopPlatform(userAgent),
     appVersion: typeof appVersion === "string" ? appVersion : undefined,
     clientVersion: typeof appVersion === "string" ? appVersion : undefined,
@@ -269,7 +269,7 @@ async function readDesktopVersion(): Promise<string> {
   const version = await window.electron?.updater?.getVersion?.();
   if (typeof version !== "string" || !version.trim()) {
     throw new SelfHostedBackupCompatibilityError(
-      "PromptHub could not determine the installed desktop version. Backup was not started.",
+      "AgentsHub could not determine the installed desktop version. Backup was not started.",
     );
   }
   return version;
@@ -309,7 +309,7 @@ async function loginToSelfHostedWeb(
     );
     if (message.includes("captcha")) {
       throw new Error(
-        `${captchaBoundaryError.message} The connected PromptHub Web server still requires captcha during login, so update the self-hosted Web deployment and try again.`,
+        `${captchaBoundaryError.message} The connected AgentsHub Web server still requires captcha during login, so update the self-hosted Web deployment and try again.`,
       );
     }
     throw new Error(message);

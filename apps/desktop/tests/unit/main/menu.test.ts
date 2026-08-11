@@ -24,7 +24,7 @@ vi.mock("electron", () => ({
     setApplicationMenu: setApplicationMenuMock,
   },
   app: {
-    name: "PromptHub",
+    name: "AgentsHub",
   },
   shell: {
     openExternal: openExternalMock,

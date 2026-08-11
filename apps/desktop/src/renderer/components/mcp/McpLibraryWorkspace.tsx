@@ -419,7 +419,7 @@ function McpLibraryHeader(props: McpLibraryWorkspaceProps) {
               ) : null}
             </div>
             <p className="mt-1.5 text-xs text-muted-foreground">
-              {t("mcp.myMcpSubtitle", "Manage MCP servers saved in PromptHub")}
+              {t("mcp.myMcpSubtitle", "Manage MCP servers saved in AgentsHub")}
             </p>
           </div>
           <div className="flex items-center gap-2 self-start lg:self-center lg:justify-end">

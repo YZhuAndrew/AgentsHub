@@ -14,7 +14,7 @@ function librarySkill(overrides: Partial<Skill> = {}): Skill {
     instructions: "# Writer",
     content: "# Writer",
     protocol_type: "skill",
-    author: "PromptHub",
+    author: "AgentsHub",
     local_repo_path: "/prompthub/skills/writer",
     source_url: "https://example.com/skills/writer",
     directory_fingerprint: "fingerprint-writer",
@@ -30,7 +30,7 @@ function scannedSkill(overrides: Partial<ScannedSkill> = {}): ScannedSkill {
   return {
     name: "writer",
     description: "Scanned writer",
-    author: "PromptHub",
+    author: "AgentsHub",
     tags: [],
     instructions: "# Writer",
     filePath: "/agent/skills/writer/SKILL.md",
@@ -178,7 +178,7 @@ describe("skill scan status matrix", () => {
       },
     },
     {
-      name: "PromptHub-managed symlink",
+      name: "AgentsHub-managed symlink",
       scanned: scannedSkill({
         installMode: "symlink",
         isPromptHubManagedLink: true,

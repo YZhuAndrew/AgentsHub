@@ -882,7 +882,7 @@ describe("database-backup restore", () => {
       instructions: "# Writer",
       protocol_type: "skill",
       version: "1.0.0",
-      author: "PromptHub",
+      author: "AgentsHub",
       tags: ["writing"],
       is_favorite: false,
       created_at: Date.parse("2026-04-07T00:00:00.000Z"),
@@ -1431,7 +1431,7 @@ describe("database-backup restore", () => {
     } as unknown as File;
 
     await expect(restoreFromFile(file)).rejects.toThrow(
-      "Invalid PromptHub backup: unsupported file format. Please import a PromptHub backup/export file.",
+      "Invalid AgentsHub backup: unsupported file format. Please import a AgentsHub backup/export file.",
     );
 
     expect(clearDatabaseMock).not.toHaveBeenCalled();

@@ -294,7 +294,7 @@ describe("ImagePromptReverseModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("creates prompt variables from reversed PromptHub placeholders", async () => {
+  it("creates prompt variables from reversed AgentsHub placeholders", async () => {
     const user = userEvent.setup();
     const onCreate = vi.fn().mockResolvedValue({ id: "created-prompt" });
     chatCompletionMock.mockResolvedValue({

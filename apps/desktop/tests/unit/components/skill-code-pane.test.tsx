@@ -74,7 +74,7 @@ describe("SkillCodePane", () => {
     });
 
     expect(sourceButton).toHaveAttribute("type", "button");
-    expect(screen.getByText("PromptHub managed package")).toBeInTheDocument();
+    expect(screen.getByText("AgentsHub managed package")).toBeInTheDocument();
     expect(screen.getByText("No upstream source recorded")).toBeInTheDocument();
     expect(document.querySelector("a[title='/tmp/code-skill']")).toBeNull();
 

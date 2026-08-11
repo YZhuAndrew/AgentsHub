@@ -1476,7 +1476,7 @@ async function applyDataPathChange(
     return {
       success: false,
       error:
-        "Target directory already contains PromptHub data. Switch to it or choose overwrite instead.",
+        "Target directory already contains AgentsHub data. Switch to it or choose overwrite instead.",
     };
   }
 

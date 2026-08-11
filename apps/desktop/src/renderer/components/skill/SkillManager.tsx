@@ -34,7 +34,10 @@ import type { Skill, ScannedSkill } from "@prompthub/shared/types";
 import type { SkillPlatform } from "@prompthub/shared/constants/platforms";
 import { updateSkillTags, type SkillBatchTagMode } from "./batch-utils";
 import { filterVisibleSkills } from "../../services/skill-filter";
-import { buildMySkillSourceBadges } from "../../services/skill-source-badges";
+import {
+  buildMySkillSourceBadges,
+  getPrimarySkillSourceBadge,
+} from "../../services/skill-source-badges";
 import { getRemoteStoreSkills } from "../../services/remote-store-entry";
 import { getSkillsWithStoreUpdates } from "../../services/skill-library-update-status";
 import { getRuntimeCapabilities } from "../../runtime";
@@ -43,6 +46,7 @@ import { filterDeployablePlatforms } from "../../services/platform-visibility";
 import { SkillManagerLibraryHeader } from "./SkillManagerLibraryHeader";
 import { SkillManagerLibraryContent } from "./SkillManagerLibraryContent";
 import { SkillViewTransition } from "./SkillViewTransition";
+import { useSkillManagerBulkActions } from "./useSkillManagerBulkActions";
 import {
   SkillDeleteConfirmDialog,
   type SkillDeleteConfirmation,
@@ -92,15 +96,6 @@ const SkillBatchTagDialog = lazy(() =>
   })),
 );
 
-function getPrimarySkillSourceBadge(
-  skill: Skill,
-  t: ReturnType<typeof useTranslation>["t"],
-) {
-  return buildMySkillSourceBadges(skill, t).find(
-    (badge) => !badge.key.startsWith("source-branch-"),
-  );
-}
-
 export function SkillManager() {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -126,6 +121,14 @@ export function SkillManager() {
   const deployedSkillNames = useSkillStore((state) => state.deployedSkillNames);
   const loadDeployedStatus = useSkillStore((state) => state.loadDeployedStatus);
   const skillFilterTags = useSkillStore((state) => state.filterTags);
+  const filterAuthor = useSkillStore((state) => state.filterAuthor);
+  const setFilterAuthor = useSkillStore((state) => state.setFilterAuthor);
+  const isCheckingAllUpdates = useSkillStore(
+    (state) => state.isCheckingAllUpdates,
+  );
+  const skillUpdateStatuses = useSkillStore(
+    (state) => state.skillUpdateStatuses,
+  );
   const pendingPluginChildDeploySkillIds = useSkillStore(
     (state) => state.pendingPluginChildDeploySkillIds ?? [],
   );
@@ -275,9 +278,8 @@ export function SkillManager() {
     selectSkill(null);
   };
 
-  const [sourceFilterKey, setSourceFilterKey] = useState(
-    ALL_SKILL_SOURCE_FILTER,
-  );
+  const sourceFilterKey = useSkillStore((state) => state.filterSourceKey);
+  const setSourceFilterKey = useSkillStore((state) => state.setFilterSourceKey);
 
   // Get filtered skills - filter directly in useMemo instead of using store function
   // 直接在 useMemo 中过滤，而不是使用 store 函数（避免函数引用作为依赖）
@@ -286,6 +288,7 @@ export function SkillManager() {
       deployedSkillNames,
       filterTags: skillFilterTags,
       filterType: effectiveFilterType,
+      filterAuthor,
       searchQuery,
       skills,
       storeView: effectiveStoreView,
@@ -295,6 +298,7 @@ export function SkillManager() {
     effectiveFilterType,
     effectiveStoreView,
     skillFilterTags,
+    filterAuthor,
     searchQuery,
     skills,
   ]);
@@ -355,6 +359,8 @@ export function SkillManager() {
     [baseFilteredSkills.length, sourceFilterEntries, t],
   );
 
+  const activeAuthorFilter = filterAuthor ?? "all";
+
   const filteredSkills = useMemo(() => {
     if (activeSourceFilterKey === ALL_SKILL_SOURCE_FILTER) {
       return baseFilteredSkills;
@@ -401,13 +407,18 @@ export function SkillManager() {
     (state) => state.importScannedSkills,
   );
   const skillsWithStoreUpdates = useMemo(() => {
-    return getSkillsWithStoreUpdates(skills, [
+    const base = getSkillsWithStoreUpdates(skills, [
       ...(registrySkills ?? []),
       ...Object.values(remoteStoreEntries).flatMap((entry) =>
         getRemoteStoreSkills(entry),
       ),
     ]);
-  }, [registrySkills, remoteStoreEntries, skills]);
+    // Augment with skills flagged "update-available" by the last batch check.
+    for (const [skillId, check] of Object.entries(skillUpdateStatuses)) {
+      if (check.status === "update-available") base.add(skillId);
+    }
+    return base;
+  }, [registrySkills, remoteStoreEntries, skills, skillUpdateStatuses]);
 
   // Delete confirmation dialog state
   // 删除确认对话框状态
@@ -549,6 +560,13 @@ export function SkillManager() {
     () => skills.filter((skill) => selectedSkillIds.has(skill.id)),
     [skills, selectedSkillIds],
   );
+  const { authorFilterOptions, handleCheckAllUpdates, handleBatchUpdateSelected } =
+    useSkillManagerBulkActions({
+      baseFilteredSkills,
+      selectedSkills,
+      setSelectedSkillIds,
+      t,
+    });
   const allVisibleSelected = useMemo(
     () =>
       visibleSkills.length > 0 &&
@@ -1263,16 +1281,22 @@ export function SkillManager() {
           isDistributionView={isDistributionView}
           isRefreshingLibrary={isRefreshingLibrary}
           isSelectionMode={isSelectionMode}
+          isCheckingAllUpdates={isCheckingAllUpdates}
           mySkillFilterOptions={mySkillFilterOptions}
           onBatchDelete={() => void handleBatchDelete()}
           onBatchDeploy={handleBatchDeploy}
           onBatchFavorite={() => void handleBatchFavorite()}
           onBatchTags={handleBatchTags}
+          onBatchUpdateSelected={() => void handleBatchUpdateSelected()}
+          onCheckAllUpdates={() => void handleCheckAllUpdates()}
           onFilterChange={handleMySkillFilterChange}
           onGalleryColumnsChange={setGalleryColumns}
           onRefresh={() => void handleRefreshLibrary()}
           onSelectAllVisible={handleSelectAllVisible}
           onSourceFilterChange={setSourceFilterKey}
+          onAuthorFilterChange={(value) =>
+            setFilterAuthor(value === "all" ? null : value)
+          }
           onToggleSelectionMode={toggleSelectionMode}
           onViewModeChange={setViewMode}
           pageSize={pageSize}
@@ -1281,6 +1305,8 @@ export function SkillManager() {
             (skill) => skill.is_favorite,
           )}
           sourceFilterOptions={sourceFilterOptions}
+          authorFilterOptions={authorFilterOptions}
+          activeAuthorFilter={activeAuthorFilter}
           t={t}
           totalPages={totalPages}
           totalSkillCount={skills.length}

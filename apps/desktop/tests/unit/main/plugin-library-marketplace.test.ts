@@ -189,7 +189,7 @@ describe("CorePluginLibraryService", () => {
     fs.rmSync(userDataPath, { recursive: true, force: true });
   });
 
-  it("orders PromptHub official plugin store before Codex official store", () => {
+  it("orders AgentsHub official plugin store before Codex official store", () => {
     const service = new CorePluginLibraryService();
 
     expect(service.getMarketSources().map((source) => source.id)).toEqual([
@@ -198,14 +198,14 @@ describe("CorePluginLibraryService", () => {
     ]);
   });
 
-  it("persists installed bundle plugins in the PromptHub data directory", async () => {
+  it("persists installed bundle plugins in the AgentsHub data directory", async () => {
     const fetchFn = createFetchMock({
       [marketplaceUrl]: createMarketplaceFixture(),
       [bundleManifestUrl]: JSON.stringify({
         name: "bundle",
         version: "1.0.0",
         description: "A complete plugin package",
-        author: { name: "PromptHub" },
+        author: { name: "AgentsHub" },
         skills: "./skills",
         apps: "./.app.json",
         keywords: ["bundle"],

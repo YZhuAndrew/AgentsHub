@@ -98,7 +98,7 @@ const SKILL_POLISH_SYSTEM_PROMPT = `You are a SKILL.md editor. Your job is to po
 - Never invent new capabilities the user didn't describe
 - The description in frontmatter should accurately summarize what the user wrote`;
 
-const PROMPT_REWRITE_SYSTEM_PROMPT = `You are an expert prompt editor working inside PromptHub.
+const PROMPT_REWRITE_SYSTEM_PROMPT = `You are an expert prompt editor working inside AgentsHub.
 
 Your job is to improve an existing prompt draft according to the user's instruction while preserving the original task intent.
 
@@ -203,7 +203,7 @@ function buildRewriteUserPrompt(input: PromptRewriteInput): string {
     userPrompt: input.userPrompt,
     notes: input.notes || "",
   };
-  return `Please improve the following PromptHub draft according to the user's rewrite request.
+  return `Please improve the following AgentsHub draft according to the user's rewrite request.
 
 Prompt type: ${input.promptType}
 Prompt title: ${input.title}

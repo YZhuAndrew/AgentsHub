@@ -636,7 +636,7 @@ export function SkillFullDetailPage({
           t("skill.installFallbackWarning", {
             details,
             defaultValue:
-              "Symlink was not available for some platforms. PromptHub used copy install instead.\n{{details}}",
+              "Symlink was not available for some platforms. AgentsHub used copy install instead.\n{{details}}",
           }),
           "warning",
         );
@@ -1210,11 +1210,11 @@ export function SkillFullDetailPage({
               {hasDistributedInstallations
                 ? t(
                     "skill.deleteDistributedHint",
-                    "This removes the skill from PromptHub. Source files are preserved. Distributed symlinks will be removed because they point back to PromptHub.",
+                    "This removes the skill from AgentsHub. Source files are preserved. Distributed symlinks will be removed because they point back to AgentsHub.",
                   )
                 : t(
                     "skill.deleteSourceOnlyHint",
-                    "Only removes this skill from the PromptHub library. Source files are preserved.",
+                    "Only removes this skill from the AgentsHub library. Source files are preserved.",
                   )}
             </p>
             {hasSymlinkInstallations ? (
@@ -1337,7 +1337,7 @@ export function SkillFullDetailPage({
               "symlink"
                 ? t(
                     "skill.platformUninstallSymlinkHint",
-                    "This removes the symlink from the selected platform. The PromptHub source stays in place.",
+                    "This removes the symlink from the selected platform. The AgentsHub source stays in place.",
                   )
                 : t(
                     "skill.platformUninstallCopyHint",

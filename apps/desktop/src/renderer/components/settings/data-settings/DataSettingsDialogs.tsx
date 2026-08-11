@@ -51,7 +51,7 @@ export function DataSettingsDialogs() {
                 <h3 className="text-lg font-semibold">
                   {t(
                     "settings.existingDataPathTitle",
-                    "Target directory already contains PromptHub data",
+                    "Target directory already contains AgentsHub data",
                   )}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -228,7 +228,7 @@ export function DataSettingsDialogs() {
           restoreCandidate
             ? t(
                 "settings.upgradeBackupRestoreConfirm",
-                "Restore the automatic snapshot from {{from}}{{to}} created at {{createdAt}}? PromptHub will first save your current state as another backup, then restart.",
+                "Restore the automatic snapshot from {{from}}{{to}} created at {{createdAt}}? AgentsHub will first save your current state as another backup, then restart.",
                 {
                   from: restoreCandidate.manifest.fromVersion,
                   to: restoreCandidate.manifest.toVersion

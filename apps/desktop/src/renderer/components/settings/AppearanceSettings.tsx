@@ -697,7 +697,7 @@ export function AppearanceSettings() {
                 <p className="mt-1 text-xs text-muted-foreground leading-6">
                   {t(
                     "settings.backgroundImageDesc",
-                    "Choose a local image for the desktop app background. The file stays in PromptHub's image storage and only the reference is saved in settings.",
+                    "Choose a local image for the desktop app background. The file stays in AgentsHub's image storage and only the reference is saved in settings.",
                   )}
                 </p>
               </div>

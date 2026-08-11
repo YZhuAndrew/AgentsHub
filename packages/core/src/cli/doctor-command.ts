@@ -32,7 +32,7 @@ export async function handleDoctorCommand(
   if (shouldRecover && result.status === "blocked") {
     throw new CliError(
       "DATABASE_LOCK_RECOVERY_BLOCKED",
-      "数据库锁无法安全恢复；请关闭仍在运行的 PromptHub 进程并检查异常租约或锁路径",
+      "数据库锁无法安全恢复；请关闭仍在运行的 AgentsHub 进程并检查异常租约或锁路径",
       EXIT_CODES.CONFLICT,
       {
         reason: result.reason,

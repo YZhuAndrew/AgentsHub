@@ -12,7 +12,7 @@ const CAPTCHA_REQUEST_TIMEOUT_MS = 15_000;
 export class PromptHubCaptchaAuthBoundaryError extends Error {
   constructor() {
     super(
-      "Failed to issue PromptHub captcha: the captcha endpoint is requiring authentication. Use the PromptHub Web site origin as the URL, not an /api endpoint.",
+      "Failed to issue AgentsHub captcha: the captcha endpoint is requiring authentication. Use the AgentsHub Web site origin as the URL, not an /api endpoint.",
     );
     this.name = "PromptHubCaptchaAuthBoundaryError";
   }
@@ -171,7 +171,7 @@ function decodeSvgDataUri(imageData: string): string {
     return globalThis.atob(encoded);
   }
 
-  throw new Error("PromptHub captcha decoder requires base64 support");
+  throw new Error("AgentsHub captcha decoder requires base64 support");
 }
 
 function extractPromptHubCaptchaPathAttributes(svg: string): string[] {
@@ -200,7 +200,7 @@ function extractPromptHubCaptchaPathAttributes(svg: string): string[] {
 export function solvePromptHubCaptchaPrompt(prompt: string): string {
   const match = prompt.match(/^\s*(\d+)\s*([+-])\s*(\d+)\s*=\s*\?\s*$/);
   if (!match) {
-    throw new Error(`Unsupported PromptHub captcha prompt: ${prompt}`);
+    throw new Error(`Unsupported AgentsHub captcha prompt: ${prompt}`);
   }
 
   const left = Number(match[1]);
@@ -211,7 +211,7 @@ export function solvePromptHubCaptchaPrompt(prompt: string): string {
 
 function decodePromptHubCaptchaImageData(imageData: string): string {
   if (!imageData.startsWith(SVG_CAPTCHA_DATA_URI_PREFIX)) {
-    throw new Error("Unsupported PromptHub captcha image format");
+    throw new Error("Unsupported AgentsHub captcha image format");
   }
 
   const svg = decodeSvgDataUri(imageData);
@@ -238,14 +238,14 @@ function decodePromptHubCaptchaImageData(imageData: string): string {
     .sort((left, right) => left.x - right.x);
 
   if (glyphs.length === 0) {
-    throw new Error("PromptHub captcha image did not contain any glyph paths");
+    throw new Error("AgentsHub captcha image did not contain any glyph paths");
   }
 
   return glyphs
     .map((glyph) => {
       const decoded = CAPTCHA_PATH_SIGNATURE_TO_CHAR[glyph.signature];
       if (!decoded) {
-        throw new Error("PromptHub captcha image contained an unknown glyph");
+        throw new Error("AgentsHub captcha image contained an unknown glyph");
       }
       return decoded;
     })
@@ -272,7 +272,7 @@ export async function issueSolvedPromptHubCaptcha(baseUrl: string): Promise<{
   } catch (error) {
     if (controller.signal.aborted) {
       throw new Error(
-        `PromptHub captcha request timed out after ${CAPTCHA_REQUEST_TIMEOUT_MS / 1000} seconds`,
+        `AgentsHub captcha request timed out after ${CAPTCHA_REQUEST_TIMEOUT_MS / 1000} seconds`,
       );
     }
     throw error;
@@ -290,7 +290,7 @@ export async function issueSolvedPromptHubCaptcha(baseUrl: string): Promise<{
     }
 
     throw new Error(
-      `Failed to issue PromptHub captcha: ${response.status} ${text}`,
+      `Failed to issue AgentsHub captcha: ${response.status} ${text}`,
     );
   }
 
@@ -313,6 +313,6 @@ export async function issueSolvedPromptHubCaptcha(baseUrl: string): Promise<{
   }
 
   throw new Error(
-    "PromptHub captcha response did not include a solvable challenge",
+    "AgentsHub captcha response did not include a solvable challenge",
   );
 }

@@ -154,7 +154,7 @@ describe("SkillProjectsView", () => {
             {
               name: "novel-auditor",
               description: "Audit long-form fiction structure",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: ["writing"],
               instructions: "# novel-auditor\n\nHelp audit fiction.",
               filePath: "/tmp/novel/.claude/skills/novel-auditor/SKILL.md",
@@ -164,7 +164,7 @@ describe("SkillProjectsView", () => {
             {
               name: "novel-builder",
               description: "Build story arcs and chapter beats",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: ["outline"],
               instructions: "# novel-builder\n\nBuild stories.",
               filePath: "/tmp/novel/.claude/skills/novel-builder/SKILL.md",
@@ -236,7 +236,7 @@ describe("SkillProjectsView", () => {
           instructions: "# library-skill",
           content: "# library-skill",
           protocol_type: "skill",
-          author: "PromptHub",
+          author: "AgentsHub",
           local_repo_path: "/Users/demo/skills/library-skill",
           source_url: "/Users/demo/skills/library-skill",
           tags: ["general"],
@@ -345,7 +345,7 @@ describe("SkillProjectsView", () => {
           instructions: "# library-skill",
           content: "# library-skill",
           protocol_type: "skill",
-          author: "PromptHub",
+          author: "AgentsHub",
           local_repo_path: "/Users/demo/skills/library-skill",
           source_url: "/Users/demo/skills/library-skill",
           tags: ["general"],
@@ -505,7 +505,7 @@ describe("SkillProjectsView", () => {
           instructions: "# library-skill",
           content: "# library-skill",
           protocol_type: "skill",
-          author: "PromptHub",
+          author: "AgentsHub",
           local_repo_path: "/Users/demo/skills/library-skill",
           source_url: "/Users/demo/skills/library-skill",
           tags: ["general"],
@@ -540,7 +540,7 @@ describe("SkillProjectsView", () => {
 
     await waitFor(() => {
       expect(showToastMock).toHaveBeenCalledWith(
-        "Import completed, but PromptHub could not refresh the project list. Please rescan manually.",
+        "Import completed, but AgentsHub could not refresh the project list. Please rescan manually.",
         "warning",
       );
     });
@@ -637,7 +637,7 @@ describe("SkillProjectsView", () => {
             {
               name: "novel-auditor",
               description: "Audit long-form fiction structure",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: ["writing"],
               instructions: "# novel-auditor\n\nHelp audit fiction.",
               filePath: "/tmp/novel/.agents/skills/novel-auditor/SKILL.md",

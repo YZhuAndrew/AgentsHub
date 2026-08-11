@@ -42,7 +42,7 @@ const skill: Skill = {
   instructions: "# story-auditor",
   content: "# story-auditor",
   protocol_type: "skill",
-  author: "PromptHub",
+  author: "AgentsHub",
   local_repo_path: "/Users/demo/skills/story-auditor",
   source_url: "/Users/demo/skills/story-auditor",
   tags: ["writing"],

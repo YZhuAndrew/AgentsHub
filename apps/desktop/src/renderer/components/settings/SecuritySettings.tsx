@@ -305,7 +305,7 @@ export function SecuritySettings() {
           <p className="text-xs text-muted-foreground leading-relaxed">
             {t(
               "settings.securityDesc",
-              "Master password unlocks private content. PromptHub stores only a salted hash, never the plain text password. Private content is hidden until unlocked.",
+              "Master password unlocks private content. AgentsHub stores only a salted hash, never the plain text password. Private content is hidden until unlocked.",
             )}
           </p>
         </div>

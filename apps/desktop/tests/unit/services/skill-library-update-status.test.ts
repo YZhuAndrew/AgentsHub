@@ -10,7 +10,7 @@ function registrySkill(overrides: Partial<RegistrySkill> = {}): RegistrySkill {
     name: "Writer",
     description: "Write better",
     category: "general",
-    author: "PromptHub",
+    author: "AgentsHub",
     source_id: "source-writer",
     source_url: "https://gitea.example.com/team/skills/tree/main/writer",
     content_url:

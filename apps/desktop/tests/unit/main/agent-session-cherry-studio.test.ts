@@ -57,9 +57,9 @@ describe("Cherry Studio Agent session adapter", () => {
       )
       .run(
         "cherry-session-1",
-        "Review PromptHub release",
+        "Review AgentsHub release",
         "Release review",
-        JSON.stringify([path.join(homeDir, "Projects", "PromptHub")]),
+        JSON.stringify([path.join(homeDir, "Projects", "AgentsHub")]),
         "claude-sonnet-4-5",
         "2026-07-30T10:00:00.000Z",
         "2026-07-30T10:02:00.000Z",
@@ -233,7 +233,7 @@ describe("Cherry Studio Agent session adapter", () => {
       homeDir,
       cherryStudioRootDir: cherryRoot,
     });
-    const projectPath = path.join(homeDir, "Projects", "PromptHub");
+    const projectPath = path.join(homeDir, "Projects", "AgentsHub");
 
     await expect(
       service.list("cherry-studio", { limit: 20, search: "recovery point" }),
@@ -243,8 +243,8 @@ describe("Cherry Studio Agent session adapter", () => {
       sessions: [
         {
           id: "cherry-session-1",
-          title: "Review PromptHub release",
-          projectLabel: "PromptHub",
+          title: "Review AgentsHub release",
+          projectLabel: "AgentsHub",
           projectPath,
           createdAt: Date.parse("2026-07-30T10:00:00.000Z"),
           updatedAt: Date.parse("2026-07-30T10:02:00.000Z"),

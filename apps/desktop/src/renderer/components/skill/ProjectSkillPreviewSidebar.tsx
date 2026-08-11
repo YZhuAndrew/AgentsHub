@@ -179,7 +179,7 @@ export function ProjectSkillPreviewSidebar({
           <p className="text-sm leading-relaxed text-muted-foreground">
             {t(
               "skill.projectDeployHint",
-              "Deploy this skill directly into project-local agent folders. PromptHub defaults to .agents/skills and lets you add more target folders when needed.",
+              "Deploy this skill directly into project-local agent folders. AgentsHub defaults to .agents/skills and lets you add more target folders when needed.",
             )}
           </p>
 

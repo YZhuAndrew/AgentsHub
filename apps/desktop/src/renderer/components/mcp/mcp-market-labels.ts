@@ -24,7 +24,7 @@ export function getMcpMarketSourceDescription(
   if (source?.id === OFFICIAL_MCP_SOURCE_ID) {
     return t(
       "mcp.officialMcpStoreDesc",
-      "PromptHub-maintained MCP catalog for official, curated server listings.",
+      "AgentsHub-maintained MCP catalog for official, curated server listings.",
     );
   }
   if (source?.id === "modelcontextprotocol") {

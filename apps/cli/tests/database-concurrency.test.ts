@@ -88,7 +88,7 @@ describe("database client lock coordination", () => {
     }
   });
 
-  it("preserves a writer lock owned by another live PromptHub client", () => {
+  it("preserves a writer lock owned by another live AgentsHub client", () => {
     const fixture = createFixture();
     roots.push(fixture.root);
     fs.mkdirSync(`${fixture.dbPath}.lock`);

@@ -11,7 +11,7 @@ const BASE_SKILL: RegistrySkill = {
   name: "Writer",
   description: "Writer Skill",
   category: "general",
-  author: "PromptHub",
+  author: "AgentsHub",
   source_url: "https://gitea.example.com/team/skills.git",
   source_branch: "main",
   canonical_skill_path: "skills/writer/SKILL.md",

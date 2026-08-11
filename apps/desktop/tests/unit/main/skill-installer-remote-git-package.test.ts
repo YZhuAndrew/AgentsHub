@@ -78,7 +78,7 @@ async function createCommittedSkillRepo(
   await fs.mkdir(repoDir, { recursive: true });
   await runGit(["init", "-b", "main"], repoDir);
   await runGit(["config", "user.email", "test@example.com"], repoDir);
-  await runGit(["config", "user.name", "PromptHub Test"], repoDir);
+  await runGit(["config", "user.name", "AgentsHub Test"], repoDir);
 
   for (const [relativePath, content] of Object.entries(files)) {
     const filePath = path.join(repoDir, relativePath);
@@ -272,6 +272,7 @@ describe("SkillInstaller.saveRemoteGitSkillToLocalRepoBySkillId", () => {
       "https://gitea.example.com/team/skills",
       expect.stringContaining("team-skills"),
       "main",
+      undefined,
     );
   });
 

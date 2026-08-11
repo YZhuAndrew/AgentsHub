@@ -51,20 +51,20 @@ const PACKAGE_FAILURE_COPY: Record<
   },
   STAGING_FAILED: {
     key: "skill.packageFailure.stagingFailed",
-    defaultValue: "PromptHub could not prepare the Skill package.",
+    defaultValue: "AgentsHub could not prepare the Skill package.",
   },
   PACKAGE_APPLY_FAILED: {
     key: "skill.packageFailure.packageApplyFailed",
-    defaultValue: "PromptHub could not replace the managed Skill files.",
+    defaultValue: "AgentsHub could not replace the managed Skill files.",
   },
   DATABASE_FINALIZE_FAILED: {
     key: "skill.packageFailure.databaseFinalizeFailed",
-    defaultValue: "PromptHub could not save the Skill operation.",
+    defaultValue: "AgentsHub could not save the Skill operation.",
   },
   ROLLBACK_INCOMPLETE: {
     key: "skill.packageFailure.rollbackIncomplete",
     defaultValue:
-      "PromptHub could not fully restore the previous state. Restart before retrying.",
+      "AgentsHub could not fully restore the previous state. Restart before retrying.",
   },
   OPERATION_IN_PROGRESS: {
     key: "skill.packageFailure.operationInProgress",

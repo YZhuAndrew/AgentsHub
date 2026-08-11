@@ -425,7 +425,7 @@ export function RulesSidebarPanel({
                           <div className="mt-1 text-xs leading-5 text-muted-foreground">
                             {t(
                               "rules.addProjectRuleDirectoryHint",
-                              "Pick a folder and PromptHub will manage its canonical AGENTS.md rule file here.",
+                              "Pick a folder and AgentsHub will manage its canonical AGENTS.md rule file here.",
                             )}
                           </div>
                         </div>

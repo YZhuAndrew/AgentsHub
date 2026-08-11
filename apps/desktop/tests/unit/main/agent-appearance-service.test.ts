@@ -220,7 +220,7 @@ describe("AgentAppearanceService", () => {
     );
   });
 
-  it("restores Dream Skin when PromptHub state cannot be committed", async () => {
+  it("restores Dream Skin when AgentsHub state cannot be committed", async () => {
     const source = path.join(root, "theme-source");
     await writeTheme(source);
     const service = new AgentAppearanceService({ dataRoot, codexRoot, engine });

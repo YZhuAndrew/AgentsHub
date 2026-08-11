@@ -128,14 +128,14 @@ export function SkillAssetTopology({
             {linkedExternal
               ? t("skill.topologyLinkedPackage", "Linked external package")
               : selectedSkill.local_repo_path
-                ? t("skill.topologyManagedPackage", "PromptHub managed package")
+                ? t("skill.topologyManagedPackage", "AgentsHub managed package")
                 : t("skill.topologyDatabaseOnly", "Database content only")}
           </div>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">
             {linkedExternal
               ? t(
                   "skill.topologyLinkedPackageDesc",
-                  "Edits write directly to this external folder; PromptHub does not replace it with a managed copy.",
+                  "Edits write directly to this external folder; AgentsHub does not replace it with a managed copy.",
                 )
               : selectedSkill.local_repo_path
                 ? t(

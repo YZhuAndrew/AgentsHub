@@ -588,7 +588,7 @@ export function getTargetDescription(
   if (!target.enabled) {
     return t("plugin.targetDescriptions.unsupportedBundle", {
       defaultValue:
-        "{{name}} does not expose a complete PromptHub Plugin bundle surface.",
+        "{{name}} does not expose a complete AgentsHub Plugin bundle surface.",
       name: target.displayName,
     });
   }
@@ -605,7 +605,7 @@ export function getTargetUnsupportedTitle(
   t: ReturnType<typeof useTranslation>["t"],
 ): string {
   return t("plugin.targetUnsupportedBundleTitle", {
-    defaultValue: "{{name}} does not support PromptHub Plugin bundles",
+    defaultValue: "{{name}} does not support AgentsHub Plugin bundles",
     name: target.displayName,
   });
 }

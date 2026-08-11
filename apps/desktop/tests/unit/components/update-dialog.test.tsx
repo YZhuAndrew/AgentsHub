@@ -148,7 +148,7 @@ describe("UpdateDialog", () => {
     expect(screen.getByText("Release Notes")).toBeInTheDocument();
     expect(
       screen.queryByText(
-        "Create a manual backup for the current version to unlock installation. PromptHub will still create an automatic local snapshot immediately before the installer starts.",
+        "Create a manual backup for the current version to unlock installation. AgentsHub will still create an automatic local snapshot immediately before the installer starts.",
       ),
     ).not.toBeInTheDocument();
     expect(
@@ -290,7 +290,7 @@ describe("UpdateDialog", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "This PromptHub build was installed via Homebrew. Please upgrade it with Homebrew instead of the in-app DMG updater.",
+        "This AgentsHub build was installed via Homebrew. Please upgrade it with Homebrew instead of the in-app DMG updater.",
       ),
     ).toBeInTheDocument();
   });
@@ -325,7 +325,7 @@ describe("UpdateDialog", () => {
     expect(installButton).toBeDisabled();
     expect(
       screen.getByText(
-        "A manual backup for version 0.5.1 is required before installation. PromptHub will also create an automatic local snapshot once installation starts.",
+        "A manual backup for version 0.5.1 is required before installation. AgentsHub will also create an automatic local snapshot once installation starts.",
       ),
     ).toBeInTheDocument();
     expect(

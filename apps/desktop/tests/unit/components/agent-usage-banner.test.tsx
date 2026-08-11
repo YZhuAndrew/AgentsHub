@@ -498,7 +498,7 @@ describe("AgentUsageBanner", () => {
     expect(await screen.findByText("Antigravity is not running")).toBeVisible();
     expect(
       screen.getByText(
-        "Keep Antigravity running so PromptHub can read the quota from your current signed-in session, then retry.",
+        "Keep Antigravity running so AgentsHub can read the quota from your current signed-in session, then retry.",
       ),
     ).toBeVisible();
     expect(screen.queryByText("Credentials expired")).toBeNull();

@@ -23,7 +23,7 @@ describe("remote store entry helpers", () => {
         name: "Writer",
         description: "Writes content",
         category: "general",
-        author: "PromptHub",
+        author: "AgentsHub",
         source_url: "https://example.com/writer",
         tags: [],
         version: "1.0.0",

@@ -102,7 +102,7 @@ function harness(read = vi.fn(() => config())) {
 }
 
 describe("Agent Provider source service", () => {
-  it("lists redacted PromptHub providers and filters non-chat models", () => {
+  it("lists redacted AgentsHub providers and filters non-chat models", () => {
     const { service } = harness();
 
     const candidates = service.list("codex");

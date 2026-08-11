@@ -45,7 +45,7 @@ export const BUILTIN_SKILL_SAFETY_STORES: ReadonlyArray<
     storeId: "prompthub-cloud",
     channel: "official",
     labelKey: "skill.promptHubCloudStore",
-    defaultLabel: "PromptHub Cloud",
+    defaultLabel: "AgentsHub Cloud",
   },
   {
     storeId: "community",

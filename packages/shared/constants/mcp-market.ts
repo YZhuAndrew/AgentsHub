@@ -7,9 +7,9 @@ export const BUILTIN_MCP_MARKET_SOURCES: McpMarketSource[] = [
   {
     id: MCP_OFFICIAL_MARKET_SOURCE_ID,
     label: "Official Store",
-    url: "https://github.com/legeling/PromptHub",
+    url: "https://github.com/legeling/AgentsHub",
     description:
-      "PromptHub-maintained MCP catalog for official, curated server listings.",
+      "AgentsHub-maintained MCP catalog for official, curated server listings.",
     trustLevel: "official",
   },
   {

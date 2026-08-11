@@ -559,7 +559,7 @@ describe("skill store", () => {
       name: "Cloud Writer",
       description: "Cloud writer",
       category: "general",
-      author: "PromptHub Cloud",
+      author: "AgentsHub Cloud",
       source_url: "cloud://store/listings/cloud-writer",
       tags: [],
       version: "published",

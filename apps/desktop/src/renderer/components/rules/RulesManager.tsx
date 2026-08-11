@@ -174,11 +174,11 @@ export function RulesManager() {
         strategy === "use-managed"
           ? t(
               "rules.conflictResolvedUseManaged",
-              "Kept the PromptHub version and synced it to the external file",
+              "Kept the AgentsHub version and synced it to the external file",
             )
           : t(
               "rules.conflictResolvedUseTarget",
-              "Kept the external file version and synced it to PromptHub",
+              "Kept the external file version and synced it to AgentsHub",
             ),
         "success",
       );
@@ -504,7 +504,7 @@ export function RulesManager() {
                     <span>
                       {t(
                         "rules.conflictDiffLegend",
-                        "− PromptHub · + External file",
+                        "− AgentsHub · + External file",
                       )}
                     </span>
                     <span>
@@ -585,7 +585,7 @@ export function RulesManager() {
                   <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-background">
                     <div className="flex shrink-0 items-center justify-between border-b border-border/70 bg-muted/20 px-3 py-2">
                       <span className="text-xs font-medium text-foreground">
-                        {t("rules.conflictPromptHubVersion", "PromptHub")}
+                        {t("rules.conflictPromptHubVersion", "AgentsHub")}
                       </span>
                       <span className="text-[11px] text-muted-foreground">
                         {(syncConflictFile.content || "").split("\n").length}{" "}
@@ -640,7 +640,7 @@ export function RulesManager() {
                 disabled={isResolvingConflict}
                 onClick={() => setPendingConflictStrategy("use-managed")}
               >
-                {t("rules.conflictUseManaged", "Keep PromptHub")}
+                {t("rules.conflictUseManaged", "Keep AgentsHub")}
               </Button>
               <Button
                 type="button"
@@ -667,7 +667,7 @@ export function RulesManager() {
           pendingConflictStrategy === "use-managed"
             ? t(
                 "rules.conflictConfirmUseManagedTitle",
-                "Keep PromptHub version?",
+                "Keep AgentsHub version?",
               )
             : t("rules.conflictConfirmUseTargetTitle", "Keep external version?")
         }
@@ -675,7 +675,7 @@ export function RulesManager() {
           pendingConflictStrategy === "use-managed"
             ? t(
                 "rules.conflictConfirmUseManagedMessage",
-                "Overwrite the external file with the PromptHub copy for {{platformName}}.",
+                "Overwrite the external file with the AgentsHub copy for {{platformName}}.",
                 {
                   platformName:
                     syncConflictFile?.platformName ??
@@ -685,7 +685,7 @@ export function RulesManager() {
               )
             : t(
                 "rules.conflictConfirmUseTargetMessage",
-                "Overwrite the PromptHub copy with the external file for {{platformName}}.",
+                "Overwrite the AgentsHub copy with the external file for {{platformName}}.",
                 {
                   platformName:
                     syncConflictFile?.platformName ??
@@ -697,7 +697,7 @@ export function RulesManager() {
         confirmText={
           pendingConflictStrategy === "use-managed"
             ? t("rules.conflictConfirmUseManagedAction", "Overwrite external")
-            : t("rules.conflictConfirmUseTargetAction", "Overwrite PromptHub")
+            : t("rules.conflictConfirmUseTargetAction", "Overwrite AgentsHub")
         }
         cancelText={t("common.cancel")}
         isLoading={isResolvingConflict}

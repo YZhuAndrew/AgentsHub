@@ -173,7 +173,7 @@ export function ProjectFormModal({
           <p className="text-xs text-muted-foreground">
             {t(
               "skill.projectRootPathFirstHint",
-              "Choose the project root first. PromptHub can infer the project name and start scanning right away.",
+              "Choose the project root first. AgentsHub can infer the project name and start scanning right away.",
             )}
           </p>
           <div
@@ -266,7 +266,7 @@ export function ProjectFormModal({
           <p className="text-xs text-muted-foreground">
             {t(
               "skill.projectScanPathsHint",
-              "PromptHub always scans the project root plus default skill folders like .claude/skills, .agents/skills, skills, and .gemini. Add extra scan paths here only if your project uses custom locations.",
+              "AgentsHub always scans the project root plus default skill folders like .claude/skills, .agents/skills, skills, and .gemini. Add extra scan paths here only if your project uses custom locations.",
             )}
           </p>
           <div className="space-y-2">
@@ -274,7 +274,7 @@ export function ProjectFormModal({
               <div className="rounded-xl border border-dashed border-border px-3 py-3 text-xs text-muted-foreground">
                 {t(
                   "skill.projectScanPathsEmpty",
-                  "No extra scan paths configured yet. PromptHub will still scan the project root automatically.",
+                  "No extra scan paths configured yet. AgentsHub will still scan the project root automatically.",
                 )}
               </div>
             ) : (

@@ -457,7 +457,7 @@ export function SkillSettings() {
           <p className="text-xs text-muted-foreground">
             {t(
               "settings.skillInstallMethodDesc",
-              "Choose how to install Skills from PromptHub to AI tool platforms.",
+              "Choose how to install Skills from AgentsHub to AI tool platforms.",
             )}
           </p>
           <div className="flex gap-3">
@@ -477,7 +477,7 @@ export function SkillSettings() {
               <p className="text-xs text-muted-foreground mt-1">
                 {t(
                   "settings.skillInstallSymlinkDesc",
-                  "Create symlinks in platform directories pointing to PromptHub's Skills folder for efficient syncing",
+                  "Create symlinks in platform directories pointing to AgentsHub's Skills folder for efficient syncing",
                 )}
               </p>
             </button>
@@ -497,7 +497,7 @@ export function SkillSettings() {
               <p className="text-xs text-muted-foreground mt-1">
                 {t(
                   "settings.skillInstallCopyDesc",
-                  "Copy SKILL.md files directly to platform directories, independent of PromptHub",
+                  "Copy SKILL.md files directly to platform directories, independent of AgentsHub",
                 )}
               </p>
             </button>
@@ -892,7 +892,7 @@ export function SkillSettings() {
               <p className="max-w-3xl text-xs text-muted-foreground">
                 {t(
                   "settings.customAgentsDesc",
-                  "Add your own agent/tool entries with a name and root directory. PromptHub will derive scan paths and known local assets from each custom agent.",
+                  "Add your own agent/tool entries with a name and root directory. AgentsHub will derive scan paths and known local assets from each custom agent.",
                 )}
               </p>
               <button
@@ -1393,7 +1393,7 @@ export function SkillSettings() {
                         <div className="text-[10px] text-muted-foreground/80">
                           {t(
                             "settings.agentRootPathHint",
-                            "PromptHub treats this as an agent root and derives known local assets from it instead of scanning only one Skill folder.",
+                            "AgentsHub treats this as an agent root and derives known local assets from it instead of scanning only one Skill folder.",
                           )}
                         </div>
                       </div>
@@ -1428,7 +1428,7 @@ export function SkillSettings() {
         message={t("settings.confirmDeleteCustomAgentMessage", {
           name: pendingDeleteAgent?.name ?? "",
           defaultValue:
-            'Are you sure you want to delete custom agent "{{name}}"? This only removes it from PromptHub settings.',
+            'Are you sure you want to delete custom agent "{{name}}"? This only removes it from AgentsHub settings.',
         })}
         confirmText={t("common.delete", "Delete")}
         cancelText={t("common.cancel", "Cancel")}

@@ -55,7 +55,7 @@ describe("MCP market source registry", () => {
     ]);
     expect(
       sources.find((source) => source.id === "prompthub-official"),
-    ).toMatchObject({ url: "https://github.com/legeling/PromptHub" });
+    ).toMatchObject({ url: "https://github.com/legeling/AgentsHub" });
     expect(fs.existsSync(getMcpMarketSourceRegistryFilePath())).toBe(true);
     expect(readRegisteredMcpMarketSources()).toEqual(sources);
   });

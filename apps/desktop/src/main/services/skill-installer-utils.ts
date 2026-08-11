@@ -151,10 +151,38 @@ async function validateRemoteGitTransportUrl(
   );
 }
 
+/** Callback shape for live git clone object-transfer progress. */
+export type GitCloneProgressCallback = (detail: { percent: number }) => void;
+
+/**
+ * Parse a git `--progress` stderr chunk for an object-transfer percentage.
+ * Git writes lines like `Receiving objects:  47% (470/1000)` and
+ * `Receiving objects:  47% (470/1000), 1.23 MiB | 2.45 MiB/s`. Returns the most
+ * recent whole-number percentage found in the chunk, or `null` when the chunk
+ * carries no parseable progress line. Best-effort: never throws.
+ */
+export function parseGitClonePercent(chunk: string): number | null {
+  if (typeof chunk !== "string" || !chunk) return null;
+  let lastPercent: number | null = null;
+  // git --progress updates a single line in place with carriage returns, so
+  // split on both CR and LF to capture each update as its own segment.
+  const segments = chunk.split(/[\r\n]+/);
+  for (const segment of segments) {
+    const match = segment.match(/Receiving objects:\s+(\d+)%/);
+    if (!match) continue;
+    const parsed = Number.parseInt(match[1], 10);
+    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100) {
+      lastPercent = parsed;
+    }
+  }
+  return lastPercent;
+}
+
 export function gitClone(
   url: string,
   destDir: string,
   branch?: string,
+  onProgress?: GitCloneProgressCallback,
 ): Promise<void> {
   if (!url.trim()) {
     throw new Error("Git clone URL cannot be empty");
@@ -168,7 +196,10 @@ export function gitClone(
   return validateRemoteGitTransportUrl(normalizedUrl, "clone").then(
     () =>
       new Promise((resolve, reject) => {
-        const cloneArgs = ["clone", "--depth", "1"];
+        // `--progress` forces git to emit object-transfer progress to stderr
+        // even though stdout/stderr are pipes (non-TTY). Without it git stays
+        // silent and we cannot report clone percentage.
+        const cloneArgs = ["clone", "--depth", "1", "--progress"];
         if (branch?.trim()) {
           cloneArgs.push("--branch", branch.trim());
         }
@@ -193,7 +224,18 @@ export function gitClone(
         }, GIT_CLONE_TIMEOUT_MS);
 
         proc.stderr?.on("data", (data) => {
-          stderr += data.toString();
+          const chunk = data.toString();
+          stderr += chunk;
+          if (onProgress) {
+            const percent = parseGitClonePercent(chunk);
+            if (percent !== null) {
+              try {
+                onProgress({ percent });
+              } catch {
+                // Progress callbacks must never affect the clone outcome.
+              }
+            }
+          }
         });
 
         proc.on("close", (code) => {
@@ -201,6 +243,13 @@ export function gitClone(
           settled = true;
           clearTimeout(timeout);
           if (code === 0) {
+            if (onProgress) {
+              try {
+                onProgress({ percent: 100 });
+              } catch {
+                // Ignore callback errors on completion.
+              }
+            }
             resolve();
           } else {
             reject(

@@ -656,7 +656,7 @@ export function ImagePromptReverseModal({
                 <div className="mt-1 text-xs text-muted-foreground">
                   {t(
                     "imageReverse.dropHint",
-                    "PromptHub will save the image as a reference and ask a vision model to reverse the prompt.",
+                    "AgentsHub will save the image as a reference and ask a vision model to reverse the prompt.",
                   )}
                 </div>
                 <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground">

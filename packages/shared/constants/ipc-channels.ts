@@ -259,6 +259,8 @@ export const IPC_CHANNELS = {
   SKILL_SAVE_REMOTE_GIT_TO_REPO: "skill:saveRemoteGitToRepo",
   SKILL_SAVE_REMOTE_ZIP_TO_REPO: "skill:saveRemoteZipToRepo",
   SKILL_RUN_PACKAGE_OPERATION: "skill:runPackageOperation",
+  SKILL_PACKAGE_OPERATION_PROGRESS: "skill:packageOperation:progress",
+  SKILL_SCAN_REMOTE_PROGRESS: "skill:scanRemote:progress",
   SKILL_GET_REMOTE_GIT_PACKAGE_FINGERPRINT:
     "skill:getRemoteGitPackageFingerprint",
   SKILL_GET_REMOTE_GIT_PACKAGE_SNAPSHOT: "skill:getRemoteGitPackageSnapshot",

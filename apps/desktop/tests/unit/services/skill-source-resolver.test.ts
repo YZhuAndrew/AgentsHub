@@ -21,7 +21,7 @@ function createRegistrySkillFixture(
     install_name: "writer",
     description: "Write better",
     category: "writing",
-    author: "PromptHub",
+    author: "AgentsHub",
     source_url: "https://example.com/skills/writer",
     version: "1.0.0",
     content: "# Writer\n",
@@ -81,7 +81,7 @@ describe("skill source resolver", () => {
         }),
         createSkillFixture({
           local_repo_path:
-            "/Users/me/Library/Application Support/PromptHub/data/skills/writer/repo",
+            "/Users/me/Library/Application Support/AgentsHub/data/skills/writer/repo",
         }),
       ),
     ).toBe("managed-copy");

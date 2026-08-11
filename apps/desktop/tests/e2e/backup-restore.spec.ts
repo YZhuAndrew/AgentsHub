@@ -101,7 +101,7 @@ test.describe("E2E: backup restore", () => {
             content: "# Backup Skill\n\nFollow the E2E restore path.",
             protocol_type: "skill",
             version: "1.0.0",
-            author: "PromptHub E2E",
+            author: "AgentsHub E2E",
             tags: ["backup", "e2e"],
             source_id: "backup-skill-source-id",
             source_label: "backup/source",

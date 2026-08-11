@@ -16,6 +16,8 @@ function createSkillLibraryState(): Pick<
   | "searchQuery"
   | "filterType"
   | "filterTags"
+  | "filterAuthor"
+  | "filterSourceKey"
   | "deployedSkillNames"
   | "pendingPluginChildDeploySkillIds"
 > {
@@ -24,11 +26,13 @@ function createSkillLibraryState(): Pick<
     selectedSkillId: null,
     isLoading: false,
     error: null,
-    viewMode: "gallery",
+    viewMode: "list",
     galleryColumns: "auto",
     searchQuery: "",
     filterType: "all",
     filterTags: [],
+    filterAuthor: null,
+    filterSourceKey: "all",
     deployedSkillNames: new Set<string>(),
     pendingPluginChildDeploySkillIds: [],
   };

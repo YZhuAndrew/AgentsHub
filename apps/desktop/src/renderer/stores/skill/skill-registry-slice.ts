@@ -10,6 +10,9 @@ function createSkillRegistryState(): Pick<
   SkillRegistrySlice,
   | "registrySkills"
   | "isLoadingRegistry"
+  | "skillUpdateStatuses"
+  | "isCheckingAllUpdates"
+  | "lastBulkCheckAt"
   | "storeCategory"
   | "storeSearchQuery"
   | "selectedRegistrySlug"
@@ -20,6 +23,9 @@ function createSkillRegistryState(): Pick<
   return {
     registrySkills: [] as RegistrySkill[],
     isLoadingRegistry: false,
+    skillUpdateStatuses: {},
+    isCheckingAllUpdates: false,
+    lastBulkCheckAt: null,
     storeCategory: "all",
     storeSearchQuery: "",
     selectedRegistrySlug: null,

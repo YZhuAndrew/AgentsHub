@@ -123,19 +123,19 @@ function getPromptHubCloudOverview(t: TFunction): SourceOverview {
   return {
     description: t(
       "skill.promptHubCloudStoreHint",
-      "Published PromptHub Cloud releases with package fingerprints, safety checks, and confirmation before installation.",
+      "Published AgentsHub Cloud releases with package fingerprints, safety checks, and confirmation before installation.",
     ),
     examples: <>https://api.prompthub.cloud/api/v1/store/feed</>,
     formats: (
       <>
-        {t("skill.formatPromptHubCloudPackage", "PromptHub Store package v1")}
+        {t("skill.formatPromptHubCloudPackage", "AgentsHub Store package v1")}
         <br />
         {t("skill.formatSkillMdFile", "`SKILL.md` file")}
       </>
     ),
     headerClassName: "mb-3",
     icon: StoreIcon,
-    title: t("skill.promptHubCloudStore", "PromptHub Cloud"),
+    title: t("skill.promptHubCloudStore", "AgentsHub Cloud"),
   };
 }
 

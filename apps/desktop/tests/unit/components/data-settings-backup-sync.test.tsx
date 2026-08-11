@@ -58,7 +58,7 @@ vi.mock("../../../src/renderer/services/database-backup", () => ({
   formatBackupImportError: (error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes("FOREIGN KEY constraint failed")) {
-      return "备份中的文件夹或 Prompt 引用关系不完整，PromptHub 无法安全导入。建议重新导出一份新备份后再试。";
+      return "备份中的文件夹或 Prompt 引用关系不完整，AgentsHub 无法安全导入。建议重新导出一份新备份后再试。";
     }
     return message;
   },
@@ -244,7 +244,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
       created: true,
       skipped: false,
       backupId: "backup-1",
-      backupPath: "/tmp/PromptHub/backups/backup-1",
+      backupPath: "/tmp/AgentsHub/backups/backup-1",
     });
   });
 
@@ -443,7 +443,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     });
 
     expect(showToast).toHaveBeenCalledWith(
-      "Import failed: 备份中的文件夹或 Prompt 引用关系不完整，PromptHub 无法安全导入。建议重新导出一份新备份后再试。",
+      "Import failed: 备份中的文件夹或 Prompt 引用关系不完整，AgentsHub 无法安全导入。建议重新导出一份新备份后再试。",
       "error",
     );
   });
@@ -498,7 +498,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
 
   it("routes a dropped SQLite recovery backup to candidate preview", async () => {
     const sourcePath =
-      "C:/Users/test/AppData/Roaming/PromptHub/data/prompthub.db.pre-recovery-2026-07-15T13-19-14-753Z";
+      "C:/Users/test/AppData/Roaming/AgentsHub/data/prompthub.db.pre-recovery-2026-07-15T13-19-14-753Z";
     const checkRecovery = vi.fn().mockResolvedValue([
       {
         sourcePath,
@@ -571,7 +571,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
 
   it("routes a SQLite backup selected from the file picker to recovery preview", async () => {
     const sourcePath =
-      "D:/Program Files/PromptHub/data/prompthub.db.backup-2026-07-15T13-19-16-810Z";
+      "D:/Program Files/AgentsHub/data/prompthub.db.backup-2026-07-15T13-19-16-810Z";
     const checkRecovery = vi.fn().mockResolvedValue([
       {
         sourcePath,
@@ -638,7 +638,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
 
   it("refreshes rollback data through the unified recovery scan", async () => {
     const sourcePath =
-      "C:/Users/test/AppData/Roaming/PromptHub/data/prompthub.db.backup-2026-07-15T13-19-16-810Z";
+      "C:/Users/test/AppData/Roaming/AgentsHub/data/prompthub.db.backup-2026-07-15T13-19-16-810Z";
     const checkRecovery = vi.fn().mockResolvedValue([
       {
         sourcePath,
@@ -682,7 +682,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     expect(await screen.findByText("Backup Skill")).toBeInTheDocument();
   });
 
-  it("tests a self-hosted PromptHub connection from desktop settings", async () => {
+  it("tests a self-hosted AgentsHub connection from desktop settings", async () => {
     const showToast = vi.fn();
     useToastMock.mockReturnValue({ showToast });
     useSettingsStoreMock.mockReturnValue({
@@ -708,10 +708,10 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     });
 
     expect(
-      screen.getByRole("textbox", { name: "Self-Hosted PromptHub URL" }),
+      screen.getByRole("textbox", { name: "Self-Hosted AgentsHub URL" }),
     ).toBeEnabled();
     expect(
-      screen.getByRole("textbox", { name: "Self-Hosted PromptHub Username" }),
+      screen.getByRole("textbox", { name: "Self-Hosted AgentsHub Username" }),
     ).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Test Connection" }));
@@ -766,12 +766,12 @@ describe("DataSettings", { timeout: 60_000 }, () => {
 
     expect(
       screen.getByRole("button", {
-        name: "Self-Hosted PromptHub Automatic Backup",
+        name: "Self-Hosted AgentsHub Automatic Backup",
       }),
     ).toBeEnabled();
     expect(
       screen.getByRole("button", {
-        name: "Self-Hosted PromptHub Back Up Once on Startup",
+        name: "Self-Hosted AgentsHub Back Up Once on Startup",
       }),
     ).toBeEnabled();
 

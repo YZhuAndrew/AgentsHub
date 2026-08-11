@@ -14,7 +14,7 @@ const registrySkill: RegistrySkill = {
   name: "Writer",
   description: "Write better",
   category: "general",
-  author: "PromptHub",
+  author: "AgentsHub",
   source_url: "https://github.com/example/skills/tree/main/writer",
   content_url:
     "https://raw.githubusercontent.com/example/skills/main/writer/SKILL.md",

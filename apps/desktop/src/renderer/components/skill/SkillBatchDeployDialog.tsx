@@ -361,7 +361,7 @@ export function SkillBatchDeployDialog({
                 <div className="mt-3 rounded-xl border border-border app-wallpaper-surface px-4 py-3 text-sm text-muted-foreground">
                   {t(
                     "skill.batchUndeployHint",
-                    "Removes corresponding skills from selected platform directories. Your local PromptHub repo is not affected.",
+                    "Removes corresponding skills from selected platform directories. Your local AgentsHub repo is not affected.",
                   )}
                 </div>
               )}
@@ -420,7 +420,7 @@ export function SkillBatchDeployDialog({
                         )
                       : t(
                           "skill.batchUndeployDefaultsHint",
-                          "This only removes PromptHub-distributed skills from selected platforms. Your local repo remains untouched.",
+                          "This only removes AgentsHub-distributed skills from selected platforms. Your local repo remains untouched.",
                         )}
                   </div>
                   {hasSharedDiscoveryRisk ? (

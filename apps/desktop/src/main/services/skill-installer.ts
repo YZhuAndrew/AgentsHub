@@ -57,6 +57,13 @@ import {
   resolvePlatformPath,
 } from "./skill-installer-utils";
 
+/** Callback for live Git-repository scan progress (clone + entry listing). */
+export type SkillScanProgressCallback = (detail: {
+  phase: "resolving";
+  message: string;
+  clonePercent?: number;
+}) => void;
+
 function parseJson<T>(raw: string, fallback: T): T {
   try {
     return JSON.parse(raw) as T;
@@ -801,6 +808,7 @@ export class SkillInstaller {
     registrySkills: RegistrySkill[],
     branch?: string,
     directory?: string,
+    onProgress?: SkillScanProgressCallback,
   ): Promise<RegistrySkill[]> {
     await this.init();
 
@@ -817,6 +825,7 @@ export class SkillInstaller {
         registrySkills,
         branch,
         directory,
+        onProgress,
       );
     }
 
@@ -952,6 +961,7 @@ export class SkillInstaller {
     registrySkills: RegistrySkill[],
     branch?: string,
     directory?: string,
+    onProgress?: SkillScanProgressCallback,
   ): Promise<RegistrySkill[]> {
     const tempRoot = await fs.mkdtemp(
       path.join(this.skillsDir, ".remote-scan-"),
@@ -962,7 +972,21 @@ export class SkillInstaller {
     );
 
     try {
-      await gitClone(parsedRepo.cloneUrl, repoDir, branch);
+      onProgress?.({ phase: "resolving", message: "cloning-repository" });
+      await gitClone(
+        parsedRepo.cloneUrl,
+        repoDir,
+        branch,
+        onProgress
+          ? ({ percent }): void =>
+              onProgress({
+                phase: "resolving",
+                message: "cloning-repository",
+                clonePercent: percent,
+              })
+          : undefined,
+      );
+      onProgress?.({ phase: "resolving", message: "listing-entries" });
 
       const normalizedBranch =
         branch?.trim() || (await gitGetCurrentBranch(repoDir)) || "main";

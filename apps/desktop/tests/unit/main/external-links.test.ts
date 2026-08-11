@@ -19,7 +19,7 @@ describe("external window links", () => {
   });
 
   it.each([
-    "https://github.com/legeling/PromptHub",
+    "https://github.com/legeling/AgentsHub",
     "http://localhost:5173/docs",
     "mailto:legeling567@gmail.com",
     "tel:+123456789",

@@ -29,7 +29,7 @@ const registrySkill: RegistrySkill = {
   name: "Writer",
   description: "Write better",
   category: "general",
-  author: "PromptHub",
+  author: "AgentsHub",
   source_id: "source-writer",
   source_url: "https://example.com/writer/SKILL.md",
   tags: [],

@@ -27,7 +27,7 @@ describe("CoreMcpLibraryService", () => {
     fs.rmSync(userDataPath, { recursive: true, force: true });
   });
 
-  it("persists created servers in the PromptHub data directory", () => {
+  it("persists created servers in the AgentsHub data directory", () => {
     const service = new CoreMcpLibraryService();
 
     const server = service.createServer({
@@ -145,7 +145,7 @@ describe("CoreMcpLibraryService", () => {
     expect(sources).toEqual([
       expect.objectContaining({
         id: "prompthub-official",
-        url: "https://github.com/legeling/PromptHub",
+        url: "https://github.com/legeling/AgentsHub",
         trustLevel: "official",
       }),
       expect.objectContaining({
@@ -209,7 +209,7 @@ describe("CoreMcpLibraryService", () => {
       source: {
         id: "prompthub-official",
         label: "Official Store",
-        url: "https://github.com/legeling/PromptHub",
+        url: "https://github.com/legeling/AgentsHub",
         trustLevel: "official" as const,
       },
     };
@@ -602,7 +602,7 @@ describe("CoreMcpLibraryService", () => {
     ).toEqual([]);
   });
 
-  it("allows reapplying PromptHub-managed target entries without force", () => {
+  it("allows reapplying AgentsHub-managed target entries without force", () => {
     const service = new CoreMcpLibraryService();
     const server = service.createServer({
       name: "fetch",
@@ -690,7 +690,7 @@ describe("CoreMcpLibraryService", () => {
     });
   });
 
-  it("detects target-side JSON entry fields that PromptHub does not project", () => {
+  it("detects target-side JSON entry fields that AgentsHub does not project", () => {
     const service = new CoreMcpLibraryService();
     const server = service.createServer({
       name: "mineru",

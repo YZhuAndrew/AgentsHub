@@ -384,7 +384,7 @@ describe("Data Recovery", () => {
 
     it("detects a manually selected directory containing only durable agent data", () => {
       const currentDir = path.join(tmpBase, "current");
-      const candidateDir = path.join(tmpBase, "Program Files", "PromptHub");
+      const candidateDir = path.join(tmpBase, "Program Files", "AgentsHub");
       fs.mkdirSync(currentDir, { recursive: true });
       fs.mkdirSync(path.join(candidateDir, "data", "mcp"), {
         recursive: true,

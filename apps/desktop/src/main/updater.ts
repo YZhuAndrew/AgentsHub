@@ -498,7 +498,7 @@ function getMacInstallSource(): MacInstallSource {
 
 function getHomebrewUpgradeMessage(): string {
   return (
-    "This PromptHub build appears to be installed via Homebrew. " +
+    "This AgentsHub build appears to be installed via Homebrew. " +
     "Please upgrade it with 'brew upgrade --cask prompthub' instead of using the in-app DMG updater."
   );
 }

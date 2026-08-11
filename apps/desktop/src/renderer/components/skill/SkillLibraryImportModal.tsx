@@ -488,7 +488,7 @@ export function SkillLibraryImportModal({
                 <div className="mt-1 text-xs text-muted-foreground">
                   {t(
                     "skill.advancedImportSettingsHint",
-                    "Choose one or more target folders. If you skip this, PromptHub defaults to .agents/skills.",
+                    "Choose one or more target folders. If you skip this, AgentsHub defaults to .agents/skills.",
                   )}
                 </div>
               </div>

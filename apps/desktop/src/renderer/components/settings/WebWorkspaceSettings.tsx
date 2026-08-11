@@ -120,7 +120,7 @@ export function WebWorkspaceSettings({
                 <span>{t("settings.currentUser")}</span>
               </div>
               <p className="mt-2 text-sm text-foreground">
-                {webContext?.username || "PromptHub User"}
+                {webContext?.username || "AgentsHub User"}
               </p>
             </div>
             <div className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-4">

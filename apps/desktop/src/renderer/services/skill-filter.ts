@@ -8,6 +8,8 @@ interface FilterVisibleSkillsOptions {
   deployedSkillNames: Set<string>;
   filterTags?: string[];
   filterType: SkillFilterType;
+  /** When set, only skills whose author matches (case-insensitive) remain. */
+  filterAuthor?: string | null;
   searchQuery?: string;
   skills: Skill[];
   storeView: SkillStoreView;
@@ -21,6 +23,7 @@ export function filterVisibleSkills({
   deployedSkillNames,
   filterTags = [],
   filterType,
+  filterAuthor = null,
   searchQuery = "",
   skills,
   storeView,
@@ -43,6 +46,13 @@ export function filterVisibleSkills({
     result = result.filter(
       (skill) =>
         skill.tags && filterTags.some((tag) => skill.tags?.includes(tag)),
+    );
+  }
+
+  const authorFilter = filterAuthor?.trim().toLowerCase();
+  if (authorFilter) {
+    result = result.filter(
+      (skill) => (skill.author ?? "").trim().toLowerCase() === authorFilter,
     );
   }
 

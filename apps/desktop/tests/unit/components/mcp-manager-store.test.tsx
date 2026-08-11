@@ -127,7 +127,7 @@ const githubTemplate = {
   source: {
     id: "prompthub-official",
     label: "Official Store",
-    url: "https://github.com/legeling/PromptHub",
+    url: "https://github.com/legeling/AgentsHub",
     trustLevel: "official",
   },
 };
@@ -415,7 +415,7 @@ function installMcpMocks(options: McpMockOptions = {}) {
               serverName: filesystemServer.name,
               status: "needs-sync",
               safeToReapply: true,
-              reason: "Target was updated from PromptHub",
+              reason: "Target was updated from AgentsHub",
               backupPath: `${claudeTarget.path}.bak`,
             },
           ],
@@ -459,7 +459,7 @@ describe("McpManager", () => {
         {
           id: "prompthub-official",
           label: "Official Store",
-          url: "https://github.com/legeling/PromptHub",
+          url: "https://github.com/legeling/AgentsHub",
           trustLevel: "official",
         },
         {
@@ -1071,7 +1071,7 @@ describe("McpManager", () => {
         {
           id: "prompthub-official",
           label: "Official Store",
-          url: "https://github.com/legeling/PromptHub",
+          url: "https://github.com/legeling/AgentsHub",
           description: "Official Store.",
           trustLevel: "official",
         },

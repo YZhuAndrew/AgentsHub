@@ -27,7 +27,7 @@ describe("DataRecoveryDialog", () => {
     vi.clearAllMocks();
     dismissRecoveryMock.mockResolvedValue({ success: true });
     previewRecoveryMock.mockResolvedValue({
-      sourcePath: "C:/Users/test/AppData/Roaming/PromptHub",
+      sourcePath: "C:/Users/test/AppData/Roaming/AgentsHub",
       previewAvailable: true,
       items: [
         {
@@ -61,10 +61,10 @@ describe("DataRecoveryDialog", () => {
           onClose={onClose}
           databases={[
             {
-              sourcePath: "C:/Users/test/AppData/Roaming/PromptHub",
+              sourcePath: "C:/Users/test/AppData/Roaming/AgentsHub",
               sourceType: "external-user-data",
               displayName: "Previous data directory",
-              displayPath: "C:/Users/test/AppData/Roaming/PromptHub",
+              displayPath: "C:/Users/test/AppData/Roaming/AgentsHub",
               promptCount: 3,
               folderCount: 1,
               skillCount: 0,
@@ -99,10 +99,10 @@ describe("DataRecoveryDialog", () => {
           persistDismiss={false}
           databases={[
             {
-              sourcePath: "C:/Users/test/AppData/Roaming/PromptHub",
+              sourcePath: "C:/Users/test/AppData/Roaming/AgentsHub",
               sourceType: "external-user-data",
               displayName: "Previous data directory",
-              displayPath: "C:/Users/test/AppData/Roaming/PromptHub",
+              displayPath: "C:/Users/test/AppData/Roaming/AgentsHub",
               promptCount: 3,
               folderCount: 1,
               skillCount: 0,
@@ -136,10 +136,10 @@ describe("DataRecoveryDialog", () => {
           allowStartFresh={false}
           databases={[
             {
-              sourcePath: "C:/Users/test/AppData/Roaming/PromptHub",
+              sourcePath: "C:/Users/test/AppData/Roaming/AgentsHub",
               sourceType: "external-user-data",
               displayName: "Previous data directory",
-              displayPath: "C:/Users/test/AppData/Roaming/PromptHub",
+              displayPath: "C:/Users/test/AppData/Roaming/AgentsHub",
               promptCount: 3,
               folderCount: 1,
               skillCount: 0,
@@ -170,10 +170,10 @@ describe("DataRecoveryDialog", () => {
           onClose={vi.fn()}
           databases={[
             {
-              sourcePath: "/Users/test/Library/Application Support/PromptHub",
+              sourcePath: "/Users/test/Library/Application Support/AgentsHub",
               sourceType: "current-residual",
               displayName: "Current data directory residuals",
-              displayPath: "/Users/test/Library/Application Support/PromptHub",
+              displayPath: "/Users/test/Library/Application Support/AgentsHub",
               promptCount: 0,
               folderCount: 0,
               skillCount: 104,
@@ -203,7 +203,7 @@ describe("DataRecoveryDialog", () => {
 
   it("shows the complete durable inventory for a manually selected directory", async () => {
     previewRecoveryMock.mockResolvedValue({
-      sourcePath: "D:/Program Files/PromptHub",
+      sourcePath: "D:/Program Files/AgentsHub",
       previewAvailable: true,
       items: [
         { kind: "mcp", title: "library.json" },
@@ -222,10 +222,10 @@ describe("DataRecoveryDialog", () => {
           allowWindowClose={true}
           databases={[
             {
-              sourcePath: "D:/Program Files/PromptHub",
+              sourcePath: "D:/Program Files/AgentsHub",
               sourceType: "external-user-data",
               displayName: "Selected historical directory",
-              displayPath: "D:/Program Files/PromptHub",
+              displayPath: "D:/Program Files/AgentsHub",
               promptCount: 0,
               folderCount: 0,
               skillCount: 0,
@@ -265,10 +265,10 @@ describe("DataRecoveryDialog", () => {
             currentPromptCount={2}
             databases={[
               {
-                sourcePath: "C:/Users/test/AppData/Roaming/PromptHub",
+                sourcePath: "C:/Users/test/AppData/Roaming/AgentsHub",
                 sourceType: "external-user-data",
                 displayName: "Previous data directory",
-                displayPath: "C:/Users/test/AppData/Roaming/PromptHub",
+                displayPath: "C:/Users/test/AppData/Roaming/AgentsHub",
                 promptCount: 3,
                 folderCount: 1,
                 skillCount: 0,
@@ -317,10 +317,10 @@ describe("DataRecoveryDialog", () => {
           onClose={vi.fn()}
           databases={[
             {
-              sourcePath: "C:/Users/test/AppData/Roaming/PromptHub",
+              sourcePath: "C:/Users/test/AppData/Roaming/AgentsHub",
               sourceType: "external-user-data",
               displayName: "Previous data directory",
-              displayPath: "C:/Users/test/AppData/Roaming/PromptHub",
+              displayPath: "C:/Users/test/AppData/Roaming/AgentsHub",
               promptCount: 3,
               folderCount: 1,
               skillCount: 0,
@@ -331,11 +331,11 @@ describe("DataRecoveryDialog", () => {
             },
             {
               sourcePath:
-                "C:/Users/test/AppData/Roaming/PromptHub/prompthub.db.backup-before-0.5.3.db",
+                "C:/Users/test/AppData/Roaming/AgentsHub/prompthub.db.backup-before-0.5.3.db",
               sourceType: "standalone-db-backup",
               displayName: "Standalone database backup",
               displayPath:
-                "C:/Users/test/AppData/Roaming/PromptHub/prompthub.db.backup-before-0.5.3.db",
+                "C:/Users/test/AppData/Roaming/AgentsHub/prompthub.db.backup-before-0.5.3.db",
               promptCount: 7,
               folderCount: 2,
               skillCount: 1,
@@ -352,7 +352,7 @@ describe("DataRecoveryDialog", () => {
 
     await waitFor(() => {
       expect(previewRecoveryMock).toHaveBeenCalledWith(
-        "C:/Users/test/AppData/Roaming/PromptHub",
+        "C:/Users/test/AppData/Roaming/AgentsHub",
       );
     });
 
@@ -368,7 +368,7 @@ describe("DataRecoveryDialog", () => {
 
     previewRecoveryMock.mockResolvedValueOnce({
       sourcePath:
-        "C:/Users/test/AppData/Roaming/PromptHub/prompthub.db.backup-before-0.5.3.db",
+        "C:/Users/test/AppData/Roaming/AgentsHub/prompthub.db.backup-before-0.5.3.db",
       previewAvailable: true,
       items: [
         {
@@ -387,7 +387,7 @@ describe("DataRecoveryDialog", () => {
 
     await waitFor(() => {
       expect(previewRecoveryMock).toHaveBeenLastCalledWith(
-        "C:/Users/test/AppData/Roaming/PromptHub/prompthub.db.backup-before-0.5.3.db",
+        "C:/Users/test/AppData/Roaming/AgentsHub/prompthub.db.backup-before-0.5.3.db",
       );
     });
 
@@ -403,7 +403,7 @@ describe("DataRecoveryDialog", () => {
 
     await waitFor(() => {
       expect(performRecoveryMock).toHaveBeenCalledWith(
-        "C:/Users/test/AppData/Roaming/PromptHub/prompthub.db.backup-before-0.5.3.db",
+        "C:/Users/test/AppData/Roaming/AgentsHub/prompthub.db.backup-before-0.5.3.db",
       );
     });
   });

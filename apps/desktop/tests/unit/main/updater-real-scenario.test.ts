@@ -166,7 +166,7 @@ describe('自动更新 - 真实场景测试（调用真实代码）', () => {
         }
 
         it('latest.yml 应该可以访问', async () => {
-            const url = 'https://github.com/legeling/PromptHub/releases/latest/download/latest.yml';
+            const url = 'https://github.com/legeling/AgentsHub/releases/latest/download/latest.yml';
             const result = await checkUrlAccessible(url);
 
             console.log(`latest.yml 状态码: ${result.statusCode}`);
@@ -182,7 +182,7 @@ describe('自动更新 - 真实场景测试（调用真实代码）', () => {
             const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf-8'));
             const version = packageJson.version;
 
-            const url = `https://github.com/legeling/PromptHub/releases/download/v${version}/PromptHub-Setup-${version}-x64.exe`;
+            const url = `https://github.com/legeling/AgentsHub/releases/download/v${version}/AgentsHub-Setup-${version}-x64.exe`;
             const result = await checkUrlAccessible(url);
 
             console.log(`Windows x64 安装包 (${url}) 状态码: ${result.statusCode}`);
@@ -192,7 +192,7 @@ describe('自动更新 - 真实场景测试（调用真实代码）', () => {
             }
 
             // 至少验证链接格式正确
-            expect(url).toContain('PromptHub-Setup-');
+            expect(url).toContain('AgentsHub-Setup-');
             expect(url).toContain('-x64.exe');
         }, 15000);
     });

@@ -223,7 +223,7 @@ describe("SkillStore remote loading", () => {
       .fn()
       .mockRejectedValue(
         new Error(
-          "Error invoking remote method 'cloud:store:feed': Unable to reach PromptHub Cloud",
+          "Error invoking remote method 'cloud:store:feed': Unable to reach AgentsHub Cloud",
         ),
       );
     installWindowMocks({
@@ -270,7 +270,7 @@ describe("SkillStore remote loading", () => {
       .fn()
       .mockRejectedValue(
         new Error(
-          "Error invoking remote method 'cloud:store:feed': Unable to reach PromptHub Cloud",
+          "Error invoking remote method 'cloud:store:feed': Unable to reach AgentsHub Cloud",
         ),
       );
     installWindowMocks({

@@ -143,7 +143,7 @@ describe("AgentProviderProfileWorkbench", () => {
     ).toBeVisible();
   });
 
-  it("imports a compatible PromptHub provider and explains incompatible sources", async () => {
+  it("imports a compatible AgentsHub provider and explains incompatible sources", async () => {
     const imported = profile({
       id: "profile-imported",
       platformId: "codex",
@@ -194,11 +194,11 @@ describe("AgentProviderProfileWorkbench", () => {
 
     await renderWorkbench(createAgent("codex"));
     fireEvent.click(
-      screen.getByRole("button", { name: "Import from PromptHub" }),
+      screen.getByRole("button", { name: "Import from AgentsHub" }),
     );
 
     const dialog = await screen.findByRole("dialog", {
-      name: "Import PromptHub provider",
+      name: "Import AgentsHub provider",
     });
     expect(window.api.agent.listProviderSources).toHaveBeenCalledWith("codex");
     expect(within(dialog).getByText("Work Gateway")).toBeVisible();
@@ -219,7 +219,7 @@ describe("AgentProviderProfileWorkbench", () => {
       await screen.findByRole("button", { name: /Work Gateway/ }),
     ).toBeVisible();
     expect(
-      screen.queryByRole("dialog", { name: "Import PromptHub provider" }),
+      screen.queryByRole("dialog", { name: "Import AgentsHub provider" }),
     ).not.toBeInTheDocument();
   });
 

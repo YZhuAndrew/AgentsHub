@@ -439,7 +439,7 @@ export function McpMarketDetailModal({
                       <p className="mt-2 text-xs leading-5 text-muted-foreground">
                         {t(
                           "mcp.installExplanation",
-                          "PromptHub imports this template into My MCP, then distributes the generated MCP JSON/TOML to selected agent platforms.",
+                          "AgentsHub imports this template into My MCP, then distributes the generated MCP JSON/TOML to selected agent platforms.",
                         )}
                       </p>
                     </div>

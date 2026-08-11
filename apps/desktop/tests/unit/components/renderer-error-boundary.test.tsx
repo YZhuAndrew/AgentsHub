@@ -30,9 +30,9 @@ describe("RendererErrorBoundary", () => {
     );
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "PromptHub could not render this page",
+      "AgentsHub could not render this page",
     );
-    fireEvent.click(screen.getByRole("button", { name: "Reload PromptHub" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reload AgentsHub" }));
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
@@ -85,7 +85,7 @@ describe("RendererErrorBoundary", () => {
       </RendererErrorBoundary>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Reload PromptHub" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reload AgentsHub" }));
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 });

@@ -272,6 +272,7 @@ export function validateSkillPackageOperationRequest(
     throw new Error("markAsBuiltin must be a boolean");
   }
   validateOptionalString(request.note, "note");
+  validateOptionalString(request.requestId, "requestId");
   validateSafetyScan(request.safetyScan);
   if (
     request.approvedPackageFingerprint !== undefined &&

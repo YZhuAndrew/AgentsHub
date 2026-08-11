@@ -123,7 +123,7 @@ describe("SettingsPage", () => {
     expect(aiSettingsModuleLoadMock).not.toHaveBeenCalled();
   });
 
-  it("does not expose PromptHub Cloud before the desktop capability is launched", async () => {
+  it("does not expose AgentsHub Cloud before the desktop capability is launched", async () => {
     useSettingsStoreMock.mockReturnValue({
       syncProvider: "manual",
       webdavEnabled: false,
@@ -141,7 +141,7 @@ describe("SettingsPage", () => {
 
     expect(screen.getByText("general-content")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "PromptHub Cloud" }),
+      screen.queryByRole("button", { name: "AgentsHub Cloud" }),
     ).not.toBeInTheDocument();
     expect(useUIStore.getState().pendingSettingsSection).toBeNull();
   });
@@ -172,7 +172,7 @@ describe("SettingsPage", () => {
       screen.getByRole("button", { name: /S3 Compatible Storage Enabled/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Self-Hosted PromptHub Enabled/ }),
+      screen.queryByRole("button", { name: /Self-Hosted AgentsHub Enabled/ }),
     ).not.toBeInTheDocument();
   });
 

@@ -184,7 +184,7 @@ describe("database-backup filesystem integration", () => {
         content: "# Integration Skill\n\nFilesystem backup content.",
         protocol_type: "skill",
         version: "1.0.0",
-        author: "PromptHub",
+        author: "AgentsHub",
         tags: ["backup", "filesystem"],
         is_favorite: false,
         currentVersion: 1,

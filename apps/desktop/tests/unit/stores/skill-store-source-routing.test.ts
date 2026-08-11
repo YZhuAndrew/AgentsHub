@@ -60,7 +60,7 @@ function createRemoteCandidate(
     name: "Writer",
     description: "Write better",
     category: "general",
-    author: "PromptHub",
+    author: "AgentsHub",
     source_url: "https://gitea.example.com/team/skills/tree/main/writer",
     content_url:
       "https://gitea.example.com/team/skills/raw/branch/main/writer/SKILL.md",

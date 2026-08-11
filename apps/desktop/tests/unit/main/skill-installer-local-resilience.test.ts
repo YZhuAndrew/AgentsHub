@@ -477,14 +477,14 @@ describe("SkillInstaller.scanLocalPreview", () => {
     } as unknown as ReturnType<typeof initDatabase>);
     invalidateCustomPathsCache();
 
-    // Place a skill in PromptHub's own skills directory (which is inside tmpDir)
+    // Place a skill in AgentsHub's own skills directory (which is inside tmpDir)
     const prompthubSkillsDir = managedSkillsDir();
     await fs.mkdir(prompthubSkillsDir, { recursive: true });
     await createSkillDir(prompthubSkillsDir, "prompthub-builtin");
 
     const results = await SkillInstaller.scanLocalPreview();
 
-    // PromptHub's own skills directory is always in the default scan entries
+    // AgentsHub's own skills directory is always in the default scan entries
     const names = results.map((r) => r.name);
     expect(names).toContain("prompthub-builtin");
   });
@@ -764,7 +764,7 @@ describe("SkillInstaller.scanLocal (with real DB)", () => {
   });
 
   it("returns imported count and empty skipped array for fresh import", async () => {
-    // Place skills in PromptHub's own skills directory
+    // Place skills in AgentsHub's own skills directory
     const skillsDir = managedSkillsDir();
     await createSkillInDir(skillsDir, "alpha");
     await createSkillInDir(skillsDir, "beta");

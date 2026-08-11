@@ -375,7 +375,7 @@ describe("skill i18n smoke", () => {
     const galleryView = screen.getByTitle("Gallery View");
     const listView = screen.getByTitle("List View");
     const refreshLibrary = screen.getByTitle(
-      /Reload the PromptHub Skill library/i,
+      /Reload the AgentsHub Skill library/i,
     );
 
     for (const button of [batchManage, galleryView, listView, refreshLibrary]) {
@@ -476,7 +476,7 @@ describe("skill i18n smoke", () => {
     expect(screen.queryByTitle(/Scan Local/)).not.toBeInTheDocument();
 
     const refreshButton = screen.getByTitle(
-      /Reload the PromptHub Skill library/i,
+      /Reload the AgentsHub Skill library/i,
     );
     expect(refreshButton.innerHTML).not.toContain("animate-spin");
     fireEvent.click(refreshButton);
@@ -793,7 +793,7 @@ describe("skill i18n smoke", () => {
               name: "Write",
               description: "Write better",
               category: "general",
-              author: "PromptHub",
+              author: "AgentsHub",
               source_url: "https://github.com/example/write",
               tags: ["general"],
               version: "1.1.0",
@@ -910,7 +910,7 @@ describe("skill i18n smoke", () => {
               name: "Write",
               description: "Write better",
               category: "general",
-              author: "PromptHub",
+              author: "AgentsHub",
               source_url: "https://github.com/example/write",
               tags: ["general"],
               version: "1.1.0",

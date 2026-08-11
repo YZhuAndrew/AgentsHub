@@ -376,7 +376,7 @@ export class CloudApiClient {
     try {
       response = await this.fetchImpl(url, init);
     } catch {
-      throw new CloudApiError("Unable to reach PromptHub Cloud", "cloud_network_unavailable", 503);
+      throw new CloudApiError("Unable to reach AgentsHub Cloud", "cloud_network_unavailable", 503);
     }
     const text = await response.text();
     const payload = parseJson(text);

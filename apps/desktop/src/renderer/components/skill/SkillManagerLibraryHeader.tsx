@@ -42,22 +42,31 @@ interface SkillManagerLibraryHeaderProps {
   isDistributionView: boolean;
   isRefreshingLibrary: boolean;
   isSelectionMode: boolean;
+  /** True while a batch update check is running. */
+  isCheckingAllUpdates: boolean;
   mySkillFilterOptions: SkillManagerFilterOption[];
   onBatchDelete: () => void;
   onBatchDeploy: () => void;
   onBatchFavorite: () => void;
   onBatchTags: () => void;
+  onBatchUpdateSelected: () => void;
+  onCheckAllUpdates: () => void;
   onFilterChange: (filter: SkillFilterType) => void;
   onGalleryColumnsChange: (columns: SkillGalleryColumnMode) => void;
   onRefresh: () => void;
   onSelectAllVisible: () => void;
   onSourceFilterChange: (value: string) => void;
+  onAuthorFilterChange: (value: string) => void;
   onToggleSelectionMode: () => void;
   onViewModeChange: (mode: "gallery" | "list") => void;
   pageSize: number;
   selectedCount: number;
   selectedSkillsAreFavorites: boolean;
   sourceFilterOptions: SelectOption[];
+  /** Author filter options (derived from loaded skills). */
+  authorFilterOptions: SelectOption[];
+  /** Currently active author filter value ("all" = no filter). */
+  activeAuthorFilter: string;
   t: TFunction;
   totalPages: number;
   totalSkillCount: number;
@@ -199,7 +208,7 @@ function GalleryLayoutControls(props: HeaderProps) {
 function RefreshLibraryButton(props: HeaderProps) {
   const label = `${props.t("settings.refresh")} - ${props.t(
     "skill.refreshLibraryHint",
-    "Reload the PromptHub Skill library and platform distribution status.",
+    "Reload the AgentsHub Skill library and platform distribution status.",
   )}`;
   return (
     <button
@@ -224,8 +233,34 @@ function LibraryHeaderControls(props: HeaderProps) {
       <SelectionModeButton {...props} />
       <GalleryLayoutControls {...props} />
       <div className="h-4 w-px bg-border" />
+      <CheckAllUpdatesButton {...props} />
       <RefreshLibraryButton {...props} />
     </div>
+  );
+}
+
+function CheckAllUpdatesButton(props: HeaderProps) {
+  if (props.effectiveStoreView !== "my-skills" || props.webSkillLibraryMode) {
+    return null;
+  }
+  const label = props.isCheckingAllUpdates
+    ? props.t("skill.checkingAllUpdates", "Checking…")
+    : props.t("skill.checkAllUpdates", "Check all updates");
+  return (
+    <button
+      type="button"
+      onClick={props.onCheckAllUpdates}
+      disabled={props.isCheckingAllUpdates}
+      className="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/25 hover:bg-accent hover:text-foreground disabled:opacity-50"
+      title={label}
+      aria-label={label}
+    >
+      <RefreshCwIcon
+        aria-hidden="true"
+        className={`h-4 w-4 ${props.isCheckingAllUpdates ? "animate-spin" : ""}`}
+      />
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
 
@@ -266,6 +301,14 @@ function LibraryFilterBar(props: HeaderProps) {
         options={props.sourceFilterOptions}
         className="min-w-[13rem] flex-1 sm:flex-none"
         triggerClassName={`h-9 w-full rounded-xl border px-3 text-sm font-medium shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 flex items-center justify-between gap-2 ${props.hasActiveSourceFilter ? "border-primary/30 bg-primary/10 text-primary" : "border-border app-wallpaper-surface text-muted-foreground hover:border-primary/25 hover:bg-accent hover:text-foreground"}`}
+      />
+      <Select
+        ariaLabel={props.t("skill.authorFilterLabel", "Author")}
+        value={props.activeAuthorFilter}
+        onChange={props.onAuthorFilterChange}
+        options={props.authorFilterOptions}
+        className="min-w-[11rem] flex-1 sm:flex-none"
+        triggerClassName={`h-9 w-full rounded-xl border px-3 text-sm font-medium shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 flex items-center justify-between gap-2 ${props.activeAuthorFilter !== "all" ? "border-primary/30 bg-primary/10 text-primary" : "border-border app-wallpaper-surface text-muted-foreground hover:border-primary/25 hover:bg-accent hover:text-foreground"}`}
       />
     </div>
   );
@@ -363,6 +406,14 @@ function BatchActions(props: HeaderProps) {
         onClick={props.onBatchTags}
       >
         <TagsIcon aria-hidden="true" className="h-4 w-4 text-primary" />
+      </BatchTextButton>
+      <BatchTextButton
+        className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/15 disabled:opacity-50"
+        disabled={disabled}
+        label={props.t("skill.batchUpdateSelected", "Update Selected")}
+        onClick={props.onBatchUpdateSelected}
+      >
+        <RefreshCwIcon aria-hidden="true" className="h-4 w-4" />
       </BatchTextButton>
       {props.canDistribute ? (
         <BatchTextButton

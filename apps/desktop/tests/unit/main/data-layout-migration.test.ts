@@ -46,7 +46,7 @@ describe("data-layout-migration", () => {
   });
 
   it("migrates legacy root entries into data/config and writes a marker after snapshotting", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(path.join(userDataPath, "workspace", "prompts", "ops"), {
       recursive: true,
     });
@@ -142,7 +142,7 @@ describe("data-layout-migration", () => {
   });
 
   it("is a no-op when the marker already exists", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(
       getDataLayoutMigrationMarkerPath(userDataPath),
@@ -159,7 +159,7 @@ describe("data-layout-migration", () => {
   });
 
   it("does nothing when there is no legacy data to move", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.mkdirSync(path.join(userDataPath, "data"), { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "data", "prompthub.db"), "db-bytes", "utf8");
@@ -172,7 +172,7 @@ describe("data-layout-migration", () => {
   });
 
   it("migrates a legacy root database into the unified data directory", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "prompthub.db"), "db-root", "utf8");
 
@@ -187,7 +187,7 @@ describe("data-layout-migration", () => {
   });
 
   it("preserves skills and skill versions when migrating a legacy root database", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
 
     const legacyDb = createTestDatabase(path.join(userDataPath, "prompthub.db"));
@@ -287,7 +287,7 @@ describe("data-layout-migration", () => {
   });
 
   it("preserves the source directory when the target already has conflicting files", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(path.join(userDataPath, "skills", "demo"), { recursive: true });
     fs.writeFileSync(
       path.join(userDataPath, "skills", "demo", "SKILL.md"),
@@ -333,7 +333,7 @@ describe("data-layout-migration", () => {
   });
 
   it("rejects a legacy root directory symlink instead of moving it into data", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     const externalWorkspacePath = path.join(tmpBase, "outside-workspace");
     fs.mkdirSync(path.join(externalWorkspacePath, "prompts"), { recursive: true });
     fs.writeFileSync(
@@ -362,7 +362,7 @@ describe("data-layout-migration", () => {
   });
 
   it("rejects nested symlinks in legacy directories before migrating them", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     const externalFilePath = path.join(tmpBase, "outside-secret.txt");
     fs.mkdirSync(path.join(userDataPath, "workspace", "prompts"), {
       recursive: true,
@@ -396,7 +396,7 @@ describe("data-layout-migration", () => {
   });
 
   it("retries residual entries even when a migration marker already exists", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     const canonicalBackupId = "backup-initial-full";
     fs.mkdirSync(path.join(userDataPath, "skills", "demo"), { recursive: true });
     fs.writeFileSync(
@@ -436,7 +436,7 @@ describe("data-layout-migration", () => {
   });
 
   it("continues migrating root database when an old marker lacks dbLayoutVersion", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "prompthub.db"), "root-db", "utf8");
     fs.writeFileSync(
@@ -463,7 +463,7 @@ describe("data-layout-migration", () => {
   });
 
   it("cleans an empty legacy root database while retrying skill residual migration", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     const canonicalBackupId = "backup-before-empty-db-cleanup";
     fs.mkdirSync(path.join(userDataPath, "skills", "demo"), { recursive: true });
     fs.writeFileSync(
@@ -514,7 +514,7 @@ describe("data-layout-migration", () => {
   });
 
   it("removes a legacy root database already superseded by unified data", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(path.join(userDataPath, "data"), { recursive: true });
 
     const rootDbPath = path.join(userDataPath, "prompthub.db");
@@ -589,7 +589,7 @@ describe("data-layout-migration", () => {
   });
 
   it("uses unified data database when a partial marker left root database residual", () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(path.join(userDataPath, "data"), { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "prompthub.db"), "root-db", "utf8");
     fs.writeFileSync(path.join(userDataPath, "data", "prompthub.db"), "data-db", "utf8");
@@ -610,7 +610,7 @@ describe("data-layout-migration", () => {
   });
 
   it("preserves a conflicting legacy root database as a backup and completes migration", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(path.join(userDataPath, "data"), { recursive: true });
 
     const rootDbPath = path.join(userDataPath, "prompthub.db");

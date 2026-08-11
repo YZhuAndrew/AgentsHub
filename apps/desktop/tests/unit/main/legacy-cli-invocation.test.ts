@@ -8,7 +8,7 @@ describe("legacy desktop CLI invocation", () => {
     const exit = vi.fn();
 
     const handled = handleLegacyDesktopCliInvocation({
-      argv: ["PromptHub", "--cli", "skill", "list"],
+      argv: ["AgentsHub", "--cli", "skill", "list"],
       exit,
       writeError,
     });
@@ -16,7 +16,7 @@ describe("legacy desktop CLI invocation", () => {
     expect(handled).toBe(true);
     expect(exit).toHaveBeenCalledWith(2);
     expect(writeError).toHaveBeenCalledWith(
-      expect.stringContaining("standalone PromptHub CLI"),
+      expect.stringContaining("standalone AgentsHub CLI"),
     );
   });
 
@@ -26,7 +26,7 @@ describe("legacy desktop CLI invocation", () => {
 
     expect(
       handleLegacyDesktopCliInvocation({
-        argv: ["PromptHub", "--hidden"],
+        argv: ["AgentsHub", "--hidden"],
         exit,
         writeError,
       }),

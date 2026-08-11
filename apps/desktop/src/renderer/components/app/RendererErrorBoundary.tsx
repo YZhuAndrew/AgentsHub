@@ -42,13 +42,13 @@ function RendererRecoveryScreen({ reload }: { reload: () => void }) {
       <h1 className="mt-5 text-xl font-semibold">
         {t(
           "common.rendererCrashedTitle",
-          "PromptHub could not render this page",
+          "AgentsHub could not render this page",
         )}
       </h1>
       <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
         {t(
           "common.rendererCrashedDescription",
-          "The local data is unchanged. Reload PromptHub to restore the interface.",
+          "The local data is unchanged. Reload AgentsHub to restore the interface.",
         )}
       </p>
       <button
@@ -57,7 +57,7 @@ function RendererRecoveryScreen({ reload }: { reload: () => void }) {
         className="mt-6 inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
       >
         <RefreshCwIcon aria-hidden="true" className="h-4 w-4" />
-        {t("common.reloadPromptHub", "Reload PromptHub")}
+        {t("common.reloadPromptHub", "Reload AgentsHub")}
       </button>
     </main>
   );

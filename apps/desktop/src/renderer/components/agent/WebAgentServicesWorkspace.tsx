@@ -186,7 +186,7 @@ function ManifestView({
       <p className="mt-1 text-sm text-muted-foreground">
         {t(
           "agents.webService.description",
-          "Services run on this self-hosted PromptHub server.",
+          "Services run on this self-hosted AgentsHub server.",
         )}
       </p>
       <ManifestCards manifest={manifest} onSelect={onSelect} />

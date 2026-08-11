@@ -292,24 +292,24 @@
     {
       "name": "code-review",
       "description": "Walks through diffs and surfaces missing tests, unclear naming, and risky changes.",
-      "author": "PromptHub",
+      "author": "AgentsHub",
       "tags": ["engineering", "review"],
       "files": [
         {
           "relativePath": "SKILL.md",
-          "content": "---\nname: code-review\ndescription: Walks through diffs and surfaces missing tests, unclear naming, and risky changes.\nversion: 1.0.0\ntags:\n  - engineering\n  - review\nauthor: PromptHub\n---\n\n# Code Review\n\nReview the diff carefully. Call out:\n\n1. Missing or weak tests\n2. Naming that hides intent\n3. Risk that should land behind a feature flag\n"
+          "content": "---\nname: code-review\ndescription: Walks through diffs and surfaces missing tests, unclear naming, and risky changes.\nversion: 1.0.0\ntags:\n  - engineering\n  - review\nauthor: AgentsHub\n---\n\n# Code Review\n\nReview the diff carefully. Call out:\n\n1. Missing or weak tests\n2. Naming that hides intent\n3. Risk that should land behind a feature flag\n"
         }
       ]
     },
     {
       "name": "release-notes",
       "description": "Compresses a list of merged PRs into clean, customer-facing release notes.",
-      "author": "PromptHub",
+      "author": "AgentsHub",
       "tags": ["release", "writing"],
       "files": [
         {
           "relativePath": "SKILL.md",
-          "content": "---\nname: release-notes\ndescription: Compresses a list of merged PRs into clean, customer-facing release notes.\nversion: 0.5.6\ntags:\n  - release\n  - writing\nauthor: PromptHub\n---\n\n# Release Notes\n\nGroup changes by user-facing impact. Drop internal refactor noise unless it explains a behavior change.\n"
+          "content": "---\nname: release-notes\ndescription: Compresses a list of merged PRs into clean, customer-facing release notes.\nversion: 0.5.6\ntags:\n  - release\n  - writing\nauthor: AgentsHub\n---\n\n# Release Notes\n\nGroup changes by user-facing impact. Drop internal refactor noise unless it explains a behavior change.\n"
         }
       ]
     }

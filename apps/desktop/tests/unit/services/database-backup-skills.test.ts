@@ -58,7 +58,7 @@ describe("database-backup skill restore", () => {
             instructions: "# Writer",
             protocol_type: "skill",
             version: "1.0.0",
-            author: "PromptHub",
+            author: "AgentsHub",
             tags: ["writing"],
             is_favorite: false,
             created_at: Date.parse("2026-04-07T00:00:00.000Z"),

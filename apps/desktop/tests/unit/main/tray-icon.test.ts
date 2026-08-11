@@ -41,15 +41,15 @@ describe("macOS tray icon", () => {
     expect(
       resolveMacTrayIconPaths({
         dirname:
-          "/Applications/PromptHub.app/Contents/Resources/app.asar/out/main",
+          "/Applications/AgentsHub.app/Contents/Resources/app.asar/out/main",
         isDev: false,
-        resourcesPath: "/Applications/PromptHub.app/Contents/Resources",
+        resourcesPath: "/Applications/AgentsHub.app/Contents/Resources",
       }),
     ).toEqual({
       fallbackPath:
-        "/Applications/PromptHub.app/Contents/Resources/icon.iconset/icon_16x16@2x.png",
+        "/Applications/AgentsHub.app/Contents/Resources/icon.iconset/icon_16x16@2x.png",
       templatePath:
-        "/Applications/PromptHub.app/Contents/Resources/tray/PromptHubStatusTemplate.png",
+        "/Applications/AgentsHub.app/Contents/Resources/tray/PromptHubStatusTemplate.png",
     });
   });
 

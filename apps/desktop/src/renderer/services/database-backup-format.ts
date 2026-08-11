@@ -495,20 +495,20 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
     !Array.isArray(backup.versions)
   ) {
     throw new Error(
-      "Invalid PromptHub backup: prompts, folders, and versions must be arrays.",
+      "Invalid AgentsHub backup: prompts, folders, and versions must be arrays.",
     );
   }
 
   if (!backup.prompts.every(hasPromptShape)) {
-    throw new Error("Invalid PromptHub backup: prompts payload is malformed.");
+    throw new Error("Invalid AgentsHub backup: prompts payload is malformed.");
   }
 
   if (!backup.folders.every(hasFolderShape)) {
-    throw new Error("Invalid PromptHub backup: folders payload is malformed.");
+    throw new Error("Invalid AgentsHub backup: folders payload is malformed.");
   }
 
   if (!backup.versions.every(hasPromptVersionShape)) {
-    throw new Error("Invalid PromptHub backup: versions payload is malformed.");
+    throw new Error("Invalid AgentsHub backup: versions payload is malformed.");
   }
 
   if (
@@ -516,7 +516,7 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
     !backup.promptRelations.every(hasPromptRelationShape)
   ) {
     throw new Error(
-      "Invalid PromptHub backup: prompt relations payload is malformed.",
+      "Invalid AgentsHub backup: prompt relations payload is malformed.",
     );
   }
 
@@ -525,16 +525,16 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
     !backup.outputFormatItems.every(hasOutputFormatItemShape)
   ) {
     throw new Error(
-      "Invalid PromptHub backup: output format payload is malformed.",
+      "Invalid AgentsHub backup: output format payload is malformed.",
     );
   }
 
   if (backup.rules && !backup.rules.every(hasRuleShape)) {
-    throw new Error("Invalid PromptHub backup: rules payload is malformed.");
+    throw new Error("Invalid AgentsHub backup: rules payload is malformed.");
   }
 
   if (backup.skills && !backup.skills.every(hasSkillShape)) {
-    throw new Error("Invalid PromptHub backup: skills payload is malformed.");
+    throw new Error("Invalid AgentsHub backup: skills payload is malformed.");
   }
 
   if (
@@ -542,7 +542,7 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
     !backup.skillVersions.every(hasSkillVersionShape)
   ) {
     throw new Error(
-      "Invalid PromptHub backup: skill versions payload is malformed.",
+      "Invalid AgentsHub backup: skill versions payload is malformed.",
     );
   }
 
@@ -550,7 +550,7 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
     for (const files of Object.values(backup.skillFiles)) {
       if (!Array.isArray(files) || !files.every(hasSkillFileSnapshotShape)) {
         throw new Error(
-          "Invalid PromptHub backup: skill files payload is malformed.",
+          "Invalid AgentsHub backup: skill files payload is malformed.",
         );
       }
     }
@@ -558,13 +558,13 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
 
   if (backup.mcpLibrary && !hasMcpLibraryShape(backup.mcpLibrary)) {
     throw new Error(
-      "Invalid PromptHub backup: MCP library payload is malformed.",
+      "Invalid AgentsHub backup: MCP library payload is malformed.",
     );
   }
 
   if (backup.pluginLibrary && !hasPluginLibraryShape(backup.pluginLibrary)) {
     throw new Error(
-      "Invalid PromptHub backup: plugin library payload is malformed.",
+      "Invalid AgentsHub backup: plugin library payload is malformed.",
     );
   }
 
@@ -573,7 +573,7 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
     !backup.pluginPackages.every(hasPluginPackageSnapshotShape)
   ) {
     throw new Error(
-      "Invalid PromptHub backup: plugin packages payload is malformed.",
+      "Invalid AgentsHub backup: plugin packages payload is malformed.",
     );
   }
 
@@ -582,7 +582,7 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
     !hasAgentAssetStoreSourcesShape(backup.storeSources)
   ) {
     throw new Error(
-      "Invalid PromptHub backup: store sources payload is malformed.",
+      "Invalid AgentsHub backup: store sources payload is malformed.",
     );
   }
 
@@ -591,7 +591,7 @@ function validateImportedBackupShape(backup: DatabaseBackup): void {
     !hasAgentAssetFilesShape(backup.agentAssetFiles)
   ) {
     throw new Error(
-      "Invalid PromptHub backup: agent asset files payload is malformed.",
+      "Invalid AgentsHub backup: agent asset files payload is malformed.",
     );
   }
 
@@ -806,7 +806,7 @@ function parseEnvelope(text: string): DatabaseBackup {
   const parsed = JSON.parse(text) as unknown;
 
   if (!isRecord(parsed)) {
-    throw new Error("Invalid PromptHub backup: expected a JSON object.");
+    throw new Error("Invalid AgentsHub backup: expected a JSON object.");
   }
 
   if (
@@ -834,7 +834,7 @@ function parseEnvelope(text: string): DatabaseBackup {
 
   if (!hasKnownRootFields) {
     throw new Error(
-      "Invalid PromptHub backup: unsupported file format. Please import a PromptHub backup/export file.",
+      "Invalid AgentsHub backup: unsupported file format. Please import a AgentsHub backup/export file.",
     );
   }
 
@@ -842,11 +842,11 @@ function parseEnvelope(text: string): DatabaseBackup {
 }
 
 /**
- * Lenient file-import entry point. Recognized PromptHub envelopes (including
+ * Lenient file-import entry point. Recognized AgentsHub envelopes (including
  * legacy raw payloads) are parsed and then sanitized per-record so partial
  * data corruption no longer triggers an all-or-nothing rejection.
  *
- * 宽容式文件导入入口。已识别的 PromptHub 信封（含历史裸 payload）会被解析并
+ * 宽容式文件导入入口。已识别的 AgentsHub 信封（含历史裸 payload）会被解析并
  * 逐条清洗，个别条目损坏不再导致整包拒绝。
  */
 export function parsePromptHubBackupFile(text: string): ParsedBackup {

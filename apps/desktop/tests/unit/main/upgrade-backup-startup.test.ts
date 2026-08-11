@@ -38,7 +38,7 @@ describe("upgrade-backup-startup", () => {
   });
 
   it("treats the first launch as marker-only and does not create a snapshot", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     seedUserData(userDataPath);
 
     const result = await runUpgradeBackupStartupTasks(userDataPath, "0.5.4");
@@ -58,7 +58,7 @@ describe("upgrade-backup-startup", () => {
   });
 
   it("creates a snapshot when the current version is newer than the last run version", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     seedUserData(userDataPath);
     fs.mkdirSync(getUpgradeBackupRoot(userDataPath), { recursive: true });
     fs.writeFileSync(
@@ -83,7 +83,7 @@ describe("upgrade-backup-startup", () => {
   });
 
   it("does not create a snapshot when relaunching the same version", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     seedUserData(userDataPath);
     fs.mkdirSync(getUpgradeBackupRoot(userDataPath), { recursive: true });
     fs.writeFileSync(
@@ -99,7 +99,7 @@ describe("upgrade-backup-startup", () => {
   });
 
   it("does not create a snapshot when downgrading", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     seedUserData(userDataPath);
     fs.mkdirSync(getUpgradeBackupRoot(userDataPath), { recursive: true });
     fs.writeFileSync(
@@ -120,7 +120,7 @@ describe("upgrade-backup-startup", () => {
   });
 
   it("treats empty userData as a non-fatal no-op and still advances the marker", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.mkdirSync(getUpgradeBackupRoot(userDataPath), { recursive: true });
     fs.writeFileSync(
@@ -141,7 +141,7 @@ describe("upgrade-backup-startup", () => {
   });
 
   it("migrates legacy sibling backups before evaluating the version jump", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     seedUserData(userDataPath);
     fs.mkdirSync(getUpgradeBackupRoot(userDataPath), { recursive: true });
     fs.writeFileSync(

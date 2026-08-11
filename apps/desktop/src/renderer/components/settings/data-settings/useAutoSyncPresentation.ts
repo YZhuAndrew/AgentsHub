@@ -10,7 +10,7 @@ export function useAutoSyncPresentation() {
     if (provider === "webdav") return t("settings.webdavSyncMenu", "WebDAV");
     if (provider === "s3")
       return t("settings.s3SyncMenu", "S3 Compatible Storage");
-    return t("settings.selfHostedSyncMenu", "Self-Hosted PromptHub");
+    return t("settings.selfHostedSyncMenu", "Self-Hosted AgentsHub");
   };
 
   const getAutoSyncReasonLabel = (reason: AutoSyncHistoryEntry["reason"]) => {

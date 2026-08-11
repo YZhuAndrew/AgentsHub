@@ -191,7 +191,7 @@ export function WebDeviceSettings() {
               aria-hidden="true"
               className="h-4 w-4 text-muted-foreground"
             />
-            <span>{webContext?.username || "PromptHub User"}</span>
+            <span>{webContext?.username || "AgentsHub User"}</span>
           </div>
         </SettingItem>
         <SettingItem

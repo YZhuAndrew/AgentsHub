@@ -58,7 +58,7 @@ vi.mock("../../../src/renderer/services/database-backup", () => ({
   formatBackupImportError: (error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes("FOREIGN KEY constraint failed")) {
-      return "备份中的文件夹或 Prompt 引用关系不完整，PromptHub 无法安全导入。建议重新导出一份新备份后再试。";
+      return "备份中的文件夹或 Prompt 引用关系不完整，AgentsHub 无法安全导入。建议重新导出一份新备份后再试。";
     }
     return message;
   },
@@ -244,7 +244,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
       created: true,
       skipped: false,
       backupId: "backup-1",
-      backupPath: "/tmp/PromptHub/backups/backup-1",
+      backupPath: "/tmp/AgentsHub/backups/backup-1",
     });
   });
 
@@ -590,7 +590,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     vi.mocked(listUpgradeBackups).mockResolvedValue([
       {
         backupId: "v0.5.3-2026-04-17T00-00-00-000Z",
-        backupPath: "/tmp/PromptHub/backups/v0.5.3-2026-04-17T00-00-00-000Z",
+        backupPath: "/tmp/AgentsHub/backups/v0.5.3-2026-04-17T00-00-00-000Z",
         sizeBytes: 2048,
         manifest: {
           kind: "prompthub-upgrade-backup",
@@ -598,7 +598,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           createdAt: "2026-04-17T00:00:00.000Z",
           fromVersion: "0.5.3",
           toVersion: "0.5.4",
-          sourcePath: "/tmp/PromptHub",
+          sourcePath: "/tmp/AgentsHub",
           copiedItems: ["prompthub.db", "workspace"],
           platform: "darwin",
         },
@@ -626,7 +626,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     vi.mocked(listUpgradeBackups).mockResolvedValue([
       {
         backupId: "backup-1",
-        backupPath: "/tmp/PromptHub/backups/backup-1",
+        backupPath: "/tmp/AgentsHub/backups/backup-1",
         sizeBytes: 1024,
         manifest: {
           kind: "prompthub-upgrade-backup",
@@ -634,14 +634,14 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           createdAt: "2026-04-17T00:00:00.000Z",
           fromVersion: "0.5.1",
           toVersion: "0.5.2",
-          sourcePath: "/tmp/PromptHub",
+          sourcePath: "/tmp/AgentsHub",
           copiedItems: ["prompthub.db"],
           platform: "darwin",
         },
       },
       {
         backupId: "backup-2",
-        backupPath: "/tmp/PromptHub/backups/backup-2",
+        backupPath: "/tmp/AgentsHub/backups/backup-2",
         sizeBytes: 1024,
         manifest: {
           kind: "prompthub-upgrade-backup",
@@ -649,14 +649,14 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           createdAt: "2026-04-18T00:00:00.000Z",
           fromVersion: "0.5.2",
           toVersion: "0.5.3",
-          sourcePath: "/tmp/PromptHub",
+          sourcePath: "/tmp/AgentsHub",
           copiedItems: ["prompthub.db"],
           platform: "darwin",
         },
       },
       {
         backupId: "backup-3",
-        backupPath: "/tmp/PromptHub/backups/backup-3",
+        backupPath: "/tmp/AgentsHub/backups/backup-3",
         sizeBytes: 1024,
         manifest: {
           kind: "prompthub-upgrade-backup",
@@ -664,14 +664,14 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           createdAt: "2026-04-19T00:00:00.000Z",
           fromVersion: "0.5.3",
           toVersion: "0.5.4",
-          sourcePath: "/tmp/PromptHub",
+          sourcePath: "/tmp/AgentsHub",
           copiedItems: ["prompthub.db"],
           platform: "darwin",
         },
       },
       {
         backupId: "backup-4",
-        backupPath: "/tmp/PromptHub/backups/backup-4",
+        backupPath: "/tmp/AgentsHub/backups/backup-4",
         sizeBytes: 1024,
         manifest: {
           kind: "prompthub-upgrade-backup",
@@ -679,7 +679,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           createdAt: "2026-04-20T00:00:00.000Z",
           fromVersion: "0.5.4",
           toVersion: "0.5.5",
-          sourcePath: "/tmp/PromptHub",
+          sourcePath: "/tmp/AgentsHub",
           copiedItems: ["prompthub.db"],
           platform: "darwin",
         },
@@ -724,7 +724,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     vi.mocked(listUpgradeBackups).mockResolvedValue([
       {
         backupId: "v0.5.3-2026-04-17T00-00-00-000Z",
-        backupPath: "/tmp/PromptHub/backups/v0.5.3-2026-04-17T00-00-00-000Z",
+        backupPath: "/tmp/AgentsHub/backups/v0.5.3-2026-04-17T00-00-00-000Z",
         sizeBytes: 2048,
         manifest: {
           kind: "prompthub-upgrade-backup",
@@ -732,7 +732,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           createdAt: "2026-04-17T00:00:00.000Z",
           fromVersion: "0.5.3",
           toVersion: "0.5.4",
-          sourcePath: "/tmp/PromptHub",
+          sourcePath: "/tmp/AgentsHub",
           copiedItems: ["prompthub.db", "workspace"],
           platform: "darwin",
         },
@@ -742,7 +742,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
       success: true,
       needsRestart: true,
       restoredBackupId: "v0.5.3-2026-04-17T00-00-00-000Z",
-      currentStateBackupPath: "/tmp/PromptHub/backups/insurance",
+      currentStateBackupPath: "/tmp/AgentsHub/backups/insurance",
     });
 
     await act(async () => {
@@ -777,7 +777,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     });
 
     expect(showToast).toHaveBeenCalledWith(
-      "Upgrade backup restored. PromptHub will restart automatically.",
+      "Upgrade backup restored. AgentsHub will restart automatically.",
       "success",
     );
   }, 30_000);

@@ -177,7 +177,7 @@ describe("Plugin source reconciliation", () => {
     );
     childProcess.execFileSync(
       "git",
-      ["config", "user.name", "PromptHub Test"],
+      ["config", "user.name", "AgentsHub Test"],
       {
         cwd: repositoryPath,
       },

@@ -408,7 +408,7 @@ export function usePluginCatalogModel({
     selectedTab === "library"
       ? t(
           "plugin.myPluginsHint",
-          "Installed Plugin bundles stay in PromptHub until you distribute their child assets.",
+          "Installed Plugin bundles stay in AgentsHub until you distribute their child assets.",
         )
       : t(
           "plugin.pluginStoreHint",

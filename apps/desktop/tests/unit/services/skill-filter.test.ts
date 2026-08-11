@@ -10,6 +10,7 @@ const skills = [
     name: "alpha",
     description: "alpha deploy",
     tags: ["ops"],
+    author: "JimLiu",
     protocol_type: "skill",
     is_favorite: false,
     created_at: 1,
@@ -20,6 +21,7 @@ const skills = [
     name: "beta",
     description: "beta pending",
     tags: ["docs"],
+    author: "Alice",
     protocol_type: "skill",
     is_favorite: true,
     created_at: 1,
@@ -59,6 +61,49 @@ describe("filterVisibleSkills", () => {
       storeView: "my-skills",
     });
 
+    expect(result.map((skill) => skill.name)).toEqual(["beta"]);
+  });
+
+  it("filters by author (case-insensitive, trimmed)", () => {
+    const result = filterVisibleSkills({
+      deployedSkillNames: new Set(),
+      filterType: "all",
+      filterAuthor: "  jimliu  ",
+      skills,
+      storeView: "my-skills",
+    });
+    expect(result.map((skill) => skill.name)).toEqual(["alpha"]);
+  });
+
+  it("skips the author predicate when filterAuthor is null or blank", () => {
+    const withNull = filterVisibleSkills({
+      deployedSkillNames: new Set(),
+      filterType: "all",
+      filterAuthor: null,
+      skills,
+      storeView: "my-skills",
+    });
+    expect(withNull.map((skill) => skill.name)).toEqual(["alpha", "beta"]);
+
+    const withBlank = filterVisibleSkills({
+      deployedSkillNames: new Set(),
+      filterType: "all",
+      filterAuthor: "   ",
+      skills,
+      storeView: "my-skills",
+    });
+    expect(withBlank.map((skill) => skill.name)).toEqual(["alpha", "beta"]);
+  });
+
+  it("combines author filter with search", () => {
+    const result = filterVisibleSkills({
+      deployedSkillNames: new Set(),
+      filterType: "all",
+      filterAuthor: "Alice",
+      searchQuery: "beta",
+      skills,
+      storeView: "my-skills",
+    });
     expect(result.map((skill) => skill.name)).toEqual(["beta"]);
   });
 

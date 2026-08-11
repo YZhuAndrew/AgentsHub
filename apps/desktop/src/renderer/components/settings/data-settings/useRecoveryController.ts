@@ -171,7 +171,7 @@ function useDroppedDatabaseRecovery(
         showToast(
           t(
             "settings.backupDropDatabaseInvalid",
-            "This file is not a recoverable PromptHub database backup.",
+            "This file is not a recoverable AgentsHub database backup.",
           ),
           "error",
         );

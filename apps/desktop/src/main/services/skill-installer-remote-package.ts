@@ -46,6 +46,12 @@ export type RemotePackageSkill = Pick<
   | "variant_key"
 >;
 
+export type RemoteGitPackageProgressCallback = (detail: {
+  phase: "staging" | "scanning" | "applying";
+  message: string;
+  clonePercent?: number;
+}) => void;
+
 export interface RemoteGitPackageOptions {
   repoUrl: string;
   branch?: string;
@@ -55,6 +61,7 @@ export interface RemoteGitPackageOptions {
   approvedPackageFingerprint?: string;
   targetRootDir?: string;
   onSafetyReport?: (report: SkillSafetyReport) => void;
+  onProgress?: RemoteGitPackageProgressCallback;
 }
 
 export interface RemoteZipPackageOptions {
@@ -176,7 +183,21 @@ export async function saveRemoteGitSkillPackage(
   const repoDir = path.join(tempRoot, `${parsedRepo.owner}-${parsedRepo.repo}`);
 
   try {
-    await gitClone(parsedRepo.cloneUrl, repoDir, options.branch);
+    const onProgress = options.onProgress;
+    onProgress?.({ phase: "staging", message: "cloning-repository" });
+    await gitClone(
+      parsedRepo.cloneUrl,
+      repoDir,
+      options.branch,
+      onProgress
+        ? ({ percent }): void =>
+            onProgress({
+              phase: "staging",
+              message: "cloning-repository",
+              clonePercent: percent,
+            })
+        : undefined,
+    );
     const requestedDirectory =
       normalizeDirectory(options.directory) ??
       normalizeDirectory(skill.source_directory);
@@ -187,7 +208,12 @@ export async function saveRemoteGitSkillPackage(
       options.skillName,
     );
     await validateMaterializedSkillPackage(skillDir);
+    options.onProgress?.({
+      phase: "scanning",
+      message: "reading-files-fingerprint",
+    });
     const packageFingerprint = await computePackageFingerprint(skillDir);
+    options.onProgress?.({ phase: "scanning", message: "safety-scanning" });
     const safetyReport = await assertStagedRemoteSkillPackageSafe({
       skill,
       skillDir,
@@ -204,6 +230,7 @@ export async function saveRemoteGitSkillPackage(
       ),
     });
     if (safetyReport) options.onSafetyReport?.(safetyReport);
+    options.onProgress?.({ phase: "applying", message: "writing-install" });
     return await persistStagedPackage(skill, skillDir, options.targetRootDir);
   } finally {
     await fs.rm(tempRoot, { recursive: true, force: true }).catch(() => {});

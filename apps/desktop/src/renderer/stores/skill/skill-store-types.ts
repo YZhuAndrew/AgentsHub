@@ -116,6 +116,10 @@ export interface SkillState {
   // Search & Filter
   searchQuery: string;
   filterType: SkillFilterType;
+  /** Session-only author filter; null means no author filter. */
+  filterAuthor: string | null;
+  /** Session-only source filter key; "all" means no source filter. */
+  filterSourceKey: string;
 
   // Skill Store (registry)
   // 技能商店（注册表）
@@ -125,6 +129,12 @@ export interface SkillState {
   agentScanState: Record<string, AgentSkillScanState>;
   registrySkills: RegistrySkill[];
   isLoadingRegistry: boolean;
+  /** Session-only results of the most recent "check all updates" run. */
+  skillUpdateStatuses: Record<string, RegistrySkillUpdateCheck>;
+  /** True while a batch "check all updates" run is in progress. */
+  isCheckingAllUpdates: boolean;
+  /** Epoch ms of the last completed batch update check, or null. */
+  lastBulkCheckAt: number | null;
   storeCategory: SkillCategory | "all";
   storeSearchQuery: string;
   selectedRegistrySlug: string | null;
@@ -199,6 +209,8 @@ export interface SkillState {
   filterTags: string[];
   toggleFilterTag: (tag: string) => void;
   clearFilterTags: () => void;
+  setFilterAuthor: (author: string | null) => void;
+  setFilterSourceKey: (key: string) => void;
   getFilteredSkills: () => Skill[];
 
   // Skill Store Actions
@@ -226,6 +238,22 @@ export interface SkillState {
   getInstalledSkillSourceUpdateStatus: (
     skillId: string,
   ) => Promise<RegistrySkillUpdateCheck | null>;
+  /** Check updates for all skills with a remote source; aggregates into state. */
+  checkAllSkillUpdates: () => Promise<{
+    checked: number;
+    updated: number;
+    upToDate: number;
+    failed: number;
+  }>;
+  /** Update each selected skill from its source sequentially. */
+  batchUpdateSelectedSkills: (
+    skillIds: string[],
+  ) => Promise<{
+    succeeded: string[];
+    failed: string[];
+  }>;
+  /** Clear cached per-skill update statuses (session state). */
+  clearSkillUpdateStatuses: () => void;
   updateRegistrySkill: (
     sourceId: string,
     options?: {
@@ -331,6 +359,8 @@ export type SkillLibrarySlice = Pick<
   | "searchQuery"
   | "filterType"
   | "filterTags"
+  | "filterAuthor"
+  | "filterSourceKey"
   | "deployedSkillNames"
   | "pendingPluginChildDeploySkillIds"
   | "loadSkills"
@@ -357,6 +387,8 @@ export type SkillLibrarySlice = Pick<
   | "setFilterType"
   | "toggleFilterTag"
   | "clearFilterTags"
+  | "setFilterAuthor"
+  | "setFilterSourceKey"
   | "getFilteredSkills"
 >;
 
@@ -379,6 +411,9 @@ export type SkillRegistrySlice = Pick<
   SkillState,
   | "registrySkills"
   | "isLoadingRegistry"
+  | "skillUpdateStatuses"
+  | "isCheckingAllUpdates"
+  | "lastBulkCheckAt"
   | "storeCategory"
   | "storeSearchQuery"
   | "selectedRegistrySlug"
@@ -389,6 +424,9 @@ export type SkillRegistrySlice = Pick<
   | "computeRegistrySkillHash"
   | "getRegistrySkillUpdateStatus"
   | "getInstalledSkillSourceUpdateStatus"
+  | "checkAllSkillUpdates"
+  | "batchUpdateSelectedSkills"
+  | "clearSkillUpdateStatuses"
   | "updateRegistrySkill"
   | "updateInstalledSkillFromSource"
   | "installRegistrySkill"

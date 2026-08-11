@@ -79,7 +79,7 @@ test.describe("E2E: desktop self-hosted sync", () => {
                 currentVersion: 1,
                 usageCount: 0,
                 source: null,
-                notes: "Pulled automatically from self-hosted PromptHub Web",
+                notes: "Pulled automatically from self-hosted AgentsHub Web",
                 lastAiResponse: null,
                 createdAt: "2026-04-16T08:00:00.000Z",
                 updatedAt: "2026-04-16T08:00:00.000Z",
@@ -212,7 +212,7 @@ test.describe("E2E: desktop self-hosted sync", () => {
     }
   });
 
-  test("connects, uploads to, and downloads from a live self-hosted PromptHub Web", async () => {
+  test("connects, uploads to, and downloads from a live self-hosted AgentsHub Web", async () => {
     const server = await startSelfHostedTestServer();
     const { app, page, userDataDir } = await launchPromptHub(
       "prompt-workspace.seed.json",
@@ -231,7 +231,7 @@ test.describe("E2E: desktop self-hosted sync", () => {
 
       await page.getByRole("button", { name: "Settings", exact: true }).click();
       await page.getByRole("button", { name: "Data & Sync", exact: true }).click();
-      await page.getByRole("button", { name: /Self-Hosted PromptHub/ }).click();
+      await page.getByRole("button", { name: /Self-Hosted AgentsHub/ }).click();
 
       await page.getByRole("button", { name: "Test Connection" }).click();
       await expect(

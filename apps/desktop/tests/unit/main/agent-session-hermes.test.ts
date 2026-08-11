@@ -57,7 +57,7 @@ describe("Hermes session adapter", () => {
         active INTEGER NOT NULL DEFAULT 1
       );
     `);
-    const projectPath = path.join(homeDir, "Projects", "PromptHub");
+    const projectPath = path.join(homeDir, "Projects", "AgentsHub");
     const insertSession = database.prepare(`INSERT INTO sessions
       (id, source, model, started_at, ended_at, message_count, cwd, git_repo_root, title)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
@@ -70,7 +70,7 @@ describe("Hermes session adapter", () => {
       5,
       projectPath,
       projectPath,
-      "Review PromptHub recovery",
+      "Review AgentsHub recovery",
     );
     insertSession.run(
       "20260730_090000_dcba4321",
@@ -172,15 +172,15 @@ describe("Hermes session adapter", () => {
       sessions: [
         {
           id: "20260731_100000_abcd1234",
-          title: "Review PromptHub recovery",
-          projectLabel: "PromptHub",
-          projectPath: path.join(homeDir, "Projects", "PromptHub"),
+          title: "Review AgentsHub recovery",
+          projectLabel: "AgentsHub",
+          projectPath: path.join(homeDir, "Projects", "AgentsHub"),
           model: "qwen3-coder",
           messageCount: 2,
           resume: {
             executable: "hermes",
             args: ["--resume", "20260731_100000_abcd1234"],
-            cwd: path.join(homeDir, "Projects", "PromptHub"),
+            cwd: path.join(homeDir, "Projects", "AgentsHub"),
           },
         },
       ],

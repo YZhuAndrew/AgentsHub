@@ -143,7 +143,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
               <span className="text-white text-xl font-bold">P</span>
             </div>
-            <h4 className="font-semibold text-foreground">PromptHub</h4>
+            <h4 className="font-semibold text-foreground">AgentsHub</h4>
             <p className="text-xs text-muted-foreground mt-1">v0.4.8</p>
             <p className="text-xs text-muted-foreground mt-2">
               {t('app.description')}

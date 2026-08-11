@@ -20,7 +20,7 @@ describe("cloud store registry mapping", () => {
 
     expect(skill).toMatchObject({
       source_id: "cloud:listing:skill-1",
-      source_label: "PromptHub Cloud",
+      source_label: "AgentsHub Cloud",
       source_url: "cloud://store/listings/repo-audit",
       version: "2026-07-12T00:00:00.000Z",
     });

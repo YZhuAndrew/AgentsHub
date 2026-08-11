@@ -20,10 +20,10 @@ import type { ScannedSkill, SkillInstallMode } from "@prompthub/shared/types";
 interface SkillScanPreviewProps {
   scannedSkills: ScannedSkill[];
   /**
-   * Set of localPath values for skills already in the PromptHub library.
+   * Set of localPath values for skills already in the AgentsHub library.
    * Using localPath (folder path) instead of name avoids false "Installed"
    * flags when a different tool happens to have a skill with the same name.
-   * 已存在于 PromptHub 库中的 skill 文件夹路径集合（精准比对，避免同名误判）
+   * 已存在于 AgentsHub 库中的 skill 文件夹路径集合（精准比对，避免同名误判）
    */
   installedPaths: Set<string>;
   onImport: (

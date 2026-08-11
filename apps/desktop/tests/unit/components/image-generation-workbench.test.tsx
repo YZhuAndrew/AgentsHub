@@ -228,7 +228,7 @@ describe("ImageGenerationWorkbench", () => {
       prompts: [
         {
           ...usePromptStore.getState().prompts[0],
-          userPrompt: "A {{style}} poster for {{subject:PromptHub}}",
+          userPrompt: "A {{style}} poster for {{subject:AgentsHub}}",
           variables: [
             { name: "style", type: "text", required: true },
             { name: "subject", type: "text", required: false },
@@ -253,7 +253,7 @@ describe("ImageGenerationWorkbench", () => {
 
     await waitFor(() => expect(runner.start).toHaveBeenCalled());
     expect(runner.start.mock.calls[0][0]).toMatchObject({
-      prompt: "A Swiss poster for PromptHub",
+      prompt: "A Swiss poster for AgentsHub",
       variableValues: { style: "Swiss", subject: "" },
     });
   });

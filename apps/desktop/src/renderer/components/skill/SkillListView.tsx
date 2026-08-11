@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   CuboidIcon,
   StarIcon,
@@ -22,7 +23,29 @@ import type { SkillPlatform } from "@prompthub/shared/constants/platforms";
 import { getRuntimeCapabilities } from "../../runtime";
 import { SkillVariantBadgeList } from "./SkillVariantBadgeList";
 import { buildMySkillSourceBadges } from "../../services/skill-source-badges";
+import { getSkillSourceMeta } from "./detail-utils";
 import { CardStatusBadge } from "../ui/CardStatusBadge";
+
+/** Format an epoch-ms timestamp as a compact local date (YYYY-MM-DD). */
+function formatSkillDate(timestamp: number | undefined): string {
+  if (typeof timestamp !== "number" || !Number.isFinite(timestamp) || timestamp <= 0) {
+    return "—";
+  }
+  try {
+    return new Intl.DateTimeFormat("default", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(timestamp));
+  } catch {
+    return "—";
+  }
+}
+
+/** Derive the human-readable source label for a skill (e.g. "Imported from GitHub"). */
+function getSkillSourceLabel(skill: Skill, t: TFunction): string {
+  return getSkillSourceMeta(skill, t)?.sourceLabel ?? "—";
+}
 
 function normalizeStringArray(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -51,10 +74,10 @@ function normalizeStringArray(value: unknown): string[] {
 
 // Estimated row height for the virtualizer. Real heights are measured via
 // `measureElement` once a row is rendered so the scrollbar stays accurate.
-// Rows are intentionally compact; user/source tags share one metadata line.
+// Rows carry two metadata lines (source/author/version/date pills + tags).
 // 行高初值供 virtualizer 估算；实际高度通过 measureElement 在每行首次渲染时
-// 修正，避免滚动时出现长跳变。标签与来源徽章共用一行，保持列表密度。
-const ESTIMATED_ROW_HEIGHT = 72;
+// 修正，避免滚动时出现长跳变。每行含两行元信息（来源/作者/版本/时间 胶囊 + 标签）。
+const ESTIMATED_ROW_HEIGHT = 88;
 
 function getSafetyIconProps(level: SkillSafetyLevel): {
   Icon: typeof ShieldCheckIcon;
@@ -115,6 +138,102 @@ interface SkillListViewProps {
 }
 
 const skillPlatformStatusCache = new Map<string, Record<string, boolean>>();
+
+type TranslationFn = TFunction;
+
+/** Sticky column header for the skill list. */
+function SkillListColumnHeader({
+  t,
+  showPlatforms,
+}: {
+  t: TranslationFn;
+  showPlatforms: boolean;
+}) {
+  return (
+    <div
+      data-testid="skill-list-column-header"
+      className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-background/95 px-5 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground backdrop-blur"
+    >
+      <span className="flex-1">{t("skill.listCol.name", "Name")}</span>
+      {showPlatforms ? (
+        <span className="hidden text-right lg:block">
+          {t("skill.listCol.platform", "Platforms")}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/** A single colored pill for one metadata field. */
+function SkillMetaPill({
+  label,
+  value,
+  tone,
+  title,
+}: {
+  label: string;
+  value: string;
+  tone: "source" | "author" | "version" | "date";
+  title?: string;
+}) {
+  if (!value || value === "—") return null;
+  const toneClass = META_PILL_TONES[tone];
+  return (
+    <span
+      title={title ?? `${label}: ${value}`}
+      className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${toneClass}`}
+    >
+      <span className="shrink-0 opacity-70">{label}</span>
+      <span className="truncate">{value}</span>
+    </span>
+  );
+}
+
+const META_PILL_TONES: Record<string, string> = {
+  source: "bg-primary/10 text-primary",
+  author: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+  version: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  date: "bg-muted text-muted-foreground",
+};
+
+/** Single metadata row of pills (source / author / version / created / updated). */
+function SkillListMetadataRow({ skill, t }: { skill: Skill; t: TranslationFn }) {
+  const sourceLabel = getSkillSourceLabel(skill, t);
+  const author = skill.author?.trim() ? skill.author : "—";
+  const version = skill.version?.trim() ? skill.version : "—";
+  const created = formatSkillDate(skill.created_at);
+  const updated = formatSkillDate(skill.updated_at);
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      <SkillMetaPill
+        label={t("skill.listCol.source", "Source")}
+        value={sourceLabel}
+        tone="source"
+      />
+      <SkillMetaPill
+        label={t("skill.listCol.author", "Author")}
+        value={author}
+        tone="author"
+        title={author !== "—" ? `${t("skill.listCol.author", "Author")}: ${author}` : undefined}
+      />
+      <SkillMetaPill
+        label={t("skill.listCol.version", "Version")}
+        value={version}
+        tone="version"
+      />
+      <SkillMetaPill
+        label={t("skill.listCol.createdAt", "Created")}
+        value={created}
+        tone="date"
+      />
+      <SkillMetaPill
+        label={t("skill.listCol.updatedAt", "Updated")}
+        value={updated}
+        tone="date"
+      />
+    </div>
+  );
+}
 
 /**
  * Compact List View for Skills
@@ -306,6 +425,7 @@ export function SkillListView({
 
   return (
     <div ref={scrollParentRef} className="h-full overflow-y-auto">
+      <SkillListColumnHeader t={t} showPlatforms={availablePlatforms.length > 0} />
       <div className="relative w-full" style={{ height: `${totalSize}px` }}>
         {virtualItems.map((virtualRow) => {
           const skill = skills[virtualRow.index];
@@ -494,6 +614,7 @@ export function SkillListView({
                       ))}
                     </div>
                   ) : null}
+                  <SkillListMetadataRow skill={skill} t={t} />
                 </div>
 
                 {/* Platform indicators */}

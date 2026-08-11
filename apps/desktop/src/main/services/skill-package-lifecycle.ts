@@ -72,12 +72,31 @@ export type PackageRecoveryManifest = PackageReplacementRecovery & {
   expectedFingerprint: string;
 };
 
+/**
+ * Emitter for install/update progress events. The IPC handler constructs one
+ * bound to the requesting renderer's `sender.send`; lifecycle calls it at
+ * phase boundaries. Must never throw.
+ */
+export type SkillPackageOperationEmit = (detail: {
+  phase: SkillPackageOperationPhase;
+  message: string;
+  clonePercent?: number;
+}) => void;
+
 export interface SkillPackageLifecycleDependencies {
   db: LifecycleDatabase;
   createStagingRoot: (request: SkillPackageOperationRequest) => Promise<string>;
   stagePackage: (
     request: SkillPackageOperationRequest,
-    context: { stagingRoot: string; sourceId: string },
+    context: {
+      stagingRoot: string;
+      sourceId: string;
+      onProgress?: (detail: {
+        phase: SkillPackageOperationPhase;
+        message: string;
+        clonePercent?: number;
+      }) => void;
+    },
   ) => Promise<StagedSkillPackage>;
   beginReplacement: (
     skill: Skill,
@@ -261,7 +280,10 @@ export class SkillPackageLifecycleService {
     private readonly dependencies: SkillPackageLifecycleDependencies,
   ) {}
 
-  async run(input: unknown): Promise<SkillPackageOperationResult> {
+  async run(
+    input: unknown,
+    options?: { emit?: SkillPackageOperationEmit },
+  ): Promise<SkillPackageOperationResult> {
     let request: SkillPackageOperationRequest;
     try {
       request = validateSkillPackageOperationRequest(input);
@@ -275,15 +297,28 @@ export class SkillPackageLifecycleService {
     const key = buildSkillPackageOperationKey(request);
     const active = this.inFlight.get(key);
     if (active) return active;
-    const operation = this.execute(request).finally(() =>
+    const operation = this.execute(request, options?.emit).finally(() =>
       this.inFlight.delete(key),
     );
     this.inFlight.set(key, operation);
     return operation;
   }
 
+  private emitProgress(
+    emit: SkillPackageOperationEmit | undefined,
+    detail: Parameters<SkillPackageOperationEmit>[0],
+  ): void {
+    if (!emit) return;
+    try {
+      emit(detail);
+    } catch {
+      // Progress emission must never affect the operation outcome.
+    }
+  }
+
   private async execute(
     request: SkillPackageOperationRequest,
+    emit?: SkillPackageOperationEmit,
   ): Promise<SkillPackageOperationResult> {
     let stagingRoot: string | null = null;
     try {
@@ -293,10 +328,17 @@ export class SkillPackageLifecycleService {
         if (conflict) return this.installConflictResult(request, sourceId);
       }
       stagingRoot = await this.dependencies.createStagingRoot(request);
-      const staged = await this.stage(request, stagingRoot, sourceId);
+      const staged = await this.stage(
+        request,
+        stagingRoot,
+        sourceId,
+        emit
+          ? (detail) => this.emitProgress(emit, detail)
+          : undefined,
+      );
       return request.operation === "install"
-        ? await this.install(request, stagingRoot, sourceId, staged)
-        : await this.update(request, stagingRoot, sourceId, staged);
+        ? await this.install(request, stagingRoot, sourceId, staged, emit)
+        : await this.update(request, stagingRoot, sourceId, staged, emit);
     } catch (error) {
       if (
         error instanceof SkillSafetyReviewRequiredError ||
@@ -328,11 +370,17 @@ export class SkillPackageLifecycleService {
     request: SkillPackageOperationRequest,
     stagingRoot: string,
     sourceId: string,
+    onProgress?: (detail: {
+      phase: SkillPackageOperationPhase;
+      message: string;
+      clonePercent?: number;
+    }) => void,
   ): Promise<StagedSkillPackage> {
     try {
       return await this.dependencies.stagePackage(request, {
         stagingRoot,
         sourceId,
+        onProgress,
       });
     } catch (error) {
       if (
@@ -354,10 +402,11 @@ export class SkillPackageLifecycleService {
     stagingRoot: string,
     sourceId: string,
     staged: StagedSkillPackage,
+    emit?: SkillPackageOperationEmit,
   ): Promise<SkillPackageOperationResult> {
     const conflict = this.findInstallConflict(sourceId);
     if (conflict) return this.installConflictResult(request, sourceId);
-    return this.applyInstall(request, stagingRoot, sourceId, staged);
+    return this.applyInstall(request, stagingRoot, sourceId, staged, emit);
   }
 
   private installConflictResult(
@@ -379,12 +428,14 @@ export class SkillPackageLifecycleService {
     stagingRoot: string,
     sourceId: string,
     staged: StagedSkillPackage,
+    emit?: SkillPackageOperationEmit,
   ): Promise<SkillPackageOperationResult> {
     let created: Skill | null = null;
     let replacement: PackageReplacement | null = null;
     try {
       const finalData = this.buildInstallData(request, sourceId, staged);
       created = this.createPendingInstall(finalData);
+      this.emitProgress(emit, { phase: "applying", message: "applying-install" });
       replacement = await this.startReplacement(
         request,
         stagingRoot,
@@ -394,6 +445,10 @@ export class SkillPackageLifecycleService {
       const files = await this.dependencies.readFilesSnapshot(
         replacement.repoPath,
       );
+      this.emitProgress(emit, {
+        phase: "finalizing",
+        message: "finalizing-install",
+      });
       const finalized = this.dependencies.db.finalizePackageInstall(
         created.id,
         { ...finalData, local_repo_path: replacement.repoPath },
@@ -543,6 +598,7 @@ export class SkillPackageLifecycleService {
     stagingRoot: string,
     sourceId: string,
     staged: StagedSkillPackage,
+    emit?: SkillPackageOperationEmit,
   ): Promise<SkillPackageOperationResult> {
     const installed = this.dependencies.db.getById(request.skillId!);
     if (!installed) {
@@ -551,7 +607,14 @@ export class SkillPackageLifecycleService {
         new LifecycleStepError("CONFLICT", "applying", "Skill not found"),
       );
     }
-    return this.applyUpdate(request, stagingRoot, installed, sourceId, staged);
+    return this.applyUpdate(
+      request,
+      stagingRoot,
+      installed,
+      sourceId,
+      staged,
+      emit,
+    );
   }
 
   private async applyUpdate(
@@ -560,18 +623,24 @@ export class SkillPackageLifecycleService {
     installed: Skill,
     sourceId: string,
     staged: StagedSkillPackage,
+    emit?: SkillPackageOperationEmit,
   ): Promise<SkillPackageOperationResult> {
     let replacement: PackageReplacement | null = null;
     try {
       const files = installed.local_repo_path
         ? await this.dependencies.readFilesSnapshot(installed.local_repo_path)
         : undefined;
+      this.emitProgress(emit, { phase: "applying", message: "applying-update" });
       replacement = await this.startReplacement(
         request,
         stagingRoot,
         installed,
         staged,
       );
+      this.emitProgress(emit, {
+        phase: "finalizing",
+        message: "finalizing-update",
+      });
       const finalized = this.dependencies.db.finalizePackageUpdate(
         installed.id,
         this.buildUpdateData(request, installed, sourceId, staged, replacement),

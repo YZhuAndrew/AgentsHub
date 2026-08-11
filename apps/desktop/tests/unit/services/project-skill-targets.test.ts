@@ -10,7 +10,7 @@ function librarySkill(overrides: Partial<Skill> = {}): Skill {
     instructions: "# Writer",
     content: "# Writer",
     protocol_type: "skill",
-    author: "PromptHub",
+    author: "AgentsHub",
     local_repo_path: "/prompthub/skills/writer-main/repo",
     directory_fingerprint: "fingerprint-main",
     tags: [],
@@ -25,7 +25,7 @@ function scannedSkill(overrides: Partial<ScannedSkill> = {}): ScannedSkill {
   return {
     name: "writer",
     description: "Writer",
-    author: "PromptHub",
+    author: "AgentsHub",
     tags: [],
     instructions: "# Writer",
     filePath: "/repo/.agents/skills/writer/SKILL.md",

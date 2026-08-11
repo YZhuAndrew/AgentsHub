@@ -684,12 +684,17 @@ function createLibraryViewActions(set: SkillStoreSet, get: SkillStoreGet) {
       });
     },
     clearFilterTags: () => set({ filterTags: [] }),
+    setFilterAuthor: (author) =>
+      set({ filterAuthor: author && author.trim() ? author.trim() : null }),
+    setFilterSourceKey: (key) =>
+      set({ filterSourceKey: key && key.trim() ? key.trim() : "all" }),
     getFilteredSkills: () => {
       const state = get();
       return filterVisibleSkills({
         deployedSkillNames: state.deployedSkillNames,
         filterTags: state.filterTags,
         filterType: state.filterType,
+        filterAuthor: state.filterAuthor,
         searchQuery: state.searchQuery,
         skills: state.skills,
         storeView: state.storeView,
@@ -703,6 +708,8 @@ function createLibraryViewActions(set: SkillStoreSet, get: SkillStoreGet) {
     | "setFilterType"
     | "toggleFilterTag"
     | "clearFilterTags"
+    | "setFilterAuthor"
+    | "setFilterSourceKey"
     | "getFilteredSkills"
   >;
 }

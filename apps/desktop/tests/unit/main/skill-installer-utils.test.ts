@@ -31,6 +31,7 @@ import {
   gitClone,
   gitListRemoteBranches,
   invalidateCustomPathsCache,
+  parseGitClonePercent,
 } from "../../../src/main/services/skill-installer-utils";
 
 describe("skill-installer-utils", () => {
@@ -1020,6 +1021,7 @@ describe("skill-installer-utils", () => {
           "clone",
           "--depth",
           "1",
+          "--progress",
           "--",
           "http://192.168.31.12:3000/team/skills",
           "/tmp/dest",
@@ -1095,6 +1097,140 @@ describe("skill-installer-utils", () => {
       expect((error as Error).message).toContain("gitea.example.com");
       expect((error as Error).message).not.toContain("alice");
       expect((error as Error).message).not.toContain("secret");
+    });
+
+    it("parses live clone percentages from git --progress stderr", async () => {
+      const stderrHandlers: Array<(chunk: Buffer) => void> = [];
+      const closeHandlers: Array<(code: number) => void> = [];
+      const onProgress = vi.fn();
+
+      vi.mocked(childProcess.spawn).mockReturnValue({
+        stdout: { on: vi.fn() },
+        stderr: {
+          on: vi.fn((event, cb) => event === "data" && stderrHandlers.push(cb)),
+        },
+        on: vi.fn((event, cb) => event === "close" && closeHandlers.push(cb)),
+        kill: vi.fn(),
+      } as unknown as childProcess.ChildProcess);
+
+      const promise = gitClone(
+        "https://gitea.example.com/team/skills",
+        "/tmp/dest",
+        undefined,
+        onProgress,
+      );
+      await vi.waitFor(() => expect(childProcess.spawn).toHaveBeenCalled());
+      stderrHandlers[0]?.(
+        Buffer.from("Receiving objects:  47% (470/1000)\r\n"),
+      );
+      stderrHandlers[0]?.(
+        Buffer.from(
+          "Receiving objects: 100% (1000/1000), 1.23 MiB | 2.45 MiB/s\n",
+        ),
+      );
+      closeHandlers[0]?.(0);
+
+      await expect(promise).resolves.toBeUndefined();
+      const percents = onProgress.mock.calls.map((call) => call[0].percent);
+      expect(percents).toContain(47);
+      expect(percents).toContain(100);
+    });
+
+    it("ignores unparseable stderr chunks without affecting the clone", async () => {
+      const stderrHandlers: Array<(chunk: Buffer) => void> = [];
+      const closeHandlers: Array<(code: number) => void> = [];
+      const onProgress = vi.fn();
+
+      vi.mocked(childProcess.spawn).mockReturnValue({
+        stdout: { on: vi.fn() },
+        stderr: {
+          on: vi.fn((event, cb) => event === "data" && stderrHandlers.push(cb)),
+        },
+        on: vi.fn((event, cb) => event === "close" && closeHandlers.push(cb)),
+        kill: vi.fn(),
+      } as unknown as childProcess.ChildProcess);
+
+      const promise = gitClone(
+        "https://gitea.example.com/team/skills",
+        "/tmp/dest",
+        undefined,
+        onProgress,
+      );
+      await vi.waitFor(() => expect(childProcess.spawn).toHaveBeenCalled());
+      stderrHandlers[0]?.(
+        Buffer.from("remote: Enumerating objects: 123, done.\n"),
+      );
+      stderrHandlers[0]?.(Buffer.from("not a progress line at all"));
+      closeHandlers[0]?.(0);
+
+      await expect(promise).resolves.toBeUndefined();
+      // Only the implicit completion (100%) callback fires; no spurious percent.
+      expect(onProgress).toHaveBeenCalledTimes(1);
+      expect(onProgress).toHaveBeenCalledWith({ percent: 100 });
+    });
+
+    it("tolerates a throwing onProgress callback", async () => {
+      const closeHandlers: Array<(code: number) => void> = [];
+      const stderrHandlers: Array<(chunk: Buffer) => void> = [];
+
+      vi.mocked(childProcess.spawn).mockReturnValue({
+        stdout: { on: vi.fn() },
+        stderr: {
+          on: vi.fn((event, cb) => event === "data" && stderrHandlers.push(cb)),
+        },
+        on: vi.fn((event, cb) => event === "close" && closeHandlers.push(cb)),
+        kill: vi.fn(),
+      } as unknown as childProcess.ChildProcess);
+
+      const throwing = vi.fn(() => {
+        throw new Error("listener blew up");
+      });
+      const promise = gitClone(
+        "https://gitea.example.com/team/skills",
+        "/tmp/dest",
+        undefined,
+        throwing,
+      );
+      await vi.waitFor(() => expect(childProcess.spawn).toHaveBeenCalled());
+      stderrHandlers[0]?.(Buffer.from("Receiving objects:  10% (100/1000)\n"));
+      closeHandlers[0]?.(0);
+
+      await expect(promise).resolves.toBeUndefined();
+      expect(throwing).toHaveBeenCalled();
+    });
+  });
+
+  describe("parseGitClonePercent", () => {
+    it("extracts the most recent whole-number percentage from progress lines", () => {
+      expect(parseGitClonePercent("Receiving objects:  47% (470/1000)")).toBe(
+        47,
+      );
+      expect(
+        parseGitClonePercent(
+          "Receiving objects: 100% (1000/1000), 1.23 MiB | 2.45 MiB/s",
+        ),
+      ).toBe(100);
+      expect(parseGitClonePercent("Receiving objects: 0% (0/1000)")).toBe(0);
+    });
+
+    it("returns the last percentage when multiple lines appear in one chunk", () => {
+      const chunk =
+        "Receiving objects:  10% (100/1000)\rReceiving objects:  25% (250/1000)\rReceiving objects:  47% (470/1000)\n";
+      expect(parseGitClonePercent(chunk)).toBe(47);
+    });
+
+    it("returns null for chunks without a parseable progress line", () => {
+      expect(
+        parseGitClonePercent("remote: Enumerating objects: 123, done."),
+      ).toBeNull();
+      expect(parseGitClonePercent("not a progress line")).toBeNull();
+      expect(parseGitClonePercent("")).toBeNull();
+    });
+
+    it("ignores out-of-range numbers", () => {
+      // A malformed line is not produced by git, but the parser must still
+      // return null rather than an unsafe value.
+      expect(parseGitClonePercent("Receiving objects: 150% (bogus)")).toBeNull();
     });
   });
 

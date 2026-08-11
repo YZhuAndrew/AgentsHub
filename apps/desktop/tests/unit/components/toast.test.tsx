@@ -104,7 +104,7 @@ describe("ToastProvider / useToast", () => {
       screen.getByRole("button", { name: "Trigger" }).click();
     });
 
-    expect(electron.showNotification).toHaveBeenCalledWith("PromptHub - 警告", "需要注意");
+    expect(electron.showNotification).toHaveBeenCalledWith("AgentsHub - 警告", "需要注意");
   });
 
   it("gives icon-only close buttons an explicit accessible label", async () => {

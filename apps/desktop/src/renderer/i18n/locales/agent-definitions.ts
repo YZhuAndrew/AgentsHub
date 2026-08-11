@@ -18,7 +18,7 @@ export const agentDefinitionMessages = {
       disallowedTools: "Disallowed tools",
       none: "None",
       bodyExcluded:
-        "Definition bodies stay in Qwen Code and are not copied into PromptHub, backup, or sync.",
+        "Definition bodies stay in Qwen Code and are not copied into AgentsHub, backup, or sync.",
       warnings: {
         "file-too-large": "The file exceeds the safe preview size.",
         "invalid-frontmatter": "The YAML frontmatter is invalid.",
@@ -57,7 +57,7 @@ export const agentDefinitionMessages = {
       disallowedTools: "禁用工具",
       none: "无",
       bodyExcluded:
-        "定义正文保留在 Qwen Code 中，不会复制到 PromptHub、备份或同步数据。",
+        "定义正文保留在 Qwen Code 中，不会复制到 AgentsHub、备份或同步数据。",
       warnings: {
         "file-too-large": "文件超过安全预览大小。",
         "invalid-frontmatter": "YAML 前置元数据无效。",
@@ -95,7 +95,7 @@ export const agentDefinitionMessages = {
       disallowedTools: "停用工具",
       none: "無",
       bodyExcluded:
-        "定義本文保留在 Qwen Code 中，不會複製到 PromptHub、備份或同步資料。",
+        "定義本文保留在 Qwen Code 中，不會複製到 AgentsHub、備份或同步資料。",
       warnings: {
         "file-too-large": "檔案超過安全預覽大小。",
         "invalid-frontmatter": "YAML 前置中繼資料無效。",
@@ -133,7 +133,7 @@ export const agentDefinitionMessages = {
       disallowedTools: "禁止ツール",
       none: "なし",
       bodyExcluded:
-        "定義本文は Qwen Code に保持され、PromptHub、バックアップ、同期にはコピーされません。",
+        "定義本文は Qwen Code に保持され、AgentsHub、バックアップ、同期にはコピーされません。",
       warnings: {
         "file-too-large": "ファイルが安全なプレビューサイズを超えています。",
         "invalid-frontmatter": "YAML フロントマターが無効です。",
@@ -178,7 +178,7 @@ export const agentDefinitionMessages = {
       disallowedTools: "Outils interdits",
       none: "Aucun",
       bodyExcluded:
-        "Le contenu des définitions reste dans Qwen Code et n’est pas copié dans PromptHub, les sauvegardes ou la synchronisation.",
+        "Le contenu des définitions reste dans Qwen Code et n’est pas copié dans AgentsHub, les sauvegardes ou la synchronisation.",
       warnings: {
         "file-too-large":
           "Le fichier dépasse la taille de prévisualisation sûre.",
@@ -219,7 +219,7 @@ export const agentDefinitionMessages = {
       disallowedTools: "Gesperrte Werkzeuge",
       none: "Keine",
       bodyExcluded:
-        "Definitionsinhalte bleiben in Qwen Code und werden nicht nach PromptHub, in Sicherungen oder in die Synchronisierung kopiert.",
+        "Definitionsinhalte bleiben in Qwen Code und werden nicht nach AgentsHub, in Sicherungen oder in die Synchronisierung kopiert.",
       warnings: {
         "file-too-large": "Die Datei überschreitet die sichere Vorschaugröße.",
         "invalid-frontmatter": "Das YAML-Frontmatter ist ungültig.",
@@ -264,7 +264,7 @@ export const agentDefinitionMessages = {
       disallowedTools: "Herramientas no permitidas",
       none: "Ninguna",
       bodyExcluded:
-        "El contenido de las definiciones permanece en Qwen Code y no se copia a PromptHub, a las copias de seguridad ni a la sincronización.",
+        "El contenido de las definiciones permanece en Qwen Code y no se copia a AgentsHub, a las copias de seguridad ni a la sincronización.",
       warnings: {
         "file-too-large": "El archivo supera el tamaño seguro de vista previa.",
         "invalid-frontmatter": "El frontmatter YAML no es válido.",

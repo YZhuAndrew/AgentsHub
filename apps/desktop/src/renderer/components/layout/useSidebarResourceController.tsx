@@ -41,6 +41,12 @@ function useSidebarSkillBindings() {
   const skillFilterTags = useSkillStore((state) => state.filterTags);
   const toggleSkillFilterTag = useSkillStore((state) => state.toggleFilterTag);
   const clearSkillFilterTags = useSkillStore((state) => state.clearFilterTags);
+  const skillFilterAuthor = useSkillStore((state) => state.filterAuthor);
+  const setSkillFilterAuthor = useSkillStore((state) => state.setFilterAuthor);
+  const skillFilterSourceKey = useSkillStore((state) => state.filterSourceKey);
+  const setSkillFilterSourceKey = useSkillStore(
+    (state) => state.setFilterSourceKey,
+  );
   const [isSkillStoreGroupExpanded, setIsSkillStoreGroupExpanded] = useState(
     () => storeView === "store",
   );
@@ -63,6 +69,10 @@ function useSidebarSkillBindings() {
     skillFilterTags,
     toggleSkillFilterTag,
     clearSkillFilterTags,
+    skillFilterAuthor,
+    setSkillFilterAuthor,
+    skillFilterSourceKey,
+    setSkillFilterSourceKey,
     isSkillStoreGroupExpanded,
     setIsSkillStoreGroupExpanded,
   };
@@ -172,6 +182,13 @@ function useSidebarResourceSettings() {
   const [showAllSkillTags, setShowAllSkillTags] = useState(false);
   const [showAllMcpTags, setShowAllMcpTags] = useState(false);
   const [showAllPluginTags, setShowAllPluginTags] = useState(false);
+  // Source/author sidebar filter sections: default expanded (true).
+  const [isSkillSourceFilterCollapsed, setIsSkillSourceFilterCollapsed] =
+    useState(false);
+  const [isSkillAuthorFilterCollapsed, setIsSkillAuthorFilterCollapsed] =
+    useState(false);
+  const [showAllSkillSources, setShowAllSkillSources] = useState(false);
+  const [showAllSkillAuthors, setShowAllSkillAuthors] = useState(false);
   return {
     skillProjects,
     disabledPlatformIds,
@@ -185,6 +202,14 @@ function useSidebarResourceSettings() {
     setShowAllMcpTags,
     showAllPluginTags,
     setShowAllPluginTags,
+    isSkillSourceFilterCollapsed,
+    setIsSkillSourceFilterCollapsed,
+    isSkillAuthorFilterCollapsed,
+    setIsSkillAuthorFilterCollapsed,
+    showAllSkillSources,
+    setShowAllSkillSources,
+    showAllSkillAuthors,
+    setShowAllSkillAuthors,
   };
 }
 

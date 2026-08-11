@@ -1105,7 +1105,7 @@ function App() {
       ) {
         const delay = (settings.selfHostedSyncOnStartupDelay ?? 10) * 1000;
         logWhenDebugEnabled(
-          `🔄 Will back up to self-hosted PromptHub in ${delay / 1000}s...`,
+          `🔄 Will back up to self-hosted AgentsHub in ${delay / 1000}s...`,
         );
         selfHostedStartupSyncTimer = setTimeout(() => {
           if (!isWindowVisibleRef.current || navigator.onLine === false) {

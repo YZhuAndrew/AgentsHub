@@ -350,7 +350,7 @@ export class AgentConversationService {
       .join("\n\n");
     const projectPath = redactText(request.projectPath, this.options.homeDir);
     return [
-      "# PromptHub conversation handoff",
+      "# AgentsHub conversation handoff",
       "",
       `Source Agent: ${request.sourceAgentId}`,
       `Source conversation: ${session.title}`,

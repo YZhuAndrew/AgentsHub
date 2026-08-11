@@ -16,11 +16,11 @@ describe("Reasonix session adapter", () => {
   beforeEach(async () => {
     homeDir = await fs.mkdtemp(path.join(os.tmpdir(), "prompthub-reasonix-"));
     stateRoot = path.join(homeDir, ".reasonix-state");
-    projectPath = path.join(homeDir, "Projects", "PromptHub");
+    projectPath = path.join(homeDir, "Projects", "AgentsHub");
     sessionPath = path.join(
       stateRoot,
       "projects",
-      "-Users-test-Projects-PromptHub",
+      "-Users-test-Projects-AgentsHub",
       "sessions",
       "20260801-120000-reasonix.jsonl",
     );
@@ -139,7 +139,7 @@ describe("Reasonix session adapter", () => {
       sessions: [
         {
           title: "Repair session persistence",
-          projectLabel: "PromptHub",
+          projectLabel: "AgentsHub",
           projectPath,
           model: "deepseek-reasoner",
           messageCount: 4,

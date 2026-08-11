@@ -549,6 +549,113 @@ function createRegistryUpdateActions(set: SkillStoreSet, get: SkillStoreGet) {
   >;
 }
 
+/** Maximum concurrent update checks during a "check all updates" run. */
+const BULK_UPDATE_CHECK_CONCURRENCY = 3;
+
+/**
+ * Run async tasks with a bounded concurrency limit. Preserves input order in
+ * the results array. A task rejecting does not abort the batch; its result
+ * slot holds the rejection reason wrapped via `mapResult`.
+ */
+async function runWithBoundedConcurrency<T, R>(
+  inputs: T[],
+  limit: number,
+  task: (input: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (inputs.length === 0) return [];
+  const effectiveLimit = Math.max(1, Math.min(limit, inputs.length));
+  const results: R[] = new Array(inputs.length);
+  let nextIndex = 0;
+  async function worker(): Promise<void> {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= inputs.length) return;
+      results[index] = await task(inputs[index], index);
+    }
+  }
+  await Promise.all(Array.from({ length: effectiveLimit }, () => worker()));
+  return results;
+}
+
+function createRegistryBatchActions(set: SkillStoreSet, get: SkillStoreGet) {
+  return {
+    checkAllSkillUpdates: async () => {
+      if (get().isCheckingAllUpdates) {
+        return { checked: 0, updated: 0, upToDate: 0, failed: 0 };
+      }
+      const skills = get().skills;
+      // Only skills that can resolve a remote/registry source are checkable.
+      const checkable = skills.filter(
+        (skill) => Boolean(findInstalledSkillSourceCandidate(get(), skill)),
+      );
+      set({ isCheckingAllUpdates: true });
+      let updated = 0;
+      let upToDate = 0;
+      let failed = 0;
+      try {
+        const checks = await runWithBoundedConcurrency(
+          checkable,
+          BULK_UPDATE_CHECK_CONCURRENCY,
+          async (skill) => {
+            try {
+              return await get().getInstalledSkillSourceUpdateStatus(skill.id);
+            } catch {
+              return null;
+            }
+          },
+        );
+        const statuses: Record<string, RegistrySkillUpdateCheck> = {};
+        checks.forEach((check, index) => {
+          const skill = checkable[index];
+          if (!skill) return;
+          if (check) {
+            statuses[skill.id] = check;
+            if (check.status === "update-available") updated += 1;
+            else if (check.status === "up-to-date") upToDate += 1;
+            else if (check.status === "source-unavailable") failed += 1;
+          } else {
+            failed += 1;
+          }
+        });
+        set({
+          skillUpdateStatuses: statuses,
+          lastBulkCheckAt: Date.now(),
+        });
+      } finally {
+        set({ isCheckingAllUpdates: false });
+      }
+      return {
+        checked: checkable.length,
+        updated,
+        upToDate,
+        failed,
+      };
+    },
+    batchUpdateSelectedSkills: async (skillIds) => {
+      const succeeded: string[] = [];
+      const failed: string[] = [];
+      for (const skillId of skillIds) {
+        try {
+          const result = await get().updateInstalledSkillFromSource(skillId);
+          if (result?.status === "updated") succeeded.push(skillId);
+          else failed.push(skillId);
+        } catch {
+          failed.push(skillId);
+        }
+      }
+      return { succeeded, failed };
+    },
+    clearSkillUpdateStatuses: () =>
+      set({ skillUpdateStatuses: {}, lastBulkCheckAt: null }),
+  } satisfies Pick<
+    SkillRegistrySlice,
+    | "checkAllSkillUpdates"
+    | "batchUpdateSelectedSkills"
+    | "clearSkillUpdateStatuses"
+  >;
+}
+
 async function resolveInstallContent(
   registrySkill: RegistrySkill,
 ): Promise<string> {
@@ -931,6 +1038,9 @@ type RegistryActionKeys = Exclude<
   keyof SkillRegistrySlice,
   | "registrySkills"
   | "isLoadingRegistry"
+  | "skillUpdateStatuses"
+  | "isCheckingAllUpdates"
+  | "lastBulkCheckAt"
   | "storeCategory"
   | "storeSearchQuery"
   | "selectedRegistrySlug"
@@ -948,6 +1058,7 @@ export function createSkillRegistryActions(
     createRegistryLoadActions(set),
     createRegistryStatusActions(get),
     createRegistryUpdateActions(set, get),
+    createRegistryBatchActions(set, get),
     createRegistryInstallActions(get),
     createRegistrySelectionActions(set),
     createRegistryMergeAction(set),

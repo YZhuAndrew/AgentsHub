@@ -136,7 +136,7 @@ export function SkillStoreOverlays(props: SkillStoreOverlaysProps) {
             <p>
               {props.t(
                 "skill.batchStoreUpdateMessage",
-                "PromptHub will recheck and apply the selected updates after confirmation. Open an individual Skill to inspect its full line diff.",
+                "AgentsHub will recheck and apply the selected updates after confirmation. Open an individual Skill to inspect its full line diff.",
               )}
             </p>
             <ul className="max-h-32 space-y-1 overflow-y-auto text-xs">

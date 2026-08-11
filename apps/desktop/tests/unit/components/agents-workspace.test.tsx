@@ -998,7 +998,7 @@ describe("Agent workspace shell", () => {
               {
                 id: "session-1",
                 title: "Build investigation",
-                projectLabel: "PromptHub",
+                projectLabel: "AgentsHub",
                 projectPath: null,
                 createdAt: null,
                 updatedAt: 1_700_000_000_000,

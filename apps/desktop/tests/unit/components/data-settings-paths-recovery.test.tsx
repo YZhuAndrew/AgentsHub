@@ -58,7 +58,7 @@ vi.mock("../../../src/renderer/services/database-backup", () => ({
   formatBackupImportError: (error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes("FOREIGN KEY constraint failed")) {
-      return "备份中的文件夹或 Prompt 引用关系不完整，PromptHub 无法安全导入。建议重新导出一份新备份后再试。";
+      return "备份中的文件夹或 Prompt 引用关系不完整，AgentsHub 无法安全导入。建议重新导出一份新备份后再试。";
     }
     return message;
   },
@@ -244,7 +244,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
       created: true,
       skipped: false,
       backupId: "backup-1",
-      backupPath: "/tmp/PromptHub/backups/backup-1",
+      backupPath: "/tmp/AgentsHub/backups/backup-1",
     });
   });
 
@@ -287,26 +287,26 @@ describe("DataSettings", { timeout: 60_000 }, () => {
       electron: {
         getDataPathStatus: vi.fn().mockResolvedValue({
           configuredPath: null,
-          currentPath: "/Users/test/Library/Application Support/PromptHub",
+          currentPath: "/Users/test/Library/Application Support/AgentsHub",
           needsRestart: false,
         }),
         getRuntimePaths: vi.fn().mockResolvedValue({
-          userDataPath: "/Users/test/Library/Application Support/PromptHub",
-          dataDir: "/Users/test/Library/Application Support/PromptHub/data",
+          userDataPath: "/Users/test/Library/Application Support/AgentsHub",
+          dataDir: "/Users/test/Library/Application Support/AgentsHub/data",
           databasePath:
-            "/Users/test/Library/Application Support/PromptHub/data/prompthub.db",
+            "/Users/test/Library/Application Support/AgentsHub/data/prompthub.db",
           promptsDir:
-            "/Users/test/Library/Application Support/PromptHub/data/prompts",
+            "/Users/test/Library/Application Support/AgentsHub/data/prompts",
           rulesDir:
-            "/Users/test/Library/Application Support/PromptHub/data/rules",
+            "/Users/test/Library/Application Support/AgentsHub/data/rules",
           skillsDir:
-            "/Users/test/Library/Application Support/PromptHub/data/skills",
-          mcpDir: "/Users/test/Library/Application Support/PromptHub/data/mcp",
+            "/Users/test/Library/Application Support/AgentsHub/data/skills",
+          mcpDir: "/Users/test/Library/Application Support/AgentsHub/data/mcp",
           backupsDir:
-            "/Users/test/Library/Application Support/PromptHub/backups",
-          logsDir: "/Users/test/Library/Application Support/PromptHub/logs",
+            "/Users/test/Library/Application Support/AgentsHub/backups",
+          logsDir: "/Users/test/Library/Application Support/AgentsHub/logs",
           autoSyncLogPath:
-            "/Users/test/Library/Application Support/PromptHub/logs/auto-sync.jsonl",
+            "/Users/test/Library/Application Support/AgentsHub/logs/auto-sync.jsonl",
         }),
         openPath,
       },
@@ -324,18 +324,18 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     });
     expect(
       screen.getByText(
-        "/Users/test/Library/Application Support/PromptHub/data/mcp",
+        "/Users/test/Library/Application Support/AgentsHub/data/mcp",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Automatic Sync Log")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "/Users/test/Library/Application Support/PromptHub/logs/auto-sync.jsonl",
+        "/Users/test/Library/Application Support/AgentsHub/logs/auto-sync.jsonl",
       ),
     ).toBeInTheDocument();
 
     const mcpPath = screen.getByText(
-      "/Users/test/Library/Application Support/PromptHub/data/mcp",
+      "/Users/test/Library/Application Support/AgentsHub/data/mcp",
     );
     const row = mcpPath.closest("div.flex");
     expect(row).not.toBeNull();
@@ -347,7 +347,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     });
 
     expect(openPath).toHaveBeenCalledWith(
-      "/Users/test/Library/Application Support/PromptHub/data/mcp",
+      "/Users/test/Library/Application Support/AgentsHub/data/mcp",
     );
   });
 
@@ -393,7 +393,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     await waitFor(() => {
       expect(screen.getByText("Automatic sync history")).toBeInTheDocument();
     });
-    expect(screen.getByText("Self-Hosted PromptHub")).toBeInTheDocument();
+    expect(screen.getByText("Self-Hosted AgentsHub")).toBeInTheDocument();
     expect(screen.getByText("Startup resume")).toBeInTheDocument();
     expect(screen.getByText("Success")).toBeInTheDocument();
     expect(screen.getByText("Updated local data")).toBeInTheDocument();
@@ -422,7 +422,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     vi.mocked(listUpgradeBackups).mockResolvedValue([
       {
         backupId: "backup-1",
-        backupPath: "/tmp/PromptHub/backups/backup-1",
+        backupPath: "/tmp/AgentsHub/backups/backup-1",
         sizeBytes: 1024,
         manifest: {
           kind: "prompthub-upgrade-backup",
@@ -430,7 +430,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           createdAt: "2026-04-17T00:00:00.000Z",
           fromVersion: "0.5.1",
           toVersion: "0.5.2",
-          sourcePath: "/tmp/PromptHub",
+          sourcePath: "/tmp/AgentsHub",
           copiedItems: ["prompthub.db"],
           platform: "darwin",
         },
@@ -484,7 +484,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     const relaunchApp = vi.fn().mockResolvedValue({ success: true });
     const applyDataPathChange = vi.fn().mockResolvedValue({
       success: true,
-      newPath: "/copied/PromptHub",
+      newPath: "/copied/AgentsHub",
       needsRestart: true,
     });
     vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -502,10 +502,10 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           needsRestart: false,
         }),
         relaunchApp,
-        selectFolder: vi.fn().mockResolvedValue("/copied/PromptHub"),
+        selectFolder: vi.fn().mockResolvedValue("/copied/AgentsHub"),
         previewDataPathChange: vi.fn().mockResolvedValue({
           success: true,
-          targetPath: "/copied/PromptHub",
+          targetPath: "/copied/AgentsHub",
           exists: true,
           hasPromptHubData: true,
           isCurrentPath: false,
@@ -533,7 +533,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Target directory already contains PromptHub data"),
+        screen.getByText("Target directory already contains AgentsHub data"),
       ).toBeInTheDocument();
     });
     expect(applyDataPathChange).not.toHaveBeenCalled();
@@ -546,7 +546,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
 
     await waitFor(() => {
       expect(applyDataPathChange).toHaveBeenCalledWith(
-        "/copied/PromptHub",
+        "/copied/AgentsHub",
         "switch",
       );
     });
@@ -566,7 +566,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
   it("migrates immediately after confirmation when the selected directory is empty", async () => {
     const applyDataPathChange = vi.fn().mockResolvedValue({
       success: true,
-      newPath: "/empty/PromptHub",
+      newPath: "/empty/AgentsHub",
       needsRestart: false,
     });
     vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -583,10 +583,10 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           currentPath: "/actual/data",
           needsRestart: false,
         }),
-        selectFolder: vi.fn().mockResolvedValue("/empty/PromptHub"),
+        selectFolder: vi.fn().mockResolvedValue("/empty/AgentsHub"),
         previewDataPathChange: vi.fn().mockResolvedValue({
           success: true,
-          targetPath: "/empty/PromptHub",
+          targetPath: "/empty/AgentsHub",
           exists: true,
           hasPromptHubData: false,
           isCurrentPath: false,
@@ -608,7 +608,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
 
     await waitFor(() => {
       expect(applyDataPathChange).toHaveBeenCalledWith(
-        "/empty/PromptHub",
+        "/empty/AgentsHub",
         "migrate",
       );
     });
@@ -696,7 +696,7 @@ describe("DataSettings", { timeout: 60_000 }, () => {
           currentPath: "/actual/data",
           needsRestart: true,
         }),
-        selectFolder: vi.fn().mockResolvedValue("D:/PromptHub-legacy"),
+        selectFolder: vi.fn().mockResolvedValue("D:/AgentsHub-legacy"),
         checkRecovery: checkRecoveryMock,
       },
     });
@@ -725,12 +725,12 @@ describe("DataSettings", { timeout: 60_000 }, () => {
 
     fireEvent.change(
       screen.getByRole("textbox", { name: "Extra scan directories" }),
-      { target: { value: "D:/PromptHub-legacy" } },
+      { target: { value: "D:/AgentsHub-legacy" } },
     );
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     await waitFor(() => {
-      expect(screen.getByText("D:/PromptHub-legacy")).toBeInTheDocument();
+      expect(screen.getByText("D:/AgentsHub-legacy")).toBeInTheDocument();
     });
 
     const removePathButton = screen.getByRole("button", { name: "Delete" });
@@ -740,24 +740,24 @@ describe("DataSettings", { timeout: 60_000 }, () => {
     fireEvent.click(removePathButton);
 
     await waitFor(() => {
-      expect(screen.queryByText("D:/PromptHub-legacy")).not.toBeInTheDocument();
+      expect(screen.queryByText("D:/AgentsHub-legacy")).not.toBeInTheDocument();
     });
 
     fireEvent.change(
       screen.getByRole("textbox", { name: "Extra scan directories" }),
-      { target: { value: "D:/PromptHub-legacy" } },
+      { target: { value: "D:/AgentsHub-legacy" } },
     );
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     await waitFor(() => {
-      expect(screen.getByText("D:/PromptHub-legacy")).toBeInTheDocument();
+      expect(screen.getByText("D:/AgentsHub-legacy")).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Scan now" }));
 
     await waitFor(() => {
       expect(checkRecoveryMock).toHaveBeenCalledWith({
-        extraPaths: ["D:/PromptHub-legacy"],
+        extraPaths: ["D:/AgentsHub-legacy"],
         ignoreDismissMarker: true,
       });
     });

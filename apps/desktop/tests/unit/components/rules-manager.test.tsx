@@ -188,7 +188,7 @@ describe("RulesManager", () => {
             exists: true,
             group: "workspace",
             syncStatus: "out-of-sync",
-            content: "# PromptHub copy",
+            content: "# AgentsHub copy",
             targetContent: "# External edit",
             versions: [],
           }),
@@ -217,7 +217,7 @@ describe("RulesManager", () => {
         "true",
       );
       expect(
-        screen.getByText("− PromptHub · + External file"),
+        screen.getByText("− AgentsHub · + External file"),
       ).toBeInTheDocument();
     });
 
@@ -226,7 +226,7 @@ describe("RulesManager", () => {
       "aria-selected",
       "true",
     );
-    expect(screen.getAllByText("# PromptHub copy").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("# AgentsHub copy").length).toBeGreaterThan(0);
     expect(screen.getAllByText("# External edit").length).toBeGreaterThan(0);
 
     expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
@@ -295,7 +295,7 @@ describe("RulesManager", () => {
             exists: true,
             group: "workspace",
             syncStatus: "out-of-sync",
-            content: "# PromptHub copy",
+            content: "# AgentsHub copy",
             targetContent: "# External edit",
             versions: [],
           }),
@@ -318,12 +318,12 @@ describe("RulesManager", () => {
     expect(screen.getByText("Keep external version?")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Overwrite the PromptHub copy with the external file for Docs Site.",
+        "Overwrite the AgentsHub copy with the external file for Docs Site.",
       ),
     ).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Overwrite PromptHub" }),
+      screen.getByRole("button", { name: "Overwrite AgentsHub" }),
     );
 
     await waitFor(() => {
@@ -335,7 +335,7 @@ describe("RulesManager", () => {
     });
 
     expect(showToast).toHaveBeenCalledWith(
-      "Kept the external file version and synced it to PromptHub",
+      "Kept the external file version and synced it to AgentsHub",
       "success",
     );
   });

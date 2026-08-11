@@ -31,7 +31,7 @@ describe("backup import errors", () => {
     "Unexpected end of JSON input",
   ])("formats truncated JSON import errors for users: %s", (message) => {
     expect(formatBackupImportError(new Error(message))).toBe(
-      "备份文件不是完整 JSON，可能在导出、复制或上传过程中被截断。请重新从 PromptHub 导出完整的 JSON、PHUB 或 ZIP 文件后再导入。",
+      "备份文件不是完整 JSON，可能在导出、复制或上传过程中被截断。请重新从 AgentsHub 导出完整的 JSON、PHUB 或 ZIP 文件后再导入。",
     );
   });
 });

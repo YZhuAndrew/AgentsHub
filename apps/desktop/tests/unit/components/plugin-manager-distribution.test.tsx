@@ -895,7 +895,7 @@ describe("PluginManager", () => {
     fireEvent.click(await screen.findByText("OpenCode"));
 
     expect(
-      await screen.findByText("OpenCode 不支持 PromptHub Plugin 能力包"),
+      await screen.findByText("OpenCode 不支持 AgentsHub Plugin 能力包"),
     ).toBeInTheDocument();
     expect(
       screen.getByText(

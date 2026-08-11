@@ -323,7 +323,7 @@ describe("Skill detail project distribution", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "This removes the symlink from the platform directory. Your local Skill stays in PromptHub.",
+        "This removes the symlink from the platform directory. Your local Skill stays in AgentsHub.",
       ),
     ).toBeInTheDocument();
     expect(uninstallFromPlatform).not.toHaveBeenCalled();
@@ -375,7 +375,7 @@ describe("Skill detail project distribution", () => {
 
     expect(
       screen.getByText(
-        "Only removes this skill from the PromptHub library. Source files are preserved.",
+        "Only removes this skill from the AgentsHub library. Source files are preserved.",
       ),
     ).toBeInTheDocument();
     expect(
@@ -394,16 +394,16 @@ describe("Skill detail project distribution", () => {
     fireEvent.click(screen.getByTitle("删除"));
 
     expect(
-      screen.getByText("只会从 PromptHub 资料库中移除此 Skill。源文件会保留。"),
+      screen.getByText("只会从 AgentsHub 资料库中移除此 Skill。源文件会保留。"),
     ).toBeInTheDocument();
     expect(
       screen.queryByText(
-        "Only removes this skill from the PromptHub library. Source files are preserved.",
+        "Only removes this skill from the AgentsHub library. Source files are preserved.",
       ),
     ).not.toBeInTheDocument();
   });
 
-  it("lets users keep copied distributions when deleting from PromptHub", async () => {
+  it("lets users keep copied distributions when deleting from AgentsHub", async () => {
     const deleteSkill = vi.fn().mockResolvedValue(true);
 
     await renderProjectDistribution({
@@ -450,7 +450,7 @@ describe("Skill detail project distribution", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("deletes project symlink distributions when deleting the PromptHub skill", async () => {
+  it("deletes project symlink distributions when deleting the AgentsHub skill", async () => {
     const deleteSkill = vi.fn().mockResolvedValue(true);
     const deleteLocalFileByPath = vi.fn().mockResolvedValue(undefined);
     window.api.skill.deleteLocalFileByPath = deleteLocalFileByPath;
@@ -679,7 +679,7 @@ describe("Skill detail project distribution", () => {
     );
     expect(
       screen.getByText(
-        "This removes the distributed copy from the project. Your local Skill stays in PromptHub.",
+        "This removes the distributed copy from the project. Your local Skill stays in AgentsHub.",
       ),
     ).toBeInTheDocument();
 
@@ -826,7 +826,7 @@ describe("Skill detail project distribution", () => {
 
     await waitFor(() => {
       expect(showToast).toHaveBeenCalledWith(
-        "Import completed, but PromptHub could not refresh the project list. Please rescan manually.",
+        "Import completed, but AgentsHub could not refresh the project list. Please rescan manually.",
         "warning",
       );
     });

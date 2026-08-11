@@ -208,7 +208,7 @@ export function BackupPanel() {
                   <div className="text-[11px] text-muted-foreground/80">
                     {t(
                       "settings.backupDropRestoreFormats",
-                      "Supported: .json, .phub.gz, .gz, .zip, PromptHub SQLite backups",
+                      "Supported: .json, .phub.gz, .gz, .zip, AgentsHub SQLite backups",
                     )}
                   </div>
                 </div>

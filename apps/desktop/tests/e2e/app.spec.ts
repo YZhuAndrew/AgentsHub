@@ -21,7 +21,7 @@ test.describe("E2E: Skill smoke", () => {
     try {
       await setAppLanguage(page, "en");
 
-      await expect(page).toHaveTitle(/PromptHub/);
+      await expect(page).toHaveTitle(/AgentsHub/);
       await expect(page.getByRole("button", { name: "Skills" })).toBeVisible();
 
       await page.getByRole("button", { name: "Skills" }).click();
@@ -80,7 +80,7 @@ test.describe("E2E: Skill smoke", () => {
     );
 
     try {
-      await expect(page).toHaveTitle(/PromptHub/);
+      await expect(page).toHaveTitle(/AgentsHub/);
       await expect
         .poll(async () => Boolean((await getE2EStats(page))?.webdav))
         .toBe(true);
@@ -126,7 +126,7 @@ test.describe("E2E: Skill smoke", () => {
     const { app, page, userDataDir } = await launchPromptHub("skills-smoke.seed.json");
 
     try {
-      await expect(page).toHaveTitle(/PromptHub/);
+      await expect(page).toHaveTitle(/AgentsHub/);
       await expect.poll(() => isAppWindowVisible(app)).toBe(true);
 
       await setAppSettings(page, {
@@ -192,7 +192,7 @@ test.describe("E2E: Skill smoke", () => {
     );
 
     try {
-      await expect(page).toHaveTitle(/PromptHub/);
+      await expect(page).toHaveTitle(/AgentsHub/);
 
       const promptFile = path.join(
         userDataDir,

@@ -114,7 +114,7 @@ describe("skill crud IPC", () => {
     expect(db.create).not.toHaveBeenCalled();
   });
 
-  it("deletes PromptHub-managed repo containers when deleting a skill", async () => {
+  it("deletes AgentsHub-managed repo containers when deleting a skill", async () => {
     const { db, handlers, IPC_CHANNELS } = await setupSkillCrudIpc();
 
     const skill = {
@@ -136,7 +136,7 @@ describe("skill crud IPC", () => {
     expect(db.delete).toHaveBeenCalledWith("skill-1");
   });
 
-  it("uninstalls every platform distribution before deleting the PromptHub skill", async () => {
+  it("uninstalls every platform distribution before deleting the AgentsHub skill", async () => {
     const { db, handlers, IPC_CHANNELS } = await setupSkillCrudIpc();
 
     const skill = {

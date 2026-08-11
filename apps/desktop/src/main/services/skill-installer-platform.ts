@@ -733,7 +733,7 @@ export async function installSkillMdSymlink(
 
   await initSkillsDir();
 
-  // 1. Write the canonical copy into PromptHub's own skills dir
+  // 1. Write the canonical copy into AgentsHub's own skills dir
   const canonicalDir = canonicalRepoPath ?? path.join(mainSkillsDir, skillName);
   if (!canonicalRepoPath) {
     await fs.mkdir(canonicalDir, { recursive: true });

@@ -185,7 +185,7 @@ describe("AgentConversationService", () => {
     expect(preview.payload).not.toContain("sk-test-secret");
     expect(preview.payload).toContain("~/project");
     expect(preview.cliCommand).toMatch(
-      /^cd '\/workspace\/project' && codex '# PromptHub conversation handoff/,
+      /^cd '\/workspace\/project' && codex '# AgentsHub conversation handoff/,
     );
 
     const result = await service.continueInAgent({
@@ -272,7 +272,7 @@ describe("AgentConversationService", () => {
     expect(launch).not.toHaveBeenCalled();
   });
 
-  it("keeps a copy-only fallback when PromptHub cannot launch the target Agent", async () => {
+  it("keeps a copy-only fallback when AgentsHub cannot launch the target Agent", async () => {
     const { service } = createService({
       canLaunchAgent: vi.fn(async () => false),
     });
@@ -289,7 +289,7 @@ describe("AgentConversationService", () => {
       transport: "unavailable",
       cliCommand: null,
     });
-    expect(preview.payload).toContain("# PromptHub conversation handoff");
+    expect(preview.payload).toContain("# AgentsHub conversation handoff");
   });
 
   it("leaves copied context available when opening the target Agent fails", async () => {

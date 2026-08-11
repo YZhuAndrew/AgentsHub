@@ -243,7 +243,7 @@ describe("mcp store remote market cache persistence", () => {
       {
         id: "prompthub-official",
         label: "Official Store",
-        url: "https://github.com/legeling/PromptHub",
+        url: "https://github.com/legeling/AgentsHub",
         trustLevel: "official",
       },
       {
@@ -360,7 +360,7 @@ describe("mcp store remote market cache persistence", () => {
           serverName: filesystemServer.name,
           status: "needs-sync",
           safeToReapply: true,
-          reason: "Target was updated from PromptHub",
+          reason: "Target was updated from AgentsHub",
           backupPath: "/Users/test/.claude.json.bak",
         },
       ],
@@ -378,7 +378,7 @@ describe("mcp store remote market cache persistence", () => {
         serverName: filesystemServer.name,
         status: "synced",
         safeToReapply: false,
-        reason: "Target entry matches PromptHub",
+        reason: "Target entry matches AgentsHub",
       },
     ];
     window.api.mcp = {

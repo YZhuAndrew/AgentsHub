@@ -1208,7 +1208,7 @@ export function SkillStore() {
                     : selectedStoreSourceId === "prompthub-cloud"
                       ? t(
                           "skill.loadingPromptHubCloudStore",
-                          "Loading PromptHub Cloud Store releases...",
+                          "Loading AgentsHub Cloud Store releases...",
                         )
                       : t(
                           "skill.loadingCustomStore",

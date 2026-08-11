@@ -288,3 +288,16 @@ export function buildMySkillSourceBadges(
     },
   ];
 }
+
+/**
+ * The primary (non-branch) source badge for a skill, used to derive the source
+ * filter key. Shared by the Skill list filter and the sidebar source filter.
+ */
+export function getPrimarySkillSourceBadge(
+  skill: SkillSourceBadgeInput,
+  t: TFunction,
+): SkillVariantBadge | undefined {
+  return buildMySkillSourceBadges(skill, t).find(
+    (badge) => !badge.key.startsWith("source-branch-"),
+  );
+}

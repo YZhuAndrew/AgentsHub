@@ -30,7 +30,7 @@ describe("upgrade-backup-restore", () => {
   });
 
   it("replaces current userData content while preserving the backups root", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "prompthub.db"), "old-db");
     fs.writeFileSync(path.join(userDataPath, "shortcut-mode.json"), '{"mode":"old"}');
@@ -73,7 +73,7 @@ describe("upgrade-backup-restore", () => {
   });
 
   it("returns an error for an unknown backup id", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
 
     const result = await restoreFromUpgradeBackupAsync(
@@ -89,7 +89,7 @@ describe("upgrade-backup-restore", () => {
   });
 
   it("ignores runtime cache directories during restore", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "prompthub.db"), "old-db");
 
@@ -116,7 +116,7 @@ describe("upgrade-backup-restore", () => {
   });
 
   it("moves a legacy root database into data/prompthub.db during restore", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "prompthub.db"), "old-db");
 
@@ -140,7 +140,7 @@ describe("upgrade-backup-restore", () => {
   });
 
   it("rolls back to the insurance snapshot when restore fails mid-flight", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "prompthub.db"), "old-db");
     fs.writeFileSync(path.join(userDataPath, "shortcut-mode.json"), '{"mode":"old"}');
@@ -161,7 +161,7 @@ describe("upgrade-backup-restore", () => {
         const destinationText = destination.toString();
         if (
           sourceText.includes(snapshot.backupId) &&
-          destinationText.endsWith(path.join("PromptHub", "shortcut-mode.json"))
+          destinationText.endsWith(path.join("AgentsHub", "shortcut-mode.json"))
         ) {
           throw new Error("simulated restore failure");
         }
@@ -189,7 +189,7 @@ describe("upgrade-backup-restore", () => {
   });
 
   it("rejects symlinks inside a backup snapshot and rolls back current data", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     const backupId = "v0.5.1-2026-01-01T00-00-00-000Z";
     const backupPath = path.join(getUpgradeBackupRoot(userDataPath), backupId);
     const externalPath = path.join(tmpBase, "outside-restore-secret.txt");
@@ -236,7 +236,7 @@ describe("upgrade-backup-restore", () => {
   });
 
   it("prunes old snapshots after restore while keeping source and insurance backups", async () => {
-    const userDataPath = path.join(tmpBase, "PromptHub");
+    const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });
     fs.writeFileSync(path.join(userDataPath, "prompthub.db"), "seed-db");
 

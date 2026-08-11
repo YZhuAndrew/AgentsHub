@@ -31,26 +31,26 @@ export function SelfHostedSyncPanel() {
     <>
       {!webRuntime && activeSubsection === "selfHosted" ? (
         <DataSettingsSection
-          title={t("settings.selfHostedSyncMenu", "Self-Hosted PromptHub")}
+          title={t("settings.selfHostedSyncMenu", "Self-Hosted AgentsHub")}
         >
           <div className="p-4 space-y-4">
             <div className="flex items-center gap-3">
               <ServerCogIcon className="w-5 h-5 text-muted-foreground" />
               <div className="flex-1">
                 <p className="text-sm font-medium">
-                  {t("settings.selfHostedSyncMenu", "Self-Hosted PromptHub")}
+                  {t("settings.selfHostedSyncMenu", "Self-Hosted AgentsHub")}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {t(
                     "settings.selfHostedSyncDesc",
-                    "Store independent desktop snapshots in your deployed PromptHub Web. Automatic backup never pulls, merges, or changes the live Web workspace.",
+                    "Store independent desktop snapshots in your deployed AgentsHub Web. Automatic backup never pulls, merges, or changes the live Web workspace.",
                   )}
                 </p>
               </div>
               <ToggleSwitch
                 ariaLabel={t(
                   "settings.selfHostedSyncMenu",
-                  "Self-Hosted PromptHub",
+                  "Self-Hosted AgentsHub",
                 )}
                 checked={settings.selfHostedSyncEnabled}
                 onChange={settings.setSelfHostedSyncEnabled}
@@ -70,14 +70,14 @@ export function SelfHostedSyncPanel() {
                   <label className="text-xs text-muted-foreground mb-1 block">
                     {t(
                       "settings.selfHostedSyncServer",
-                      "Self-Hosted PromptHub URL",
+                      "Self-Hosted AgentsHub URL",
                     )}
                   </label>
                   <input
                     type="text"
                     aria-label={t(
                       "settings.selfHostedSyncServer",
-                      "Self-Hosted PromptHub URL",
+                      "Self-Hosted AgentsHub URL",
                     )}
                     placeholder="https://backup.example.com"
                     value={settings.selfHostedSyncUrl}
@@ -93,7 +93,7 @@ export function SelfHostedSyncPanel() {
                   </label>
                   <input
                     type="text"
-                    aria-label={`${t("settings.selfHostedSyncMenu", "Self-Hosted PromptHub")} ${t("settings.webdavUsername")}`}
+                    aria-label={`${t("settings.selfHostedSyncMenu", "Self-Hosted AgentsHub")} ${t("settings.webdavUsername")}`}
                     placeholder={t("settings.webdavUsername")}
                     value={settings.selfHostedSyncUsername}
                     onChange={(e) =>
@@ -107,7 +107,7 @@ export function SelfHostedSyncPanel() {
                     {t("settings.webdavPassword")}
                   </label>
                   <PasswordInput
-                    ariaLabel={`${t("settings.selfHostedSyncMenu", "Self-Hosted PromptHub")} ${t("settings.webdavPassword")}`}
+                    ariaLabel={`${t("settings.selfHostedSyncMenu", "Self-Hosted AgentsHub")} ${t("settings.webdavPassword")}`}
                     placeholder={t("settings.webdavPassword")}
                     value={settings.selfHostedSyncPassword}
                     onChange={settings.setSelfHostedSyncPassword}
@@ -164,7 +164,7 @@ export function SelfHostedSyncPanel() {
                   </div>
                   <div className="min-w-[140px]">
                     <Select
-                      ariaLabel={`${t("settings.selfHostedSyncMenu", "Self-Hosted PromptHub")} ${t("settings.selfHostedAutoRun", "Automatic Backup")}`}
+                      ariaLabel={`${t("settings.selfHostedSyncMenu", "Self-Hosted AgentsHub")} ${t("settings.selfHostedAutoRun", "Automatic Backup")}`}
                       value={String(settings.selfHostedAutoSyncInterval)}
                       onChange={(val) =>
                         settings.setSelfHostedAutoSyncInterval(Number(val))
@@ -209,7 +209,7 @@ export function SelfHostedSyncPanel() {
                   </div>
                   <div className="min-w-[180px]">
                     <Select
-                      ariaLabel={`${t("settings.selfHostedSyncMenu", "Self-Hosted PromptHub")} ${t("settings.selfHostedSyncOnStartup", "Run Once on Startup")}`}
+                      ariaLabel={`${t("settings.selfHostedSyncMenu", "Self-Hosted AgentsHub")} ${t("settings.selfHostedSyncOnStartup", "Run Once on Startup")}`}
                       value={String(
                         settings.selfHostedSyncOnStartup
                           ? settings.selfHostedSyncOnStartupDelay

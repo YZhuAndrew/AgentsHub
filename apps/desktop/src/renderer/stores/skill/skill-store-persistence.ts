@@ -14,9 +14,17 @@ import {
   type SkillTranslationCacheEntry,
 } from "../../services/skill-translation-cache";
 import { ensureRegistrySkillSourceId } from "./skill-source-update-workflow";
-import type { SkillState } from "./skill-store-types";
+import type { SkillState, SkillViewMode } from "./skill-store-types";
 
 type RemoteStoreEntry = SkillState["remoteStoreEntries"][string];
+
+/**
+ * Bumped when the persisted skill-store shape changes and existing users should
+ * be migrated. v2: the library default switched from gallery to list; users on
+ * the old default are reset to the new default once.
+ */
+const SKILL_STORE_SCHEMA_VERSION = 2;
+const DEFAULT_SKILL_VIEW_MODE: SkillViewMode = "list";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -210,9 +218,21 @@ export function mergePersistedSkillState(
       >)
     : currentState.translationCache;
 
+  // Migrate the library default from gallery to list once for users on the old
+  // schema. The schema version is tracked in a dedicated localStorage key so
+  // the runtime SkillState type stays clean. After migration the key is
+  // current, so a later explicit view-mode choice is preserved.
+  const persistedSchemaVersion = readSkillStoreSchemaVersion();
+  const migratedViewMode: SkillViewMode =
+    persistedSchemaVersion < SKILL_STORE_SCHEMA_VERSION
+      ? DEFAULT_SKILL_VIEW_MODE
+      : normalizePersistedViewMode(persistedState.viewMode, currentState.viewMode);
+  writeSkillStoreSchemaVersion(SKILL_STORE_SCHEMA_VERSION);
+
   return {
     ...currentState,
     ...persistedState,
+    viewMode: migratedViewMode,
     customStoreSources: persistedCustomStoreSources,
     selectedStoreSourceId: normalizeSkillStoreSourceIdForRuntime(
       typeof persistedState.selectedStoreSourceId === "string"
@@ -229,4 +249,33 @@ export function mergePersistedSkillState(
     ),
     translationCache: pruneSkillTranslationCache(persistedTranslationCache),
   };
+}
+
+const SKILL_STORE_SCHEMA_KEY = "skill-store-schema-version";
+
+function readSkillStoreSchemaVersion(): number {
+  if (typeof localStorage === "undefined") return SKILL_STORE_SCHEMA_VERSION;
+  try {
+    const raw = localStorage.getItem(SKILL_STORE_SCHEMA_KEY);
+    const parsed = raw ? Number.parseInt(raw, 10) : 1;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+  } catch {
+    return SKILL_STORE_SCHEMA_VERSION;
+  }
+}
+
+function writeSkillStoreSchemaVersion(version: number): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(SKILL_STORE_SCHEMA_KEY, String(version));
+  } catch {
+    // Storage may be unavailable (private mode); migration is best-effort.
+  }
+}
+
+function normalizePersistedViewMode(
+  value: unknown,
+  fallback: SkillViewMode,
+): SkillViewMode {
+  return value === "gallery" || value === "list" ? value : fallback;
 }

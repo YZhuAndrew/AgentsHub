@@ -49,7 +49,7 @@ describe("ProjectSkillPreviewSidebar i18n", () => {
     expect(screen.getByText("项目分发")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "将这个 Skill 直接分发到项目本地 agent 目录。PromptHub 默认使用 .agents/skills，也可以按需添加更多目标文件夹。",
+        "将这个 Skill 直接分发到项目本地 agent 目录。AgentsHub 默认使用 .agents/skills，也可以按需添加更多目标文件夹。",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("默认 .agents 目标")).toBeInTheDocument();

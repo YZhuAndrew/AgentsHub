@@ -71,7 +71,7 @@ describe("SkillAssetTopology", () => {
         skill={{
           ...baseSkill,
           source_url: "https://github.com/example/writer-skill",
-          local_repo_path: "/PromptHub/data/skills/writer",
+          local_repo_path: "/AgentsHub/data/skills/writer",
         }}
         installDetails={{
           codex: { installed: true, mode: "copy" },
@@ -84,9 +84,9 @@ describe("SkillAssetTopology", () => {
 
     expect(screen.getByText("Upstream source")).toBeInTheDocument();
     expect(screen.getByText("example/writer-skill")).toBeInTheDocument();
-    expect(screen.getByText("PromptHub managed package")).toBeInTheDocument();
+    expect(screen.getByText("AgentsHub managed package")).toBeInTheDocument();
     expect(
-      screen.getByText("/PromptHub/data/skills/writer"),
+      screen.getByText("/AgentsHub/data/skills/writer"),
     ).toBeInTheDocument();
     expect(screen.getByText("Codex CLI")).toBeInTheDocument();
     expect(screen.getByText("Claude Code")).toBeInTheDocument();
@@ -100,15 +100,15 @@ describe("SkillAssetTopology", () => {
     ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", {
-        name: "/PromptHub/data/skills/writer",
+        name: "/AgentsHub/data/skills/writer",
       }),
     );
     expect(onOpenLocalPath).toHaveBeenCalledWith(
-      "/PromptHub/data/skills/writer",
+      "/AgentsHub/data/skills/writer",
     );
   });
 
-  it("labels a linked external package without implying PromptHub ownership", async () => {
+  it("labels a linked external package without implying AgentsHub ownership", async () => {
     const linkedPath = "/Users/demo/.codex/skills/writer";
     const onOpenLocalPath = vi.fn();
     await renderWithI18n(
@@ -127,12 +127,12 @@ describe("SkillAssetTopology", () => {
     expect(screen.getByText("Linked external package")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Edits write directly to this external folder; PromptHub does not replace it with a managed copy.",
+        "Edits write directly to this external folder; AgentsHub does not replace it with a managed copy.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Not distributed")).toBeInTheDocument();
     expect(
-      screen.queryByText("PromptHub managed package"),
+      screen.queryByText("AgentsHub managed package"),
     ).not.toBeInTheDocument();
     for (const pathButton of screen.getAllByRole("button", {
       name: linkedPath,

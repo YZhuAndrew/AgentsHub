@@ -21,7 +21,7 @@ export function makeRegistrySkill(
       .join(" "),
     description: `${slug} description`,
     category: "general",
-    author: "PromptHub",
+    author: "AgentsHub",
     source_url: `https://example.com/${slug}`,
     tags: [],
     version: "1.0.0",

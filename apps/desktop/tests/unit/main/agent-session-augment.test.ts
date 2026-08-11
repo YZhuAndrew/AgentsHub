@@ -22,7 +22,7 @@ describe("Augment CLI conversation sessions", () => {
 
   it("lists, searches, paginates and resumes native Auggie sessions", async () => {
     const sessionId = "aceb882d-a726-4660-a97d-c9a2cd2f9323";
-    const projectPath = path.join(homeDir, "Projects", "PromptHub");
+    const projectPath = path.join(homeDir, "Projects", "AgentsHub");
     const sourcePath = path.join(augmentRoot, "sessions", `${sessionId}.json`);
     await fs.writeFile(
       sourcePath,
@@ -70,7 +70,7 @@ describe("Augment CLI conversation sessions", () => {
         {
           id: sessionId,
           title: "Review the release workflow",
-          projectLabel: "PromptHub",
+          projectLabel: "AgentsHub",
           projectPath,
           createdAt: Date.parse("2026-03-06T02:10:53.108Z"),
           updatedAt: Date.parse("2026-03-06T02:12:01.486Z"),

@@ -24,7 +24,7 @@ function makeRegistrySkill(slug: string) {
     name: "Timer Skill",
     description: "Timer lifecycle test skill",
     category: "general",
-    author: "PromptHub",
+    author: "AgentsHub",
     source_url: `https://example.com/${slug}`,
     tags: [],
     version: "1.0.0",

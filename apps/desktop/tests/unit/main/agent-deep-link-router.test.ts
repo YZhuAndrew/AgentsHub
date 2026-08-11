@@ -102,16 +102,16 @@ describe("Agent deep-link main-process router", () => {
     const commands: AppCommand[] = [];
     router.connect((command) => commands.push(command));
 
-    expect(router.acceptArgv(["PromptHub", "--hidden", validLink()])).toBe(
+    expect(router.acceptArgv(["AgentsHub", "--hidden", validLink()])).toBe(
       true,
     );
     expect(
-      router.acceptArgv(["PromptHub", validLink("One"), validLink("Two")]),
+      router.acceptArgv(["AgentsHub", validLink("One"), validLink("Two")]),
     ).toBe(false);
-    expect(router.acceptArgv(["PromptHub", "--hidden"])).toBe(false);
+    expect(router.acceptArgv(["AgentsHub", "--hidden"])).toBe(false);
     expect(
       router.acceptArgv([
-        "PromptHub",
+        "AgentsHub",
         42 as unknown as string,
         validLink("Typed"),
       ]),
@@ -247,7 +247,7 @@ describe("Agent deep-link protocol registration", () => {
         app,
         isE2E: true,
         isPackaged: true,
-        execPath: "/Applications/PromptHub",
+        execPath: "/Applications/AgentsHub",
         appEntryPath: "/app/main.js",
       }),
     ).toBe(false);
@@ -258,7 +258,7 @@ describe("Agent deep-link protocol registration", () => {
         app,
         isE2E: false,
         isPackaged: true,
-        execPath: "/Applications/PromptHub",
+        execPath: "/Applications/AgentsHub",
         appEntryPath: "/app/main.js",
       }),
     ).toBe(true);
@@ -293,7 +293,7 @@ describe("Agent deep-link protocol registration", () => {
         },
         isE2E: false,
         isPackaged: true,
-        execPath: "/Applications/PromptHub",
+        execPath: "/Applications/AgentsHub",
         appEntryPath: "/app/main.js",
       }),
     ).toBe(false);

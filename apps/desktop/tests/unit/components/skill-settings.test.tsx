@@ -477,7 +477,7 @@ describe("SkillSettings", () => {
     expect(screen.getByText("Delete Custom Agent")).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Are you sure you want to delete custom agent "Team Agents"? This only removes it from PromptHub settings.',
+        'Are you sure you want to delete custom agent "Team Agents"? This only removes it from AgentsHub settings.',
       ),
     ).toBeInTheDocument();
 

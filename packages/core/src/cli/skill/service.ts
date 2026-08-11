@@ -826,7 +826,7 @@ export function createCliSkillService(
               .filter(Boolean)
               .map((scanPath) => ({ path: scanPath, platformName: "Custom" }))
           : [
-              { path: getSkillsDir(), platformName: "PromptHub" },
+              { path: getSkillsDir(), platformName: "AgentsHub" },
               ...SKILL_PLATFORMS.map((platform) => ({
                 path: getPlatformSkillsDir(platform),
                 platformName: platform.name,

@@ -22,11 +22,11 @@ const library: PluginLibraryFile = {
 
 const prompthubSource: PluginMarketSource = {
   id: "prompthub-official",
-  displayName: "PromptHub Official",
-  repository: "https://github.com/legeling/PromptHub",
+  displayName: "AgentsHub Official",
+  repository: "https://github.com/legeling/AgentsHub",
   marketplaceFile: ".agents/plugins/marketplace.json",
   rawJsonUrl:
-    "https://raw.githubusercontent.com/legeling/PromptHub/main/.agents/plugins/marketplace.json",
+    "https://raw.githubusercontent.com/legeling/AgentsHub/main/.agents/plugins/marketplace.json",
   trustLevel: "official",
 };
 

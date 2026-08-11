@@ -294,7 +294,7 @@ async function runCliOperation(
                   : isDatabaseBusyError(error)
                     ? new CliError(
                         "DATABASE_BUSY",
-                        "数据库正在被另一个 PromptHub 进程写入，请稍后重试；如持续出现，请关闭其他 PromptHub 进程后重试",
+                        "数据库正在被另一个 AgentsHub 进程写入，请稍后重试；如持续出现，请关闭其他 AgentsHub 进程后重试",
                         EXIT_CODES.CONFLICT,
                       )
                     : new CliError(

@@ -74,7 +74,7 @@ describe("Cloud Skill package writes", () => {
       name: "Rollback",
       description: "Rollback test",
       category: "general",
-      author: "PromptHub Cloud",
+      author: "AgentsHub Cloud",
       source_url: "cloud://store/listings/rollback",
       tags: [],
       version: "1.1.0",

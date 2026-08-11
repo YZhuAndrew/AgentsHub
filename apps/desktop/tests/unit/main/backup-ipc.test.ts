@@ -7,7 +7,7 @@ const handleMock = vi.fn();
 const relaunchMock = vi.fn();
 const quitMock = vi.fn();
 const getPathMock = vi.fn((name: string) => {
-  if (name === "userData") return "/tmp/PromptHub";
+  if (name === "userData") return "/tmp/AgentsHub";
   return "/tmp";
 });
 
@@ -95,14 +95,14 @@ describe("backup IPC", () => {
     await expect(
       handlers[IPC_CHANNELS.UPGRADE_BACKUP_LIST](null),
     ).resolves.toBe(backups);
-    expect(listUpgradeBackupsMock).toHaveBeenCalledWith("/tmp/PromptHub");
+    expect(listUpgradeBackupsMock).toHaveBeenCalledWith("/tmp/AgentsHub");
   });
 
   it("forwards an explicit empty-baseline request to the snapshot service", async () => {
     const { handlers, IPC_CHANNELS } = await setupBackupIpc();
     createUpgradeDataSnapshotMock.mockResolvedValue({
       backupId: "v0.5.9-empty",
-      backupPath: "/tmp/PromptHub/backups/v0.5.9-empty",
+      backupPath: "/tmp/AgentsHub/backups/v0.5.9-empty",
     });
 
     await expect(
@@ -113,10 +113,10 @@ describe("backup IPC", () => {
       created: true,
       skipped: false,
       backupId: "v0.5.9-empty",
-      backupPath: "/tmp/PromptHub/backups/v0.5.9-empty",
+      backupPath: "/tmp/AgentsHub/backups/v0.5.9-empty",
     });
     expect(createUpgradeDataSnapshotMock).toHaveBeenCalledWith(
-      "/tmp/PromptHub",
+      "/tmp/AgentsHub",
       expect.objectContaining({ allowEmpty: true }),
     );
   });
@@ -128,7 +128,7 @@ describe("backup IPC", () => {
       handlers[IPC_CHANNELS.UPGRADE_BACKUP_DELETE](null, "v0.5.3-1"),
     ).resolves.toEqual({ success: true });
     expect(deleteUpgradeBackupMock).toHaveBeenCalledWith(
-      "/tmp/PromptHub",
+      "/tmp/AgentsHub",
       "v0.5.3-1",
     );
   });
@@ -139,7 +139,7 @@ describe("backup IPC", () => {
       success: true,
       needsRestart: true,
       restoredBackupId: "v0.5.3-1",
-      currentStateBackupPath: "/tmp/PromptHub/backups/insurance",
+      currentStateBackupPath: "/tmp/AgentsHub/backups/insurance",
     });
 
     const result = await handlers[IPC_CHANNELS.UPGRADE_BACKUP_RESTORE](
@@ -148,7 +148,7 @@ describe("backup IPC", () => {
     );
     expect(closeDatabaseMock).toHaveBeenCalledTimes(1);
     expect(restoreFromUpgradeBackupAsyncMock).toHaveBeenCalledWith(
-      "/tmp/PromptHub",
+      "/tmp/AgentsHub",
       "v0.5.3-1",
     );
     expect(initDatabaseMock).not.toHaveBeenCalled();
@@ -157,7 +157,7 @@ describe("backup IPC", () => {
       success: true,
       needsRestart: true,
       restoredBackupId: "v0.5.3-1",
-      currentStateBackupPath: "/tmp/PromptHub/backups/insurance",
+      currentStateBackupPath: "/tmp/AgentsHub/backups/insurance",
     });
 
     await vi.advanceTimersByTimeAsync(1500);

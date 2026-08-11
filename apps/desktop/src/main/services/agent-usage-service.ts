@@ -1113,7 +1113,7 @@ export function createAgentUsageService(
   }
 
   // GitHub OAuth tokens are reused from the gh CLI or the Copilot CLI
-  // credential stores; PromptHub never runs its own OAuth flow here.
+  // credential stores; AgentsHub never runs its own OAuth flow here.
   async function readCopilotToken(): Promise<string | null> {
     try {
       const raw = await readFile(path.join(homeDir, GH_HOSTS_RELATIVE_PATH));

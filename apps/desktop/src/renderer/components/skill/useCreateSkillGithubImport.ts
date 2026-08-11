@@ -16,6 +16,7 @@ import {
   getRegistrySelectionKey,
   isCompleteImport,
 } from "./create-skill-modal-utils";
+import type { SkillImportBatchProgress } from "./useSkillImportProgress";
 
 type ErrorSetter = Dispatch<SetStateAction<string | null>>;
 type BooleanSetter = Dispatch<SetStateAction<boolean>>;
@@ -26,6 +27,10 @@ interface GitHubImportOptions {
   installRegistrySkill: SkillState["installRegistrySkill"];
   setError: ErrorSetter;
   setIsLoading: BooleanSetter;
+  setInstallBatchActive: (active: boolean) => void;
+  setScanRequestId: (requestId: string | null) => void;
+  setBatchProgress: (value: SkillImportBatchProgress | null) => void;
+  clearProgress: () => void;
   t: TFunction;
 }
 
@@ -41,6 +46,10 @@ export function useCreateSkillGithubImport({
   installRegistrySkill,
   setError,
   setIsLoading,
+  setInstallBatchActive,
+  setScanRequestId,
+  setBatchProgress,
+  clearProgress,
   t,
 }: GitHubImportOptions) {
   const [githubUrl, setGithubUrl] = useState("");
@@ -92,9 +101,11 @@ export function useCreateSkillGithubImport({
         setIsLoading,
         setLastScannedGithubUrl,
         setSelectedGitHubSkills,
+        setScanRequestId,
+        clearProgress,
         t,
       }),
-    [existingSkills, normalizedGithubUrl, setError, setIsLoading, t],
+    [existingSkills, normalizedGithubUrl, setError, setIsLoading, setScanRequestId, clearProgress, t],
   );
   const toggleGitHubSkill = useCallback((key: string) => {
     setSelectedGitHubSkills((selected) => toggleSelection(selected, key));
@@ -108,6 +119,9 @@ export function useCreateSkillGithubImport({
         setError,
         setGithubImportNotice,
         setIsLoading,
+        setInstallBatchActive,
+        setBatchProgress,
+        clearProgress,
         t,
       }),
     [
@@ -116,6 +130,9 @@ export function useCreateSkillGithubImport({
       selectedGitHubSkills,
       setError,
       setIsLoading,
+      setInstallBatchActive,
+      setBatchProgress,
+      clearProgress,
       t,
     ],
   );
@@ -162,6 +179,8 @@ async function scanGitHubRepository({
   setIsLoading,
   setLastScannedGithubUrl,
   setSelectedGitHubSkills,
+  setScanRequestId,
+  clearProgress,
   t,
 }: {
   existingSkills: Skill[];
@@ -173,6 +192,8 @@ async function scanGitHubRepository({
   setIsLoading: BooleanSetter;
   setLastScannedGithubUrl: Dispatch<SetStateAction<string>>;
   setSelectedGitHubSkills: Dispatch<SetStateAction<Set<string>>>;
+  setScanRequestId: (requestId: string | null) => void;
+  clearProgress: () => void;
   t: TFunction;
 }) {
   if (!normalizedGithubUrl) {
@@ -181,6 +202,7 @@ async function scanGitHubRepository({
   }
   setIsLoading(true);
   setError(null);
+  clearProgress();
   let parsedRepo: ReturnType<typeof parseGitRepo> | null = null;
   try {
     parsedRepo = parseGitRepo(normalizedGithubUrl);
@@ -191,6 +213,7 @@ async function scanGitHubRepository({
     const skills = await loadRepositorySkills(
       normalizedGithubUrl,
       parsedRepo,
+      setScanRequestId,
       t,
     );
     if (!skills.length)
@@ -209,16 +232,25 @@ async function scanGitHubRepository({
     setError(formatGitHubScanError(error, parsedRepo, t));
   } finally {
     setIsLoading(false);
+    setScanRequestId(null);
   }
 }
 
 async function loadRepositorySkills(
   url: string,
   parsedRepo: NonNullable<ReturnType<typeof parseGitRepo>>,
+  setScanRequestId: (requestId: string | null) => void,
   t: TFunction,
 ): Promise<RegistrySkill[]> {
   if (!isGitHubHost(parsedRepo.host) || parsedRepo.protocol === "ssh") {
-    return window.api.skill.scanRemoteGithub(url, BUILTIN_SKILL_REGISTRY);
+    const scanPromise = window.api.skill.scanRemoteGithub(
+      url,
+      BUILTIN_SKILL_REGISTRY,
+    );
+    // The preload assigns the scan requestId synchronously before invoking, so
+    // read it now to correlate subsequent clone progress events.
+    setScanRequestId(window.api.skill.lastScanRequestId());
+    return scanPromise;
   }
   return loadGitHubSkillRepo(url, {
     branch: undefined,
@@ -284,6 +316,9 @@ async function importSelectedGitHubSkills({
   setError,
   setGithubImportNotice,
   setIsLoading,
+  setInstallBatchActive,
+  setBatchProgress,
+  clearProgress,
   t,
 }: {
   annotatedGitHubResults: AnnotatedRegistrySkill[];
@@ -292,6 +327,9 @@ async function importSelectedGitHubSkills({
   setError: ErrorSetter;
   setGithubImportNotice: Dispatch<SetStateAction<string | null>>;
   setIsLoading: BooleanSetter;
+  setInstallBatchActive: (active: boolean) => void;
+  setBatchProgress: (value: SkillImportBatchProgress | null) => void;
+  clearProgress: () => void;
   t: TFunction;
 }): Promise<boolean> {
   const targets = annotatedGitHubResults.filter(
@@ -303,8 +341,14 @@ async function importSelectedGitHubSkills({
   setIsLoading(true);
   setError(null);
   setGithubImportNotice(null);
+  clearProgress();
+  setInstallBatchActive(true);
   try {
-    const summary = await installGitHubSkills(targets, installRegistrySkill);
+    const summary = await installGitHubSkills(
+      targets,
+      installRegistrySkill,
+      setBatchProgress,
+    );
     if (
       isCompleteImport(
         summary.importedCount,
@@ -319,12 +363,15 @@ async function importSelectedGitHubSkills({
     return false;
   } finally {
     setIsLoading(false);
+    setInstallBatchActive(false);
+    clearProgress();
   }
 }
 
 async function installGitHubSkills(
   skills: RegistrySkill[],
   installRegistrySkill: SkillState["installRegistrySkill"],
+  setBatchProgress: (value: SkillImportBatchProgress | null) => void,
 ): Promise<GitHubImportSummary> {
   const summary: GitHubImportSummary = {
     importedCount: 0,
@@ -332,7 +379,10 @@ async function installGitHubSkills(
     skipped: [],
     failed: [],
   };
-  for (const skill of skills) {
+  const total = skills.length;
+  for (let index = 0; index < skills.length; index += 1) {
+    const skill = skills[index];
+    setBatchProgress({ index: index + 1, total, skillName: skill.name });
     try {
       const result = await installRegistrySkill(skill);
       if (result?.status === "installed") summary.importedCount += 1;

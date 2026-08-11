@@ -6,6 +6,7 @@ import type {
   Skill,
   SkillFileSnapshot,
   SkillPackageFileInput,
+  SkillPackageOperationPhase,
   SkillPackageOperationRequest,
   SkillSafetyReport,
   SkillVersion,
@@ -190,6 +191,11 @@ async function materializeRemoteSource(
   stagingRoot: string,
   stageSkill: Skill,
   onSafetyReport: (report: SkillSafetyReport) => void,
+  onProgress?: (detail: {
+    phase: SkillPackageOperationPhase;
+    message: string;
+    clonePercent?: number;
+  }) => void,
 ): Promise<string> {
   if (source.kind === "remote-git") {
     return SkillInstaller.saveRemoteGitSkillToLocalRepoBySkillId(stageSkill, {
@@ -201,6 +207,7 @@ async function materializeRemoteSource(
       approvedPackageFingerprint: request.approvedPackageFingerprint,
       targetRootDir: stagingRoot,
       onSafetyReport,
+      onProgress,
     });
   }
   return SkillInstaller.saveRemoteZipSkillToLocalRepoBySkillId(stageSkill, {
@@ -244,7 +251,15 @@ async function scanNonRemoteStage(
 
 async function stagePackage(
   request: SkillPackageOperationRequest,
-  context: { stagingRoot: string; sourceId: string },
+  context: {
+    stagingRoot: string;
+    sourceId: string;
+    onProgress?: (detail: {
+      phase: SkillPackageOperationPhase;
+      message: string;
+      clonePercent?: number;
+    }) => void;
+  },
 ): Promise<StagedSkillPackage> {
   const stageSkill = createStageSkill(request, context.sourceId);
   let safetyReport: SkillSafetyReport | undefined;
@@ -259,6 +274,7 @@ async function stagePackage(
         (report) => {
           safetyReport = report;
         },
+        context.onProgress,
       )
     : await materializeNonRemoteSource(source, context.stagingRoot);
   await validateMaterializedSkillPackage(repoPath);

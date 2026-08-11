@@ -101,7 +101,7 @@ export function AgentCliUpdateReview({
       <p className="text-xs leading-5 text-muted-foreground">
         {t(
           "agents.cliDiagnostics.update.notice",
-          "PromptHub will run this fixed command, verify the CLI, and attempt to restore the current version if verification fails.",
+          "AgentsHub will run this fixed command, verify the CLI, and attempt to restore the current version if verification fails.",
         )}
       </p>
 

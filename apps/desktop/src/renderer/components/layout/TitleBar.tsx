@@ -38,8 +38,8 @@ export function TitleBar() {
     <div className="h-8 app-wallpaper-panel-strong flex items-center justify-between select-none titlebar-drag border-b border-border">
       {/* 应用图标和标题 */}
       <div className="flex items-center gap-2 px-3">
-        <img src={appIconUrl} alt="PromptHub" className="h-4 w-4 rounded-[4px]" />
-        <span className="text-xs text-muted-foreground">PromptHub</span>
+        <img src={appIconUrl} alt="AgentsHub" className="h-4 w-4 rounded-[4px]" />
+        <span className="text-xs text-muted-foreground">AgentsHub</span>
       </div>
 
       {/* 窗口控制按钮 */}

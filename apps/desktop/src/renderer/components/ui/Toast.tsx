@@ -84,7 +84,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             : type === 'warning'
               ? t('common.warning', 'Warning')
               : t('common.info', 'Info');
-      window.electron.showNotification(`PromptHub - ${title}`, message);
+      window.electron.showNotification(`AgentsHub - ${title}`, message);
     }
 
     // Auto-dismiss after 3 seconds via the same exit-animation pipeline.

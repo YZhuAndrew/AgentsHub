@@ -25,7 +25,7 @@ vi.mock("electron", () => ({
     getAppPath: vi.fn(() => "/app"),
     getPath: vi.fn((name: string) => {
       if (name === "userData") {
-        return "/tmp/PromptHub";
+        return "/tmp/AgentsHub";
       }
       if (name === "downloads") {
         return "/tmp/downloads";
@@ -75,14 +75,14 @@ describe("updater install backup", () => {
     });
     delete (autoUpdater as unknown as { installerPath?: string }).installerPath;
     backupMocks.createUpgradeDataSnapshotMock.mockResolvedValue({
-      backupPath: "/tmp/PromptHub/backups/v0.5.1-2026-04-16T00-00-00",
+      backupPath: "/tmp/AgentsHub/backups/v0.5.1-2026-04-16T00-00-00",
       backupId: "v0.5.1-2026-04-16T00-00-00",
       manifest: {
         kind: "prompthub-upgrade-backup",
         schemaVersion: 2,
         createdAt: "2026-04-16T00:00:00.000Z",
         fromVersion: "0.5.1",
-        sourcePath: "/tmp/PromptHub",
+        sourcePath: "/tmp/AgentsHub",
         copiedItems: ["prompthub.db", "skills"],
         platform: "linux",
       },
@@ -106,21 +106,21 @@ describe("updater install backup", () => {
     const result = await installHandler();
 
     expect(backupMocks.createUpgradeDataSnapshotMock).toHaveBeenCalledWith(
-      "/tmp/PromptHub",
+      "/tmp/AgentsHub",
       { fromVersion: "0.5.1" },
     );
     expect(autoUpdater.quitAndInstall).toHaveBeenCalledWith(false, true);
     expect(result).toEqual({
       success: true,
       manual: false,
-      backupPath: "/tmp/PromptHub/backups/v0.5.1-2026-04-16T00-00-00",
+      backupPath: "/tmp/AgentsHub/backups/v0.5.1-2026-04-16T00-00-00",
     });
   });
 
   it("restarts a direct macOS installation through the native updater", async () => {
     Object.defineProperty(process, "platform", { value: "darwin" });
     Object.defineProperty(process, "execPath", {
-      value: "/Applications/PromptHub.app/Contents/MacOS/PromptHub",
+      value: "/Applications/AgentsHub.app/Contents/MacOS/AgentsHub",
       configurable: true,
     });
 
@@ -137,7 +137,7 @@ describe("updater install backup", () => {
     const result = await installHandler();
 
     expect(backupMocks.createUpgradeDataSnapshotMock).toHaveBeenCalledWith(
-      "/tmp/PromptHub",
+      "/tmp/AgentsHub",
       { fromVersion: "0.5.1" },
     );
     expect(electronMocks.openPathMock).not.toHaveBeenCalled();
@@ -145,7 +145,7 @@ describe("updater install backup", () => {
     expect(result).toEqual({
       success: true,
       manual: false,
-      backupPath: "/tmp/PromptHub/backups/v0.5.1-2026-04-16T00-00-00",
+      backupPath: "/tmp/AgentsHub/backups/v0.5.1-2026-04-16T00-00-00",
     });
   });
 
@@ -174,7 +174,7 @@ describe("updater install backup", () => {
     const electronModule = await import("electron");
     vi.mocked(electronModule.app.getPath).mockImplementation((name: string) => {
       if (name === "userData") {
-        return "/tmp/PromptHub";
+        return "/tmp/AgentsHub";
       }
       if (name === "downloads") {
         return "/tmp/downloads";
@@ -185,7 +185,7 @@ describe("updater install backup", () => {
     const originalExecPath = process.execPath;
     Object.defineProperty(process, "execPath", {
       value:
-        "/opt/homebrew/Caskroom/prompthub/0.5.5/PromptHub.app/Contents/MacOS/PromptHub",
+        "/opt/homebrew/Caskroom/prompthub/0.5.5/AgentsHub.app/Contents/MacOS/AgentsHub",
       configurable: true,
     });
 

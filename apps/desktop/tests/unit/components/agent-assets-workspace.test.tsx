@@ -471,7 +471,7 @@ describe("AgentAssetsWorkspace", () => {
     expect(within(sourceSidebar).getByText("Claude Code")).toBeVisible();
     expect(within(sourceSidebar).getByText("~/.claude.json")).toBeVisible();
     expect(
-      within(sourceSidebar).getByText("Not in PromptHub library"),
+      within(sourceSidebar).getByText("Not in AgentsHub library"),
     ).toBeVisible();
     expect(onDetailOpenChange).toHaveBeenLastCalledWith(true);
     fireEvent.click(

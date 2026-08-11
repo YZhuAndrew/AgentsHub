@@ -9,7 +9,10 @@ import { SkillInstaller } from "../../services/skill-installer";
 import { getPlatformRootDir } from "../../services/skill-installer-utils";
 import { scanSkillSafety } from "../../services/skill-safety-scan";
 import type { SkillIPCContext } from "./shared";
-import { ensureLocalRepoPathBySkillId } from "./shared";
+import {
+  createSkillProgressSender,
+  ensureLocalRepoPathBySkillId,
+} from "./shared";
 
 const SUPPORTED_MCP_PLATFORMS = new Set(["claude", "cursor"]);
 
@@ -338,11 +341,12 @@ export function registerSkillPlatformHandlers(context: SkillIPCContext): void {
   ipcMain.handle(
     IPC_CHANNELS.SKILL_SCAN_REMOTE_GITHUB,
     async (
-      _,
+      event,
       repoUrl: string,
       registrySkills: RegistrySkill[],
       branch?: string,
       directory?: string,
+      requestId?: string,
     ) => {
       if (typeof repoUrl !== "string" || repoUrl.trim().length === 0) {
         throw new Error("skill:scanRemoteGithub requires a non-empty repoUrl");
@@ -352,11 +356,25 @@ export function registerSkillPlatformHandlers(context: SkillIPCContext): void {
           "skill:scanRemoteGithub requires registrySkills to be an array",
         );
       }
+      const emit = createSkillProgressSender(
+        event,
+        IPC_CHANNELS.SKILL_SCAN_REMOTE_PROGRESS,
+        "scan",
+        typeof requestId === "string" ? requestId : undefined,
+      );
       return SkillInstaller.scanRemoteGithub(
         repoUrl,
         registrySkills,
         branch,
         directory,
+        emit
+          ? (detail) =>
+              emit({
+                phase: detail.phase,
+                message: detail.message,
+                clonePercent: detail.clonePercent,
+              })
+          : undefined,
       );
     },
   );

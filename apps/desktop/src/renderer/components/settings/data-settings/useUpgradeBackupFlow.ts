@@ -87,7 +87,7 @@ function useUpgradeBackupRestore(
       showToast(
         t(
           "settings.upgradeBackupRestoreScheduled",
-          "Upgrade backup restored. PromptHub will restart automatically.",
+          "Upgrade backup restored. AgentsHub will restart automatically.",
         ),
         "success",
       );

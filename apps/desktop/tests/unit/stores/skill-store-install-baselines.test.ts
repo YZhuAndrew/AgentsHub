@@ -205,7 +205,7 @@ description: Use this skill for PDF tasks.
       name: "Writer",
       description: "Write better",
       category: "general",
-      author: "PromptHub",
+      author: "AgentsHub",
       source_url: "https://github.com/example/skills/tree/main/writer",
       content_url:
         "https://raw.githubusercontent.com/example/skills/main/writer/SKILL.md",
@@ -258,7 +258,7 @@ description: Use this skill for PDF tasks.
       name: "Raw URL Skill",
       description: "Raw URL source",
       category: "general",
-      author: "PromptHub",
+      author: "AgentsHub",
       source_url: "",
       content_url: "https://example.com/skills/raw-url/SKILL.md",
       directory_fingerprint: "stale-tree-fingerprint",
@@ -299,7 +299,7 @@ description: Use this skill for PDF tasks.
           source_id: "source-main-writer",
           description: "Stable writer",
           category: "general",
-          author: "PromptHub",
+          author: "AgentsHub",
           source_url: "https://github.com/example/skills/tree/main/writer",
           source_branch: "main",
           tags: ["writing"],
@@ -313,7 +313,7 @@ description: Use this skill for PDF tasks.
           source_id: "source-dev-writer",
           description: "Dev writer",
           category: "general",
-          author: "PromptHub",
+          author: "AgentsHub",
           source_url: "https://github.com/example/skills/tree/dev/writer",
           source_branch: "dev",
           tags: ["writing"],
@@ -379,7 +379,7 @@ description: Use this skill for PDF tasks.
       name: "Binary Skill",
       description: "Has image assets",
       category: "general",
-      author: "PromptHub",
+      author: "AgentsHub",
       source_url:
         "https://github.com/example/skills/tree/main/skills/binary-skill",
       content_url:
@@ -545,7 +545,7 @@ description: Use this skill for PDF tasks.
           name: "Writer",
           description: "Write better",
           category: "general",
-          author: "PromptHub",
+          author: "AgentsHub",
           source_url: "https://github.com/example/skills/tree/main/writer",
           content_url:
             "https://raw.githubusercontent.com/example/skills/main/writer/SKILL.md",
@@ -599,7 +599,7 @@ description: Use this skill for PDF tasks.
       name: "Writer",
       description: "Write better",
       category: "general" as const,
-      author: "PromptHub",
+      author: "AgentsHub",
       source_url: "https://github.com/example/skills/tree/main/writer",
       content_url:
         "https://raw.githubusercontent.com/example/skills/main/writer/SKILL.md",

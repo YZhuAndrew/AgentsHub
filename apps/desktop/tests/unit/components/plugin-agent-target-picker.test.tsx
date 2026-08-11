@@ -36,7 +36,7 @@ const gmailPlugin: PluginLibraryEntry = {
   classification: "bundle",
   source: {
     kind: "market",
-    label: "PromptHub",
+    label: "AgentsHub",
     packagePath: "plugins/gmail",
   },
   distributedTargetIds: [],

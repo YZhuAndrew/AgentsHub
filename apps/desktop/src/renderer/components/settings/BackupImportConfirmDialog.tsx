@@ -72,7 +72,7 @@ export function BackupImportConfirmDialog({
             <p>
               {t(
                 "settings.importPreviewBackupNotice",
-                "PromptHub will automatically create a local safety backup of your current state before importing.",
+                "AgentsHub will automatically create a local safety backup of your current state before importing.",
               )}
             </p>
             {hasAnySkipped(importPreview.summary.skipped) ? (

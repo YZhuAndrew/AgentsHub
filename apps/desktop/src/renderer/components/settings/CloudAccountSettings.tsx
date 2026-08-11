@@ -262,7 +262,7 @@ export function CloudAccountSettings() {
       });
       setState({ authenticated: true, user: next.user, baseUrl: next.baseUrl });
       setPassword("");
-      showToast(t("settings.cloudAccountLoginSuccess", "Signed in to PromptHub Cloud."), "success");
+      showToast(t("settings.cloudAccountLoginSuccess", "Signed in to AgentsHub Cloud."), "success");
     } catch (error) {
       showToast(
         error instanceof Error
@@ -282,7 +282,7 @@ export function CloudAccountSettings() {
       setState({ authenticated: false, user: null, baseUrl });
       setInstallations([]);
       setEntitlements(null);
-      showToast(t("settings.cloudAccountLogoutSuccess", "Signed out of PromptHub Cloud."), "success");
+      showToast(t("settings.cloudAccountLogoutSuccess", "Signed out of AgentsHub Cloud."), "success");
     } catch (error) {
       showToast(
         error instanceof Error
@@ -297,7 +297,7 @@ export function CloudAccountSettings() {
 
   return (
     <div className="space-y-6">
-      <SettingSection title={t("settings.cloudAccount", "PromptHub Cloud") }>
+      <SettingSection title={t("settings.cloudAccount", "AgentsHub Cloud") }>
         {loading ? (
           <div className="flex items-center gap-2 px-4 py-5 text-sm text-muted-foreground">
             <Loader2Icon className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -503,7 +503,7 @@ export function CloudAccountSettings() {
         ) : (
           <div className="space-y-4 p-4">
             <p className="text-sm text-muted-foreground">
-              {t("settings.cloudAccountDesc", "Sign in to browse PromptHub Cloud Store releases and confirm Skill installs from the desktop app.")}
+              {t("settings.cloudAccountDesc", "Sign in to browse AgentsHub Cloud Store releases and confirm Skill installs from the desktop app.")}
             </p>
             <div className="grid gap-3 md:grid-cols-2">
               <label className="space-y-1 text-sm">

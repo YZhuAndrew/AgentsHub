@@ -342,6 +342,10 @@ export function createWindowApiMock(overrides?: DeepPartial<MockRecord>) {
         fetchRemoteContent: vi.fn(),
         fetchRemoteContentBytes: vi.fn(),
         scanRemoteGithub: vi.fn().mockResolvedValue([]),
+        lastScanRequestId: vi.fn().mockReturnValue("scan-req-test"),
+        onScanRemoteProgress: vi.fn().mockReturnValue(() => undefined),
+        runPackageOperation: vi.fn(),
+        onPackageOperationProgress: vi.fn().mockReturnValue(() => undefined),
         saveToRepo: vi.fn(),
         saveRemoteGitToRepo: vi.fn(),
         saveRemoteZipToRepo: vi.fn(),
@@ -466,19 +470,19 @@ export function createWindowElectronMock(overrides?: DeepPartial<MockRecord>) {
           packageManagerVersion: "9.15.0",
           releaseTag: "v0.5.8-beta.2",
           installCommand:
-            "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+            "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
           manualInstallCommands: {
-            pnpm: "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
-            npm: "npm install -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+            pnpm: "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+            npm: "npm install -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
           },
           installSource:
-            "https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+            "https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
         }),
         install: vi.fn().mockResolvedValue({
           success: true,
           method: "pnpm",
           command:
-            "pnpm add -g https://github.com/legeling/PromptHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
+            "pnpm add -g https://github.com/legeling/AgentsHub/releases/download/v0.5.8-beta.2/prompthub-cli-0.5.8-beta.2.tgz",
         }),
       },
       selectImage: vi.fn(),

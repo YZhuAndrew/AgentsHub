@@ -7,6 +7,7 @@ import {
   SquareIcon,
 } from "lucide-react";
 import { getRegistrySelectionKey } from "./create-skill-modal-utils";
+import { SkillImportProgressPanel } from "./SkillImportProgressPanel";
 import type { CreateSkillModalController } from "./useCreateSkillModalController";
 
 interface CreateSkillGithubImportPanelProps {
@@ -19,9 +20,18 @@ export function CreateSkillGithubImportPanel({
   const { t } = useTranslation();
   const hasResults =
     controller.githubScanDone && controller.annotatedGitHubResults.length > 0;
+  const showProgress = controller.isLoading;
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <GithubRepositoryInput controller={controller} hasResults={hasResults} />
+      {showProgress ? (
+        <SkillImportProgressPanel
+          progress={controller.importProgress ?? null}
+          batchIndex={controller.importBatchProgress?.index}
+          batchTotal={controller.importBatchProgress?.total}
+          batchSkillName={controller.importBatchProgress?.skillName}
+        />
+      ) : null}
       {hasResults ? <GithubSkillResults controller={controller} /> : null}
     </div>
   );
@@ -66,7 +76,7 @@ function GithubRepositoryInput({
       <p className="mt-2 text-xs text-muted-foreground">
         {t(
           "skill.githubUrlHint",
-          "Use the repository root URL. PromptHub supports GitHub, Gitea, and other self-hosted Git repositories over HTTPS or SSH, then scans the repo for importable SKILL.md entries before you choose what to import.",
+          "Use the repository root URL. AgentsHub supports GitHub, Gitea, and other self-hosted Git repositories over HTTPS or SSH, then scans the repo for importable SKILL.md entries before you choose what to import.",
         )}
       </p>
       {controller.githubScanNeedsRefresh ? <GithubRescanWarning /> : null}
@@ -107,7 +117,7 @@ function GithubFallbackHint() {
     <div className="rounded-lg border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
       {t(
         "skill.githubFallbackHint",
-        "PromptHub will scan the repository for multiple SKILL.md entries. If none exist, it will fall back to the root README.md as a single import option.",
+        "AgentsHub will scan the repository for multiple SKILL.md entries. If none exist, it will fall back to the root README.md as a single import option.",
       )}
     </div>
   );
@@ -126,7 +136,7 @@ function GithubRepositoryConstraints() {
       <p>
         {t(
           "skill.githubFallbackHint",
-          "PromptHub will scan the repository for multiple SKILL.md entries. If none exist, it will fall back to the root README.md as a single import option.",
+          "AgentsHub will scan the repository for multiple SKILL.md entries. If none exist, it will fall back to the root README.md as a single import option.",
         )}
       </p>
     </div>

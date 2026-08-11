@@ -74,7 +74,7 @@ function getTargetDescription(
   if (!target.enabled) {
     return t("plugin.targetDescriptions.unsupportedBundle", {
       defaultValue:
-        "{{name}} does not expose a complete PromptHub Plugin bundle surface.",
+        "{{name}} does not expose a complete AgentsHub Plugin bundle surface.",
       name: target.displayName,
     });
   }
@@ -114,7 +114,7 @@ function PluginPickerSummary({ plugins }: { plugins: PluginLibraryEntry[] }) {
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               {t(
                 "plugin.batchDistributeSummaryDesc",
-                "Choose Agent targets once and PromptHub will distribute each selected Plugin package.",
+                "Choose Agent targets once and AgentsHub will distribute each selected Plugin package.",
               )}
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -338,7 +338,7 @@ function PluginPickerFooter({
       <p className="text-xs leading-5 text-muted-foreground">
         {t(
           "plugin.distributionTargetHint",
-          "PromptHub writes this Plugin package into each selected Agent's configured Plugin directory.",
+          "AgentsHub writes this Plugin package into each selected Agent's configured Plugin directory.",
         )}
       </p>
     </>

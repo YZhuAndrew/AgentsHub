@@ -11,6 +11,7 @@ import type {
   SkillSafetyScanInput,
   SkillFileSnapshot,
   SkillPlatformScanResult,
+  SkillImportProgressDetail,
   SkillPackageOperationRequest,
   SkillPackageOperationResult,
   SkillLocalFileEntry,
@@ -20,6 +21,14 @@ import type {
   SkillVersion,
   UpdateSkillParams,
 } from "@prompthub/shared/types";
+
+/** Generate a client-side correlation id for progress events. */
+function generateSkillRequestId(): string {
+  return `skill-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** Most recent scan requestId, so the renderer can correlate scan progress. */
+let lastSkillScanRequestId: string | null = null;
 
 export const skillApi = {
   create: (
@@ -132,14 +141,33 @@ export const skillApi = {
     registrySkills: unknown[],
     branch?: string,
     directory?: string,
-  ) =>
-    ipcRenderer.invoke(
+  ) => {
+    const requestId = generateSkillRequestId();
+    lastSkillScanRequestId = requestId;
+    return ipcRenderer.invoke(
       IPC_CHANNELS.SKILL_SCAN_REMOTE_GITHUB,
       repoUrl,
       registrySkills,
       branch,
       directory,
-    ),
+      requestId,
+    );
+  },
+  lastScanRequestId: () => lastSkillScanRequestId,
+  onScanRemoteProgress: (
+    listener: (progress: SkillImportProgressDetail) => void,
+  ): (() => void) => {
+    const handler = (
+      _event: unknown,
+      progress: SkillImportProgressDetail,
+    ) => listener(progress);
+    ipcRenderer.on(IPC_CHANNELS.SKILL_SCAN_REMOTE_PROGRESS, handler);
+    return () =>
+      ipcRenderer.removeListener(
+        IPC_CHANNELS.SKILL_SCAN_REMOTE_PROGRESS,
+        handler,
+      );
+  },
   listRemoteBranches: (repoUrl: string): Promise<string[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.SKILL_LIST_REMOTE_BRANCHES, repoUrl),
   saveToRepo: (skillId: string, sourceDir: string, mode?: "copy" | "symlink") =>
@@ -186,7 +214,24 @@ export const skillApi = {
   runPackageOperation: (
     request: SkillPackageOperationRequest,
   ): Promise<SkillPackageOperationResult> =>
-    ipcRenderer.invoke(IPC_CHANNELS.SKILL_RUN_PACKAGE_OPERATION, request),
+    ipcRenderer.invoke(IPC_CHANNELS.SKILL_RUN_PACKAGE_OPERATION, {
+      ...request,
+      requestId: request.requestId ?? generateSkillRequestId(),
+    }),
+  onPackageOperationProgress: (
+    listener: (progress: SkillImportProgressDetail) => void,
+  ): (() => void) => {
+    const handler = (
+      _event: unknown,
+      progress: SkillImportProgressDetail,
+    ) => listener(progress);
+    ipcRenderer.on(IPC_CHANNELS.SKILL_PACKAGE_OPERATION_PROGRESS, handler);
+    return () =>
+      ipcRenderer.removeListener(
+        IPC_CHANNELS.SKILL_PACKAGE_OPERATION_PROGRESS,
+        handler,
+      );
+  },
   getRemoteGitPackageFingerprint: (options: {
     repoUrl: string;
     branch?: string;

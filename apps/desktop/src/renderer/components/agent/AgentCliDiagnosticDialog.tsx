@@ -304,7 +304,7 @@ export function AgentCliDiagnosticDialog({
             <p className="text-xs leading-5 text-muted-foreground">
               {t(
                 "agents.cliDiagnostics.readOnlyNotice",
-                "This check is read-only. PromptHub does not install or update the Agent CLI in this step.",
+                "This check is read-only. AgentsHub does not install or update the Agent CLI in this step.",
               )}
             </p>
           )}

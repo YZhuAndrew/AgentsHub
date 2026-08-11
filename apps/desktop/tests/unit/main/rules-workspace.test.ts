@@ -271,19 +271,19 @@ describe("rules workspace storage", () => {
       name: "Docs Site",
       rootPath: projectRoot,
     });
-    await saveRuleContent("project:docs-site", "# PromptHub copy");
+    await saveRuleContent("project:docs-site", "# AgentsHub copy");
 
     fs.writeFileSync(
       path.join(projectRoot, "AGENTS.md"),
-      "# Edited outside PromptHub",
+      "# Edited outside AgentsHub",
       "utf8",
     );
 
     const content = await readRuleContent("project:docs-site");
 
     expect(content.syncStatus).toBe("out-of-sync");
-    expect(content.content).toBe("# PromptHub copy");
-    expect(content.targetContent).toBe("# Edited outside PromptHub");
+    expect(content.content).toBe("# AgentsHub copy");
+    expect(content.targetContent).toBe("# Edited outside AgentsHub");
   });
 
   it("resolves external target edits by importing the target file into the managed copy", async () => {
@@ -295,10 +295,10 @@ describe("rules workspace storage", () => {
       name: "Docs Site",
       rootPath: projectRoot,
     });
-    await saveRuleContent("project:docs-site", "# PromptHub copy");
+    await saveRuleContent("project:docs-site", "# AgentsHub copy");
     fs.writeFileSync(
       path.join(projectRoot, "AGENTS.md"),
-      "# Edited outside PromptHub",
+      "# Edited outside AgentsHub",
       "utf8",
     );
 
@@ -308,7 +308,7 @@ describe("rules workspace storage", () => {
     );
 
     expect(resolved.syncStatus).toBe("synced");
-    expect(resolved.content).toBe("# Edited outside PromptHub");
+    expect(resolved.content).toBe("# Edited outside AgentsHub");
     expect(resolved.targetContent).toBeUndefined();
 
     const managedPath = path.join(
@@ -318,10 +318,10 @@ describe("rules workspace storage", () => {
       "AGENTS.md",
     );
     expect(fs.readFileSync(managedPath, "utf8")).toBe(
-      "# Edited outside PromptHub",
+      "# Edited outside AgentsHub",
     );
     expect(fs.readFileSync(path.join(projectRoot, "AGENTS.md"), "utf8")).toBe(
-      "# Edited outside PromptHub",
+      "# Edited outside AgentsHub",
     );
   });
 
@@ -334,10 +334,10 @@ describe("rules workspace storage", () => {
       name: "Docs Site",
       rootPath: projectRoot,
     });
-    await saveRuleContent("project:docs-site", "# PromptHub copy");
+    await saveRuleContent("project:docs-site", "# AgentsHub copy");
     fs.writeFileSync(
       path.join(projectRoot, "AGENTS.md"),
-      "# Edited outside PromptHub",
+      "# Edited outside AgentsHub",
       "utf8",
     );
 
@@ -347,10 +347,10 @@ describe("rules workspace storage", () => {
     );
 
     expect(resolved.syncStatus).toBe("synced");
-    expect(resolved.content).toBe("# PromptHub copy");
+    expect(resolved.content).toBe("# AgentsHub copy");
     expect(resolved.targetContent).toBeUndefined();
     expect(fs.readFileSync(path.join(projectRoot, "AGENTS.md"), "utf8")).toBe(
-      "# PromptHub copy",
+      "# AgentsHub copy",
     );
   });
 

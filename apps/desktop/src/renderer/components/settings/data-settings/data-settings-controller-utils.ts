@@ -117,7 +117,7 @@ export function getSyncProviderOptionLabel(
     case "webdav":
       return translate("settings.webdavSyncMenu", "WebDAV");
     case "self-hosted":
-      return translate("settings.selfHostedSyncMenu", "Self-Hosted PromptHub");
+      return translate("settings.selfHostedSyncMenu", "Self-Hosted AgentsHub");
     case "s3":
       return translate("settings.s3SyncMenu", "S3 Compatible Storage");
     default:

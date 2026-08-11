@@ -165,13 +165,13 @@ describe("database-backup-format", () => {
     expect(backup.versions).toEqual([]);
   });
 
-  it("rejects arbitrary JSON that is not a PromptHub backup/export file", () => {
+  it("rejects arbitrary JSON that is not a AgentsHub backup/export file", () => {
     expect(() =>
       parsePromptHubBackupFileContent(
         JSON.stringify({ hello: "world", random: [1, 2, 3] }),
       ),
     ).toThrow(
-      "Invalid PromptHub backup: unsupported file format. Please import a PromptHub backup/export file.",
+      "Invalid AgentsHub backup: unsupported file format. Please import a AgentsHub backup/export file.",
     );
   });
 
@@ -185,7 +185,7 @@ describe("database-backup-format", () => {
           versions: [],
         }),
       ),
-    ).toThrow("Invalid PromptHub backup: prompts payload is malformed.");
+    ).toThrow("Invalid AgentsHub backup: prompts payload is malformed.");
   });
 
   it("lenient parser drops corrupted prompt records and keeps the rest, reporting skipped counts", () => {

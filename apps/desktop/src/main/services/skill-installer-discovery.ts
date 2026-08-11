@@ -17,7 +17,7 @@ import { parseSkillMd } from "./skill-validator";
 export function getDefaultSkillScanEntries(
   managedSkillsDir: string,
 ): Array<{ path: string; platformName: string }> {
-  const entries = [{ path: managedSkillsDir, platformName: "PromptHub" }];
+  const entries = [{ path: managedSkillsDir, platformName: "AgentsHub" }];
   for (const platform of SKILL_PLATFORMS) {
     const resolved = getPlatformSkillsDir(platform);
     if (!entries.some((entry) => entry.path === resolved)) {

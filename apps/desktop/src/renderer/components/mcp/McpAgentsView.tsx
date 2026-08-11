@@ -518,11 +518,11 @@ export function McpAgentsView({
                               {managedServer
                                 ? t(
                                     "mcp.managedByPromptHub",
-                                    "Managed in PromptHub",
+                                    "Managed in AgentsHub",
                                   )
                                 : t(
                                     "mcp.notInLibrary",
-                                    "Not in PromptHub library",
+                                    "Not in AgentsHub library",
                                   )}
                             </span>
                           </div>

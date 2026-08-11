@@ -676,7 +676,7 @@ describe("skill-installer-platform symlink install", () => {
     expect(fsMocks.writeFile).not.toHaveBeenCalled();
   });
 
-  it("removes the platform target for copy or symlink installs without deleting the PromptHub source", async () => {
+  it("removes the platform target for copy or symlink installs without deleting the AgentsHub source", async () => {
     internalMocks.fileExists.mockResolvedValue(true);
     fsMocks.readFile = vi.fn(async () =>
       JSON.stringify({

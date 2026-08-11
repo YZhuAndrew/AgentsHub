@@ -117,9 +117,9 @@ describe("image generation workbench policy", () => {
   it("resolves declared values and inline defaults without changing unknown placeholders", () => {
     expect(
       resolveGenerationPrompt(
-        "A {{style}} poster for {{subject:PromptHub}} in {{unknown}}",
+        "A {{style}} poster for {{subject:AgentsHub}} in {{unknown}}",
         { style: "Swiss" },
       ),
-    ).toBe("A Swiss poster for PromptHub in {{unknown}}");
+    ).toBe("A Swiss poster for AgentsHub in {{unknown}}");
   });
 });

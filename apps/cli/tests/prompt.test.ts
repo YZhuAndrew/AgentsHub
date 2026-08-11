@@ -167,17 +167,17 @@ describe("prompt CLI commands", () => {
       "copy",
       createSharedRes.json.id as string,
       "--var",
-      "name=PromptHub",
+      "name=AgentsHub",
       "--var",
       "team=CLI",
     ]);
     expect(copyRes.exitCode).toBe(0);
     expect(copyRes.json).toEqual({
       promptId: createSharedRes.json.id,
-      content: "Hello PromptHub from CLI",
+      content: "Hello AgentsHub from CLI",
       usageCount: 1,
       variables: {
-        name: "PromptHub",
+        name: "AgentsHub",
         team: "CLI",
       },
     });

@@ -123,7 +123,7 @@ const githubTemplate = {
   source: {
     id: "prompthub-official",
     label: "Official Store",
-    url: "https://github.com/legeling/PromptHub",
+    url: "https://github.com/legeling/AgentsHub",
     trustLevel: "official",
   },
 };
@@ -272,7 +272,7 @@ function installMcpMocks(options: McpMockOptions = {}) {
             {
               id: "prompthub-official",
               label: "Official Store",
-              url: "https://github.com/legeling/PromptHub",
+              url: "https://github.com/legeling/AgentsHub",
               trustLevel: "official",
             },
             {
@@ -412,7 +412,7 @@ function installMcpMocks(options: McpMockOptions = {}) {
               serverName: filesystemServer.name,
               status: "needs-sync",
               safeToReapply: true,
-              reason: "Target was updated from PromptHub",
+              reason: "Target was updated from AgentsHub",
               backupPath: `${claudeTarget.path}.bak`,
             },
           ],
@@ -768,7 +768,7 @@ describe("McpManager", () => {
     expect(within(sidebar).getByText("Codex CLI")).toBeInTheDocument();
     expect(within(sidebar).getByText(codexTarget.path)).toBeInTheDocument();
     expect(
-      within(sidebar).getByText("Not in PromptHub library"),
+      within(sidebar).getByText("Not in AgentsHub library"),
     ).toBeInTheDocument();
     expect(
       within(sidebar).getByRole("button", { name: "Import to My MCP" }),
@@ -825,7 +825,7 @@ describe("McpManager", () => {
     const sidebar = await screen.findByTestId("mcp-agent-source-sidebar");
 
     expect(
-      within(sidebar).getAllByText("Managed in PromptHub").length,
+      within(sidebar).getAllByText("Managed in AgentsHub").length,
     ).toBeGreaterThan(0);
     expect(
       within(sidebar).queryByRole("button", { name: "Import to My MCP" }),

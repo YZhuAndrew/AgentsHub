@@ -215,7 +215,7 @@ export function buildPluginSafetyScanContent(
   const lines = [
     "# Plugin Safety Assessment Input",
     "",
-    "This is a static PromptHub Plugin package summary. Review metadata, source provenance, inventory, and package signals. Do not assume any plugin scripts, hooks, MCP servers, commands, apps, or tools have been executed.",
+    "This is a static AgentsHub Plugin package summary. Review metadata, source provenance, inventory, and package signals. Do not assume any plugin scripts, hooks, MCP servers, commands, apps, or tools have been executed.",
     "",
     "## Identity",
     `id: ${plugin.id}`,
@@ -400,7 +400,7 @@ export function getPluginTargetDescription(
   if (!target.enabled) {
     return t("plugin.targetDescriptions.unsupportedBundle", {
       defaultValue:
-        "{{name}} does not expose a complete PromptHub Plugin bundle surface.",
+        "{{name}} does not expose a complete AgentsHub Plugin bundle surface.",
       name: target.displayName,
     });
   }

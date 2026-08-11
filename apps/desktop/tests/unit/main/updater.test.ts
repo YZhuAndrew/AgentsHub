@@ -351,12 +351,12 @@ describe("Updater Service (Main Process)", () => {
 
     expect(
       detectMacInstallSource(
-        "/opt/homebrew/Caskroom/prompthub/0.5.5/PromptHub.app/Contents/MacOS/PromptHub",
+        "/opt/homebrew/Caskroom/prompthub/0.5.5/AgentsHub.app/Contents/MacOS/AgentsHub",
       ),
     ).toBe("homebrew");
     expect(
       detectMacInstallSource(
-        "/usr/local/Caskroom/prompthub/0.5.5/PromptHub.app/Contents/MacOS/PromptHub",
+        "/usr/local/Caskroom/prompthub/0.5.5/AgentsHub.app/Contents/MacOS/AgentsHub",
       ),
     ).toBe("homebrew");
   });
@@ -366,7 +366,7 @@ describe("Updater Service (Main Process)", () => {
 
     expect(
       detectMacInstallSource(
-        "/Applications/PromptHub.app/Contents/MacOS/PromptHub",
+        "/Applications/AgentsHub.app/Contents/MacOS/AgentsHub",
       ),
     ).toBe("direct");
   });

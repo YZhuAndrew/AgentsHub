@@ -448,7 +448,7 @@ describe("skill i18n smoke", () => {
         name: "write",
         description: "Write better",
         category: "general",
-        author: "PromptHub",
+        author: "AgentsHub",
         source_url: githubSkill.source_url,
         content_url: githubSkill.content_url,
         tags: ["general"],
@@ -938,7 +938,7 @@ describe("skill i18n smoke", () => {
 
     await waitFor(() => {
       expect(showToast).toHaveBeenCalledWith(
-        "Symlink was not available for some platforms. PromptHub used copy install instead.\nClaude Code: switched to copy install (EPERM: operation not permitted)",
+        "Symlink was not available for some platforms. AgentsHub used copy install instead.\nClaude Code: switched to copy install (EPERM: operation not permitted)",
         "warning",
       );
     });

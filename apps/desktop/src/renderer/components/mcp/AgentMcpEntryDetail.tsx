@@ -106,8 +106,8 @@ function ManagementStatus({ isManaged }: { isManaged: boolean }) {
       }`}
     >
       {isManaged
-        ? t("mcp.managedByPromptHub", "Managed in PromptHub")
-        : t("mcp.notInLibrary", "Not in PromptHub library")}
+        ? t("mcp.managedByPromptHub", "Managed in AgentsHub")
+        : t("mcp.notInLibrary", "Not in AgentsHub library")}
     </span>
   );
 }

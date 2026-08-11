@@ -1,14 +1,45 @@
 import fs from "fs/promises";
+import type { IpcMainInvokeEvent } from "electron";
 import type { SkillDB } from "../../database/skill";
 import { SkillInstaller } from "../../services/skill-installer";
 import { isInternalSkillRepoEntry } from "../../services/skill-installer-repo";
 import type {
   SkillFileSnapshot,
+  SkillImportProgressDetail,
   SkillLocalFileEntry,
 } from "@prompthub/shared/types";
 
 export interface SkillIPCContext {
   db: SkillDB;
+}
+
+/**
+ * Build a never-throwing progress emitter bound to the requesting renderer.
+ * Returns `undefined` when no `requestId` is supplied (legacy callers), so
+ * progress reporting degrades to a no-op without affecting the operation.
+ */
+export function createSkillProgressSender(
+  event: IpcMainInvokeEvent,
+  channel: string,
+  kind: SkillImportProgressDetail["kind"],
+  requestId: string | undefined,
+):
+  | ((detail: Omit<SkillImportProgressDetail, "kind" | "requestId">) => void)
+  | undefined {
+  if (!requestId) return undefined;
+  const sender = event.sender;
+  return (detail) => {
+    const payload: SkillImportProgressDetail = {
+      ...detail,
+      kind,
+      requestId,
+    };
+    try {
+      sender.send(channel, payload);
+    } catch {
+      // Renderer may be gone; progress must never affect the operation.
+    }
+  };
 }
 
 async function isExistingDirectory(repoPath: string): Promise<boolean> {

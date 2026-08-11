@@ -38,9 +38,9 @@ const REMOTE_SOURCE_COPY: Record<string, SourceCopy> = {
   },
   "prompthub-cloud": {
     titleKey: "skill.promptHubCloudStore",
-    title: "PromptHub Cloud",
+    title: "AgentsHub Cloud",
     hintKey: "skill.promptHubCloudStoreHint",
-    hint: "Published PromptHub Cloud releases with package fingerprints, safety checks, and confirmation before installation.",
+    hint: "Published AgentsHub Cloud releases with package fingerprints, safety checks, and confirmation before installation.",
   },
 };
 

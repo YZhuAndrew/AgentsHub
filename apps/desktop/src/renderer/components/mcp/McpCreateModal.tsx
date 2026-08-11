@@ -160,7 +160,7 @@ export function McpCreateModal({
       setError(
         t(
           "mcp.dropPathUnavailable",
-          "PromptHub could not read a filesystem path from the dropped item.",
+          "AgentsHub could not read a filesystem path from the dropped item.",
         ),
       );
       return;

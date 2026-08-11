@@ -145,7 +145,7 @@ describe("MCP market reconciliation", () => {
     ).toMatchObject({ status: "source-mismatch" });
   });
 
-  it("applies source fields while preserving secrets and PromptHub-owned values", () => {
+  it("applies source fields while preserving secrets and AgentsHub-owned values", () => {
     const installed = createInstalled();
     const updated = applyMcpMarketTemplate(
       installed,

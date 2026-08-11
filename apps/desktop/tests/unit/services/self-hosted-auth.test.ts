@@ -114,7 +114,7 @@ describe("self-hosted-auth", () => {
       "https://backup.example.com/prompthub/api/auth/login",
       "https://backup.example.com/prompthub",
     ],
-  ])("normalizes pasted PromptHub Web URLs from %s", (input, expected) => {
+  ])("normalizes pasted AgentsHub Web URLs from %s", (input, expected) => {
     expect(normalizePromptHubWebBaseUrl(input)).toBe(expected);
   });
 

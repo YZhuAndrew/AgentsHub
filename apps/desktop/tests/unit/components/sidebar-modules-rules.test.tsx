@@ -367,7 +367,7 @@ describe("Sidebar", () => {
         {
           id: "prompthub-official",
           displayName: "Official Store",
-          repository: "https://github.com/legeling/PromptHub",
+          repository: "https://github.com/legeling/AgentsHub",
           marketplaceFile: ".agents/plugins/marketplace.json",
           trustLevel: "official",
         },
@@ -910,7 +910,7 @@ describe("Sidebar", () => {
         {
           id: "prompthub-official",
           label: "Official Store",
-          url: "https://github.com/legeling/PromptHub",
+          url: "https://github.com/legeling/AgentsHub",
           trustLevel: "official",
         },
         {

@@ -176,7 +176,7 @@ function DefinitionDetail({
         <p className="mt-5 text-xs leading-5 text-muted-foreground">
           {t(
             "agents.definitionsPanel.bodyExcluded",
-            "Definition bodies stay in Qwen Code and are not copied into PromptHub, backup, or sync.",
+            "Definition bodies stay in Qwen Code and are not copied into AgentsHub, backup, or sync.",
           )}
         </p>
       </div>

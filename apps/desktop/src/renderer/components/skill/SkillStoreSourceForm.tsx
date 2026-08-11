@@ -173,16 +173,16 @@ export function SkillStoreSourceForm({
               option.value === "marketplace-json"
                 ? t(
                     "skill.sourceTypeMarketplaceHint",
-                    "Best for a direct marketplace.json URL. PromptHub will read the index and load store entries from it.",
+                    "Best for a direct marketplace.json URL. AgentsHub will read the index and load store entries from it.",
                   )
                 : option.value === "git-repo"
                   ? t(
                       "skill.sourceTypeGitHint",
-                      "Best for a GitHub or Git repository URL. PromptHub will detect SKILL.md folders or a store index inside it.",
+                      "Best for a GitHub or Git repository URL. AgentsHub will detect SKILL.md folders or a store index inside it.",
                     )
                   : t(
                       "skill.sourceTypeLocalHint",
-                      "Best for a local folder path. PromptHub will scan it for skill folders.",
+                      "Best for a local folder path. AgentsHub will scan it for skill folders.",
                     );
 
             return (

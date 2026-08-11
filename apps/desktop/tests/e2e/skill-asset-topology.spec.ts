@@ -26,7 +26,7 @@ async function openSkillTopology(page: Page): Promise<Locator> {
     topology.getByText("Upstream source", { exact: true }),
   ).toBeVisible();
   await expect(
-    topology.getByText("PromptHub managed package", { exact: true }),
+    topology.getByText("AgentsHub managed package", { exact: true }),
   ).toBeVisible();
   await expect(
     topology.getByText("Distributed targets", { exact: true }),

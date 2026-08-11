@@ -312,7 +312,7 @@ describe("CreateSkillModal GitHub import", () => {
       {
         name: "writer",
         description: "Writer project copy",
-        author: "PromptHub",
+        author: "AgentsHub",
         tags: ["writing"],
         instructions: "# Writer",
         filePath: "/repo/.agents/skills/writer/SKILL.md",
@@ -381,7 +381,7 @@ describe("CreateSkillModal GitHub import", () => {
     const scannedSkill = {
       name: "writer",
       description: "Local writer",
-      author: "PromptHub",
+      author: "AgentsHub",
       tags: ["writing"],
       instructions: "# Writer",
       filePath: "/Users/demo/skills/writer/SKILL.md",
@@ -841,7 +841,7 @@ describe("CreateSkillModal GitHub import", () => {
       "Only repository root URLs are supported",
     );
     expect(intro.textContent).toContain(
-      "If no SKILL.md files are found, PromptHub will fall back to the root README.md as a single import option.",
+      "If no SKILL.md files are found, AgentsHub will fall back to the root README.md as a single import option.",
     );
 
     const scrollArea = view.getByTestId("github-results-scroll-area");

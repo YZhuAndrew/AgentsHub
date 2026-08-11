@@ -205,7 +205,7 @@ export function registerSkillCrudHandlers({ db }: SkillIPCContext): void {
       const skill = db.getById(id);
       if (skill?.name) {
         // Only uninstall SKILL.md from platforms, do NOT delete the source directory.
-        // Deletion from PromptHub should only clean PromptHub-managed files, never the original external source.
+        // Deletion from AgentsHub should only clean AgentsHub-managed files, never the original external source.
         try {
           const platforms = SkillInstaller.getSupportedPlatforms();
           const installDetails =

@@ -13,6 +13,7 @@ import {
 import { useCreateSkillGithubImport } from "./useCreateSkillGithubImport";
 import { useCreateSkillLocalScan } from "./useCreateSkillLocalScan";
 import { useCreateSkillManualForm } from "./useCreateSkillManualForm";
+import { useSkillImportProgress } from "./useSkillImportProgress";
 import { useSkillPackageInstall } from "./useSkillPackageInstall";
 
 export { getImportModeButtonStyle, getRegistrySelectionKey, sanitizeSkillName };
@@ -43,6 +44,7 @@ export function useCreateSkillModalController({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const importProgress = useSkillImportProgress();
   const manual = useCreateSkillManualForm({
     aiModels,
     createSkill,
@@ -57,6 +59,10 @@ export function useCreateSkillModalController({
     installRegistrySkill: installOperation.install,
     setError,
     setIsLoading,
+    setInstallBatchActive: importProgress.setInstallBatchActive,
+    setScanRequestId: importProgress.setScanRequestId,
+    setBatchProgress: importProgress.setBatchProgress,
+    clearProgress: importProgress.clearProgress,
     t,
   });
   const localScan = useCreateSkillLocalScan({
@@ -108,8 +114,9 @@ export function useCreateSkillModalController({
     manual.reset();
     localScan.reset();
     installOperation.resetReviews();
+    importProgress.clearProgress();
     onClose();
-  }, [github, installOperation, localScan, manual, onClose]);
+  }, [github, importProgress, installOperation, localScan, manual, onClose]);
   const handleCloseRequest = useCallback(() => {
     if (manual.hasUnsavedChanges() && (mode === "manual" || mode === "ai")) {
       setShowUnsavedDialog(true);
@@ -155,6 +162,9 @@ export function useCreateSkillModalController({
     setError,
     showUnsavedDialog,
     setShowUnsavedDialog,
+    importProgress: importProgress.progress,
+    importBatchProgress: importProgress.batchProgress,
+    clearImportProgress: importProgress.clearProgress,
     ...github,
     ...manual,
     ...localScan,

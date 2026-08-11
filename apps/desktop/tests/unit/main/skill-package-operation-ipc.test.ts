@@ -57,11 +57,56 @@ describe("Skill package operation IPC", () => {
     const request = { operation: "install" };
 
     expect(handler).toBeTypeOf("function");
-    await expect(handler!(null, request)).resolves.toBe(completed);
+    await expect(handler!(makeEvent(), request)).resolves.toBe(completed);
     expect(createDependenciesMock).toHaveBeenCalledWith(db);
     expect(lifecycleConstructorMock).toHaveBeenCalledTimes(1);
-    expect(runMock).toHaveBeenCalledWith(request);
+    // No requestId in the request -> no progress emitter, run called once.
+    expect(runMock).toHaveBeenCalledTimes(1);
+    expect(runMock.mock.calls[0][0]).toBe(request);
     expect(cleanupMock).toHaveBeenCalledWith(db, { recoverAll: true });
+  });
+
+  it("forwards progress to the requesting renderer when requestId is present", async () => {
+    runMock.mockImplementation(
+      async (_request: unknown, options?: { emit?: (d: unknown) => void }) => {
+        options?.emit?.({ phase: "staging", message: "cloning-repository" });
+        return { status: "completed", operation: "install", skill: { id: "1" } };
+      },
+    );
+    const { handler, IPC_CHANNELS } = await setup();
+    const send = vi.fn();
+    const request = { operation: "install", requestId: "req-abc-123" };
+
+    await handler!(makeEvent(send), request);
+
+    expect(runMock).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledTimes(1);
+    const [channel, payload] = send.mock.calls[0];
+    expect(channel).toBe(IPC_CHANNELS.SKILL_PACKAGE_OPERATION_PROGRESS);
+    expect(payload).toMatchObject({
+      kind: "install",
+      requestId: "req-abc-123",
+      phase: "staging",
+      message: "cloning-repository",
+    });
+  });
+
+  it("does not emit progress when the request omits requestId", async () => {
+    runMock.mockImplementation(
+      async (_request: unknown, options?: { emit?: (d: unknown) => void }) => {
+        options?.emit?.({ phase: "staging", message: "cloning-repository" });
+        return { status: "completed", operation: "install", skill: { id: "1" } };
+      },
+    );
+    const { handler } = await setup();
+    const send = vi.fn();
+    const request = { operation: "install" };
+
+    await handler!(makeEvent(send), request);
+
+    // emit is undefined, so lifecycle.run receives no options and send is never called.
+    expect(send).not.toHaveBeenCalled();
+    expect(runMock.mock.calls[0][1]).toBeUndefined();
   });
 
   it("keeps the IPC available when startup recovery cannot finish", async () => {
@@ -80,3 +125,15 @@ describe("Skill package operation IPC", () => {
     warning.mockRestore();
   });
 });
+
+/** Build a minimal fake IpcMainInvokeEvent with an optional sender.send mock. */
+function makeEvent(send?: (channel: string, ...args: unknown[]) => void): {
+  sender: { id: number; send: (channel: string, ...args: unknown[]) => void };
+} {
+  return {
+    sender: {
+      id: 1,
+      send: send ?? vi.fn(),
+    },
+  };
+}

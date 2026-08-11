@@ -116,7 +116,7 @@ describe("skill store", () => {
       name: "Matrix Skill",
       description: "Status matrix",
       category: "general",
-      author: "PromptHub",
+      author: "AgentsHub",
       source_url: "",
       content_url: contentUrl,
       tags: ["testing"],
@@ -163,7 +163,7 @@ describe("skill store", () => {
                   {
                     name: "matrix-skill",
                     description: "Old project copy",
-                    author: "PromptHub",
+                    author: "AgentsHub",
                     tags: [],
                     instructions: originalContent,
                     filePath: "/project/.agents/skills/matrix/SKILL.md",
@@ -284,7 +284,7 @@ describe("skill store", () => {
       name: "Matrix Source Error",
       description: "Stale error regression",
       category: "general",
-      author: "PromptHub",
+      author: "AgentsHub",
       source_url: "",
       content_url: "https://example.com/skills/matrix-source-error/SKILL.md",
       tags: [],
@@ -1301,7 +1301,7 @@ describe("skill store", () => {
   it("checks a copied Agent import against its original local source", async () => {
     const sourceDirectory = "/Users/me/.claude/skills/local-writer";
     const managedDirectory =
-      "/Users/me/Library/Application Support/PromptHub/data/skills/local-writer/repo";
+      "/Users/me/Library/Application Support/AgentsHub/data/skills/local-writer/repo";
     const baselineContent = "# Local Writer\n\nOriginal\n";
     const sourceContent = "# Local Writer\n\nChanged in Claude\n";
     const baselineHash = await useSkillStore
@@ -1355,7 +1355,7 @@ describe("skill store", () => {
   it("updates a copied Agent import from the changed local source directory", async () => {
     const sourceDirectory = "/Users/me/.codex/skills/local-writer";
     const managedDirectory =
-      "/Users/me/Library/Application Support/PromptHub/data/skills/local-writer/repo";
+      "/Users/me/Library/Application Support/AgentsHub/data/skills/local-writer/repo";
     const baselineContent = "# Local Writer\n\nOriginal\n";
     const sourceContent = "# Local Writer\n\nChanged in Codex\n";
     const baselineHash = await useSkillStore

@@ -13,7 +13,7 @@ describe("renderer runtime capabilities", () => {
       .__PROMPTHUB_WEB__;
   });
 
-  it("keeps PromptHub Cloud disabled unless the build explicitly enables it", () => {
+  it("keeps AgentsHub Cloud disabled unless the build explicitly enables it", () => {
     vi.stubEnv("VITE_PROMPTHUB_CLOUD_ENABLED", "false");
 
     expect(isPromptHubCloudEnabled()).toBe(false);
@@ -26,7 +26,7 @@ describe("renderer runtime capabilities", () => {
     );
   });
 
-  it("enables PromptHub Cloud only for an explicitly enabled desktop build", () => {
+  it("enables AgentsHub Cloud only for an explicitly enabled desktop build", () => {
     vi.stubEnv("VITE_PROMPTHUB_CLOUD_ENABLED", "true");
 
     expect(isPromptHubCloudEnabled()).toBe(true);
@@ -36,7 +36,7 @@ describe("renderer runtime capabilities", () => {
     );
   });
 
-  it("never exposes PromptHub Cloud through the self-hosted web runtime", () => {
+  it("never exposes AgentsHub Cloud through the self-hosted web runtime", () => {
     vi.stubEnv("VITE_PROMPTHUB_CLOUD_ENABLED", "true");
     (
       window as Window & {

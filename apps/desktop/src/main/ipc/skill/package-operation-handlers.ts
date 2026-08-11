@@ -5,7 +5,10 @@ import {
   cleanupAbandonedSkillPackageOperations,
   createDesktopSkillPackageLifecycleDependencies,
 } from "../../services/skill-package-lifecycle-desktop";
-import type { SkillIPCContext } from "./shared";
+import {
+  createSkillProgressSender,
+  type SkillIPCContext,
+} from "./shared";
 
 /** Register the single main-process owner for Skill package installation and updates. */
 export function registerSkillPackageOperationHandlers({
@@ -26,6 +29,18 @@ export function registerSkillPackageOperationHandlers({
 
   ipcMain.handle(
     IPC_CHANNELS.SKILL_RUN_PACKAGE_OPERATION,
-    (_event, request: unknown) => lifecycle.run(request),
+    async (event, request: unknown) => {
+      const requestId =
+        request && typeof request === "object" && !Array.isArray(request)
+          ? (request as { requestId?: unknown }).requestId
+          : undefined;
+      const emit = createSkillProgressSender(
+        event,
+        IPC_CHANNELS.SKILL_PACKAGE_OPERATION_PROGRESS,
+        "install",
+        typeof requestId === "string" ? requestId : undefined,
+      );
+      return lifecycle.run(request, emit ? { emit } : undefined);
+    },
   );
 }

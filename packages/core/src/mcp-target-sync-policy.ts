@@ -6,17 +6,17 @@ import type {
 } from "@prompthub/shared/types/mcp";
 
 const SYNC_REASONS: Record<McpTargetSyncStatus, string> = {
-  synced: "target matches current PromptHub MCP projection",
-  "needs-sync": "PromptHub MCP changed after the last target apply",
-  "external-modified": "target MCP entry changed outside PromptHub",
-  conflict: "PromptHub MCP and target MCP entry both changed",
+  synced: "target matches current AgentsHub MCP projection",
+  "needs-sync": "AgentsHub MCP changed after the last target apply",
+  "external-modified": "target MCP entry changed outside AgentsHub",
+  conflict: "AgentsHub MCP and target MCP entry both changed",
   "missing-target": "target config file is missing",
   "missing-entry": "target config file no longer contains this MCP entry",
   "parse-error": "target config file cannot be parsed",
   "legacy-needs-review":
-    "legacy binding has no baseline and target differs from PromptHub",
+    "legacy binding has no baseline and target differs from AgentsHub",
   "skipped-disabled-platform": "target platform is disabled in settings",
-  "skipped-server-disabled": "MCP server is disabled in PromptHub",
+  "skipped-server-disabled": "MCP server is disabled in AgentsHub",
 };
 
 export function getMcpTargetSyncReason(status: McpTargetSyncStatus): string {

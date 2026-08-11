@@ -144,7 +144,7 @@ export function buildQuickAddAnalysisPrompt(
   promptText: string,
   context: QuickAddPromptContext,
 ): string {
-  return `你是一名资深 PromptHub 内容整理专家。请分析用户提供的 Prompt，把它整理成可保存、可检索、可复用的结构化元数据，并只返回 JSON。
+  return `你是一名资深 AgentsHub 内容整理专家。请分析用户提供的 Prompt，把它整理成可保存、可检索、可复用的结构化元数据，并只返回 JSON。
 
 用户 Prompt:
 """
@@ -181,7 +181,7 @@ export function buildQuickAddGeneratePrompt(
   const preferredTypeLabel =
     preferredPromptType === "image" ? "image（绘图）" : "text（文本）";
 
-  return `你是一名资深 Prompt 设计师。请根据用户需求，生成一份可以直接保存、测试和复用的 PromptHub 草稿，并只返回 JSON。
+  return `你是一名资深 Prompt 设计师。请根据用户需求，生成一份可以直接保存、测试和复用的 AgentsHub 草稿，并只返回 JSON。
 
 用户需求：
 """

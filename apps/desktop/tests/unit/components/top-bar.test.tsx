@@ -542,7 +542,7 @@ describe("TopBar", () => {
             {
               name: "writer",
               description: "Write better",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: ["writing"],
               instructions: "# Writer",
               filePath: "/tmp/project/writer/SKILL.md",
@@ -552,7 +552,7 @@ describe("TopBar", () => {
             {
               name: "writer-helper",
               description: "Write helper",
-              author: "PromptHub",
+              author: "AgentsHub",
               tags: ["assistant"],
               instructions: "# Writer Helper",
               filePath: "/tmp/project/writer-helper/SKILL.md",

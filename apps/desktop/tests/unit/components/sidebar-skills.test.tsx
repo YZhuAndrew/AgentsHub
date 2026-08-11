@@ -728,7 +728,7 @@ describe("Sidebar", () => {
           name: "Legacy Official Count",
           description: "Should not be counted while official store is closed",
           category: "general",
-          author: "PromptHub",
+          author: "AgentsHub",
           source_url: "https://example.com/legacy",
           tags: [],
           version: "1.0.0",
@@ -756,7 +756,7 @@ describe("Sidebar", () => {
     });
     expect(within(officialButton).getByText("0")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /PromptHub Cloud/ }),
+      screen.queryByRole("button", { name: /AgentsHub Cloud/ }),
     ).not.toBeInTheDocument();
   });
 

@@ -16,7 +16,7 @@ describe("built-in skill registry", () => {
     expect(creator?.content_url).toBeUndefined();
   });
 
-  it("ships a PromptHub CLI operator skill", () => {
+  it("ships a AgentsHub CLI operator skill", () => {
     const cliOperator = BUILTIN_SKILL_REGISTRY.find(
       (skill) => skill.slug === "prompthub-cli-operator",
     );

@@ -128,6 +128,35 @@ describe("remote Skill package adapter", () => {
     mocks.assertStagedRemoteSkillPackageSafe.mockResolvedValue(safeReport);
   });
 
+  it("emits install phase transitions in order via onProgress", async () => {
+    const phases: { phase: string; message: string }[] = [];
+    await saveRemoteGitSkillPackage(createRemoteSkill(), {
+      repoUrl: "https://gitea.example.com/team/skills",
+      onProgress: (detail) => phases.push(detail),
+    });
+
+    expect(phases.map((p) => p.phase)).toEqual([
+      "staging",
+      "scanning",
+      "scanning",
+      "applying",
+    ]);
+    expect(phases.map((p) => p.message)).toEqual([
+      "cloning-repository",
+      "reading-files-fingerprint",
+      "safety-scanning",
+      "writing-install",
+    ]);
+  });
+
+  it("completes without onProgress without throwing", async () => {
+    await expect(
+      saveRemoteGitSkillPackage(createRemoteSkill(), {
+        repoUrl: "https://gitea.example.com/team/skills",
+      }),
+    ).resolves.toBe("/managed/repo");
+  });
+
   it("rejects malformed Git repository URLs before creating staging", async () => {
     await expect(
       saveRemoteGitSkillPackage(createRemoteSkill(), {

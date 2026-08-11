@@ -41,7 +41,7 @@ function useBackupDropAction(
       showToast(
         t(
           "settings.backupDropUnsupported",
-          "Please drop a PromptHub export archive or SQLite database backup.",
+          "Please drop a AgentsHub export archive or SQLite database backup.",
         ),
         "error",
       );
@@ -80,7 +80,7 @@ function useBackupFileAction(
       showToast(
         t(
           "settings.backupDropUnsupported",
-          "Please select a PromptHub export archive or SQLite database backup.",
+          "Please select a AgentsHub export archive or SQLite database backup.",
         ),
         "error",
       );
@@ -111,7 +111,7 @@ export function useBackupImportFlow(
     () =>
       t(
         "settings.backupDropRestoreDesc",
-        "Drag a PromptHub export archive or SQLite database backup here to review and restore it.",
+        "Drag a AgentsHub export archive or SQLite database backup here to review and restore it.",
       ),
     [t],
   );

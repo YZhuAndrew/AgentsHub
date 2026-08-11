@@ -140,7 +140,7 @@ export function PlatformWorkbenchPrototype() {
             status: t("settings.platformWorkbench.statusPublished", "Published"),
             metric: "12 variants",
             chips: ["Skill", "Versioned", "Shared"],
-            owner: "PromptHub Team",
+            owner: "AgentsHub Team",
             updatedAt: "2h ago",
             actionLabel: t(
               "settings.platformWorkbench.actionOpenSkill",
@@ -382,9 +382,9 @@ export function PlatformWorkbenchPrototype() {
           },
           {
             id: "mcp-self-hosted",
-            name: "PromptHub Workspace Sync",
+            name: "AgentsHub Workspace Sync",
             description:
-              "Keeps desktop assets aligned with self-hosted PromptHub workspaces across environments.",
+              "Keeps desktop assets aligned with self-hosted AgentsHub workspaces across environments.",
             type: "Sync Target",
             status: t("settings.platformWorkbench.statusHealthy", "Healthy"),
             metric: "3 workspaces",
@@ -588,7 +588,7 @@ export function PlatformWorkbenchPrototype() {
               <p className="max-w-2xl text-sm leading-6 text-white/70 xl:text-[15px]">
                 {t(
                   "settings.platformWorkbench.heroDesc",
-                  "This prototype explores how PromptHub could grow into a unified platform for prompts, skills, agents, MCP integrations and execution history without forcing everything into the current two-mode shell.",
+                  "This prototype explores how AgentsHub could grow into a unified platform for prompts, skills, agents, MCP integrations and execution history without forcing everything into the current two-mode shell.",
                 )}
               </p>
             </div>
