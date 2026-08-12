@@ -175,6 +175,7 @@ export const AGENT_PLATFORM_DEPTH_CAPABILITIES = {
   }),
   qoderwork: depthCapabilities(),
   qwenwork: depthCapabilities(),
+  qwenworkcn: depthCapabilities(),
   hermes: depthCapabilities({
     sessions: declaration("supported", "verified-hermes-state-db"),
   }),

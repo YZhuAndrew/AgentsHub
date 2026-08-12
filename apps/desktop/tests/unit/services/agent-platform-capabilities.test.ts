@@ -62,6 +62,7 @@ const expectedPlannedSessionAdapters = [
   "qclaw",
   "qoderwork",
   "qwenwork",
+  "qwenworkcn",
   "trae",
   "trae-cn",
   "trae-work",
@@ -96,7 +97,7 @@ describe("Agent platform capability inventory", () => {
     const registryIds = SKILL_PLATFORMS.map((platform) => platform.id).sort();
     const inventoryIds = Object.keys(AGENT_PLATFORM_DEPTH_CAPABILITIES).sort();
 
-    expect(new Set(registryIds).size).toBe(36);
+    expect(new Set(registryIds).size).toBe(37);
     expect(inventoryIds).toEqual(registryIds);
   });
 

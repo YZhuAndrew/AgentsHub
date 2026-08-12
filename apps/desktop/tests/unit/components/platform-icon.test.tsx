@@ -223,6 +223,14 @@ describe("PlatformIcon", () => {
     expect(asset.readUInt32BE(20)).toBe(180);
   });
 
+  it("keeps the QwenWork CN variant on the QwenWork brand icon", () => {
+    render(<PlatformIcon platformId="qwenworkcn" size={20} />);
+
+    expect(
+      screen.getByRole("img", { name: "qwenworkcn icon" }),
+    ).toHaveAttribute("src", expect.stringContaining("qwenwork.png"));
+  });
+
   it("renders the official Pi badge instead of a generic fallback", () => {
     render(<PlatformIcon platformId="pi" size={20} />);
 
