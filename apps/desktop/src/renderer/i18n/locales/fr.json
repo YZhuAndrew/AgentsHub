@@ -2461,6 +2461,7 @@
     "installed": "Installed",
     "clickToInstall": "Click to select",
     "clickToSelect": "Click to select",
+    "platformNotDetectedHint": "Répertoire client non détecté ; il sera créé lors de l'installation.",
     "selectedForInstall": "Pending install",
     "sharedTargetDuplicateWarning": "L'Agent sélectionné peut détecter à la fois sa copie Skill native et la copie partagée ~/.agents/skills.",
     "sharedTargetLabel": "Skills Agent partagés",

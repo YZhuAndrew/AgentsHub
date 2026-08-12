@@ -2460,6 +2460,7 @@
     "installed": "已安装",
     "clickToInstall": "点击选择",
     "clickToSelect": "点击选择",
+    "platformNotDetectedHint": "未偵測到用戶端目錄，安裝時將自動建立",
     "selectedForInstall": "待安装",
     "sharedTargetDuplicateWarning": "所選 Agent 可能會同時發現其原生 Skill 副本和共享的 ~/.agents/skills 副本。",
     "sharedTargetLabel": "共享 Agent Skills",

@@ -1,8 +1,9 @@
 import type { SkillPlatform } from "@prompthub/shared/constants/platforms";
+import { SHARED_AGENT_SKILLS_TARGET_ID } from "@prompthub/shared/constants/skill-distribution-targets";
 import type { TFunction } from "i18next";
 
 export const SHARED_AGENT_SKILLS_DISTRIBUTION_TARGET: SkillPlatform = {
-  id: "agent-skills-global",
+  id: SHARED_AGENT_SKILLS_TARGET_ID,
   name: "Shared Agent Skills",
   icon: "Share2",
   rootDir: {

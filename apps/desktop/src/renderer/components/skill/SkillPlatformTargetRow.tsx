@@ -1,6 +1,7 @@
 import { CheckIcon } from "lucide-react";
 import type { TFunction } from "i18next";
 import type { SkillPlatform } from "@prompthub/shared/constants/platforms";
+import { SHARED_AGENT_SKILLS_TARGET_ID } from "@prompthub/shared/constants/skill-distribution-targets";
 
 import { getSkillDistributionTargetName } from "../../services/shared-skill-distribution-target";
 import { PlatformIcon } from "../ui/PlatformIcon";
@@ -9,6 +10,7 @@ export function SkillPlatformTargetRow({
   isBatchInstalling,
   isInstalled,
   isSelected,
+  isDetected,
   onToggle,
   onUninstall,
   platform,
@@ -17,6 +19,13 @@ export function SkillPlatformTargetRow({
   isBatchInstalling: boolean;
   isInstalled: boolean;
   isSelected: boolean;
+  /**
+   * Whether the platform root has been detected on disk. When explicitly
+   * `false` (and the skill is not installed here, and this is not the shared
+   * target) the row shows a "not detected; will be created on install" hint.
+   * Omitted means unknown; no hint is shown.
+   */
+  isDetected?: boolean;
   onToggle: () => void;
   onUninstall: () => void;
   platform: SkillPlatform;
@@ -26,6 +35,10 @@ export function SkillPlatformTargetRow({
   const toggle = () => {
     if (!isInstalled && !isBatchInstalling) onToggle();
   };
+  const showNotDetectedHint =
+    !isInstalled &&
+    isDetected === false &&
+    platform.id !== SHARED_AGENT_SKILLS_TARGET_ID;
 
   return (
     <div
@@ -56,7 +69,14 @@ export function SkillPlatformTargetRow({
           <PlatformIcon platformId={platform.id} size={28} />
         </div>
         <div>
-          <h4 className="text-sm font-medium">{targetName}</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-medium">{targetName}</h4>
+            {showNotDetectedHint ? (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                {t("skill.platformNotDetectedHint")}
+              </span>
+            ) : null}
+          </div>
           <p className="text-[10px] text-muted-foreground">
             {isInstalled
               ? t("skill.installed")

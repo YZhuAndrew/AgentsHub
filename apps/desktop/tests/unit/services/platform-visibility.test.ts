@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import { SHARED_AGENT_SKILLS_TARGET_ID } from "@prompthub/shared/constants/skill-distribution-targets";
 import {
   filterDetectedPlatforms,
-  filterDeployablePlatforms,
+  filterEnabledPlatforms,
   filterVisiblePlatforms,
+  isPlatformEnabled,
 } from "../../../src/renderer/services/platform-visibility";
 
 describe("platform visibility", () => {
@@ -36,32 +38,97 @@ describe("platform visibility", () => {
       ).map((platform) => platform.id),
     ).toEqual(["codex"]);
   });
+});
 
-  it("includes configured custom and overridden platforms even when undetected", () => {
-    expect(
-      filterDeployablePlatforms(
-        [
-          { id: "claude", name: "Claude Code", isConfigured: true } as any,
-          { id: "codex", name: "Codex CLI" } as any,
-          { id: "custom-agent-1", name: "Team Agent", isCustom: true } as any,
-          { id: "opencode", name: "OpenCode" } as any,
-        ],
-        [],
-        [],
-      ).map((platform) => platform.id),
-    ).toEqual(["claude", "custom-agent-1"]);
+describe("toggle-authoritative visibility", () => {
+  // Detection is intentionally NOT supplied to these cases: the authoritative
+  // predicate must keep enabled platforms even when their root is absent.
+  const platforms = [
+    { id: "claude", name: "Claude Code" },
+    { id: "codex", name: "Codex" },
+    { id: "cursor", name: "Cursor" },
+    { id: "custom-1", name: "Team", isCustom: true },
+    { id: "custom-2", name: "Old", isCustom: true },
+    {
+      id: SHARED_AGENT_SKILLS_TARGET_ID,
+      name: "Shared",
+      isConfigured: true,
+    },
+  ] as Array<{ id: string; name: string; isCustom?: boolean; isConfigured?: boolean }>;
+
+  const ctx = {
+    disabledPlatformIds: ["codex"],
+    customAgentEnabled: (id: string) => (id === "custom-2" ? false : true),
+  };
+
+  it("keeps enabled built-in platforms even when not detected (regression for #toggle-authoritative)", () => {
+    expect(filterEnabledPlatforms(platforms, ctx).map((p) => p.id)).toEqual([
+      "claude",
+      "cursor",
+      "custom-1",
+      SHARED_AGENT_SKILLS_TARGET_ID,
+    ]);
   });
 
-  it("keeps disabled platforms hidden even when explicitly configured", () => {
+  it("drops disabled built-in platforms and disabled custom agents", () => {
+    const result = filterEnabledPlatforms(platforms, ctx).map((p) => p.id);
+    expect(result).not.toContain("codex");
+    expect(result).not.toContain("custom-2");
+  });
+
+  it("drops a configured built-in platform when it is disabled (configured no longer gates visibility)", () => {
     expect(
-      filterDeployablePlatforms(
+      filterEnabledPlatforms(
         [
-          { id: "claude", name: "Claude Code", isConfigured: true } as any,
-          { id: "custom-agent-1", name: "Team Agent", isCustom: true } as any,
-        ],
-        [],
-        ["custom-agent-1"],
-      ).map((platform) => platform.id),
-    ).toEqual(["claude"]);
+          { id: "claude", name: "Claude Code", isConfigured: true },
+          { id: "cursor", name: "Cursor" },
+        ] as any,
+        { disabledPlatformIds: ["claude"] },
+      ).map((p) => p.id),
+    ).toEqual(["cursor"]);
+  });
+});
+
+describe("isPlatformEnabled", () => {
+  it("treats the shared distribution target as always enabled", () => {
+    expect(
+      isPlatformEnabled(
+        { id: SHARED_AGENT_SKILLS_TARGET_ID } as any,
+        { disabledPlatformIds: [SHARED_AGENT_SKILLS_TARGET_ID] },
+      ),
+    ).toBe(true);
+  });
+
+  it("enables a built-in platform when not in the disabled list", () => {
+    expect(
+      isPlatformEnabled({ id: "claude" } as any, { disabledPlatformIds: [] }),
+    ).toBe(true);
+  });
+
+  it("disables a built-in platform when it is in the disabled list", () => {
+    expect(
+      isPlatformEnabled(
+        { id: "claude" } as any,
+        { disabledPlatformIds: ["claude"] },
+      ),
+    ).toBe(false);
+  });
+
+  it("honors the custom-agent resolver and defaults to enabled when absent", () => {
+    expect(
+      isPlatformEnabled(
+        { id: "custom-1", isCustom: true } as any,
+        {
+          disabledPlatformIds: [],
+          customAgentEnabled: () => false,
+        },
+      ),
+    ).toBe(false);
+    expect(
+      isPlatformEnabled(
+        { id: "custom-1", isCustom: true } as any,
+        { disabledPlatformIds: [] },
+      ),
+    ).toBe(true);
   });
 });

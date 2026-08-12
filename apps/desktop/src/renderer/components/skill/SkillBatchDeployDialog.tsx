@@ -14,7 +14,7 @@ import type { SkillPlatform } from "@prompthub/shared/constants/platforms";
 import { useToast } from "../ui/Toast";
 import { PlatformIcon } from "../ui/PlatformIcon";
 import { useSettingsStore } from "../../stores/settings.store";
-import { filterDeployablePlatforms } from "../../services/platform-visibility";
+import { filterEnabledPlatforms } from "../../services/platform-visibility";
 import {
   appendSharedSkillDistributionTarget,
   getSkillDistributionTargetName,
@@ -54,7 +54,6 @@ export function SkillBatchDeployDialog({
   const [supportedPlatforms, setSupportedPlatforms] = useState<SkillPlatform[]>(
     [],
   );
-  const [detectedPlatforms, setDetectedPlatforms] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Set<string>>(
     new Set(),
   );
@@ -73,12 +72,8 @@ export function SkillBatchDeployDialog({
 
   const availablePlatforms = useMemo(
     () =>
-      filterDeployablePlatforms(
-        supportedPlatforms,
-        detectedPlatforms,
-        disabledPlatformIds,
-      ),
-    [detectedPlatforms, disabledPlatformIds, supportedPlatforms],
+      filterEnabledPlatforms(supportedPlatforms, { disabledPlatformIds }),
+    [disabledPlatformIds, supportedPlatforms],
   );
   const totalTargets = skills.length * selectedPlatforms.size;
   const hasSharedDiscoveryRisk =
@@ -108,15 +103,11 @@ export function SkillBatchDeployDialog({
     async function loadPlatforms() {
       setLoadingPlatforms(true);
       try {
-        const [platforms, detected] = await Promise.all([
-          window.api.skill.getSupportedPlatforms(),
-          window.api.skill.detectPlatforms(),
-        ]);
+        const platforms = await window.api.skill.getSupportedPlatforms();
         if (cancelled) {
           return;
         }
         setSupportedPlatforms(appendSharedSkillDistributionTarget(platforms));
-        setDetectedPlatforms(detected);
       } catch (error) {
         console.error("Failed to load skill platforms:", error);
       } finally {

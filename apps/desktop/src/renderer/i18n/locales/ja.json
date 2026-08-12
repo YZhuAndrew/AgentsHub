@@ -2460,6 +2460,7 @@
     "installed": "インストール済み",
     "clickToInstall": "クリックして選択",
     "clickToSelect": "クリックして選択",
+    "platformNotDetectedHint": "クライアントのディレクトリが検出されません。インストール時に自動作成されます。",
     "selectedForInstall": "インストール対象",
     "sharedTargetDuplicateWarning": "選択した Agent がネイティブ Skill と共有 ~/.agents/skills の両方を検出する可能性があります。",
     "sharedTargetLabel": "共有 Agent Skills",

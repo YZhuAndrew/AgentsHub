@@ -1,7 +1,14 @@
 import { SKILL_PLATFORMS } from "@prompthub/shared/constants/platforms";
 
+/**
+ * Canonical id of the shared user-level Skill distribution target
+ * (`~/.agents/skills`). Shared as the single contract constant so renderer
+ * services and visibility logic do not hardcode the literal.
+ */
+export const SHARED_AGENT_SKILLS_TARGET_ID = "agent-skills-global";
+
 export interface SharedSkillDistributionTarget {
-  id: "agent-skills-global";
+  id: typeof SHARED_AGENT_SKILLS_TARGET_ID;
   kind: "shared";
   name: string;
   maturity: "experimental";
@@ -22,7 +29,7 @@ export type SkillDistributionTarget =
 export const SHARED_SKILL_DISTRIBUTION_TARGETS: readonly SharedSkillDistributionTarget[] =
   [
     {
-      id: "agent-skills-global",
+      id: SHARED_AGENT_SKILLS_TARGET_ID,
       kind: "shared",
       name: "Shared Agent Skills",
       maturity: "experimental",

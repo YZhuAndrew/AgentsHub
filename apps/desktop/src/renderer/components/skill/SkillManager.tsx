@@ -42,7 +42,7 @@ import { getRemoteStoreSkills } from "../../services/remote-store-entry";
 import { getSkillsWithStoreUpdates } from "../../services/skill-library-update-status";
 import { getRuntimeCapabilities } from "../../runtime";
 import { useSkillStoreRemoteSync } from "./store-remote-sync";
-import { filterDeployablePlatforms } from "../../services/platform-visibility";
+import { filterEnabledPlatforms } from "../../services/platform-visibility";
 import { SkillManagerLibraryHeader } from "./SkillManagerLibraryHeader";
 import { SkillManagerLibraryContent } from "./SkillManagerLibraryContent";
 import { SkillViewTransition } from "./SkillViewTransition";
@@ -152,7 +152,6 @@ export function SkillManager() {
   const [supportedPlatforms, setSupportedPlatforms] = useState<SkillPlatform[]>(
     [],
   );
-  const [detectedPlatforms, setDetectedPlatforms] = useState<string[]>([]);
   const [skillPlatformStatuses, setSkillPlatformStatuses] = useState<
     Record<string, Record<string, boolean>>
   >({});
@@ -176,12 +175,8 @@ export function SkillManager() {
   );
   const availableSkillPlatforms = useMemo(
     () =>
-      filterDeployablePlatforms(
-        supportedPlatforms,
-        detectedPlatforms,
-        disabledPlatformIds,
-      ),
-    [detectedPlatforms, disabledPlatformIds, supportedPlatforms],
+      filterEnabledPlatforms(supportedPlatforms, { disabledPlatformIds }),
+    [disabledPlatformIds, supportedPlatforms],
   );
   const distributedPlatformsBySkillId = useMemo(() => {
     const next = new Map<string, Array<Pick<SkillPlatform, "id" | "name">>>();
@@ -663,24 +658,18 @@ export function SkillManager() {
   useEffect(() => {
     if (!runtimeCapabilities.skillPlatformIntegration) {
       setSupportedPlatforms([]);
-      setDetectedPlatforms([]);
       return;
     }
 
     let disposed = false;
-    void Promise.all([
-      window.api.skill.getSupportedPlatforms(),
-      window.api.skill.detectPlatforms(),
-    ])
-      .then(([platforms, detected]) => {
+    void window.api.skill
+      .getSupportedPlatforms()
+      .then((platforms) => {
         if (disposed) {
           return;
         }
         setSupportedPlatforms((current) =>
           platforms.length === 0 && current.length === 0 ? current : platforms,
-        );
-        setDetectedPlatforms((current) =>
-          detected.length === 0 && current.length === 0 ? current : detected,
         );
       })
       .catch((error) => {
@@ -689,7 +678,6 @@ export function SkillManager() {
         }
         console.error("Failed to load skill platforms:", error);
         setSupportedPlatforms([]);
-        setDetectedPlatforms([]);
       });
 
     return () => {

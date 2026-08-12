@@ -2460,6 +2460,7 @@
     "installed": "Installiert",
     "clickToInstall": "Zum Auswahlen klicken",
     "clickToSelect": "Zum Auswahlen klicken",
+    "platformNotDetectedHint": "Clientverzeichnis nicht erkannt; wird bei der Installation erstellt.",
     "selectedForInstall": "Zur Installation ausgewahlt",
     "sharedTargetDuplicateWarning": "Der ausgewählte Agent kann sowohl seine native Skill-Kopie als auch die gemeinsame Kopie unter ~/.agents/skills erkennen.",
     "sharedTargetLabel": "Gemeinsame Agent Skills",

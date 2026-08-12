@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { filterDeployablePlatforms } from "../../../src/renderer/services/platform-visibility";
+import { filterEnabledPlatforms } from "../../../src/renderer/services/platform-visibility";
 
 describe("platform visibility integration", () => {
   it("hides the same disabled platform across shared platform consumers", () => {
@@ -11,14 +11,12 @@ describe("platform visibility integration", () => {
       { id: "custom-agent-1", name: "Team Agent", isCustom: true },
     ] as any;
 
-    const detectedPlatformIds = ["claude", "codex", "opencode"];
     const disabledPlatformIds = ["claude"];
 
-    const visible = filterDeployablePlatforms(
-      supportedPlatforms,
-      detectedPlatformIds,
+    // Detection is deliberately omitted: enabled membership is authoritative.
+    const visible = filterEnabledPlatforms(supportedPlatforms, {
       disabledPlatformIds,
-    ).map((platform) => platform.id);
+    }).map((platform) => platform.id);
 
     expect(visible).toEqual(["codex", "opencode", "custom-agent-1"]);
   });

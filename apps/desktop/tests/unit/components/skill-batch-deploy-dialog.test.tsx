@@ -155,7 +155,7 @@ describe("SkillBatchDeployDialog install mode", () => {
     expect(window.api.skill.installMdSymlink).not.toHaveBeenCalled();
   });
 
-  it("shows configured Agent targets even when platform detection has not found them", async () => {
+  it("shows every enabled Agent target even when its directory is not detected", async () => {
     vi.mocked(window.api.skill.getSupportedPlatforms).mockResolvedValue([
       {
         id: "claude",
@@ -193,6 +193,9 @@ describe("SkillBatchDeployDialog install mode", () => {
         skillsRelativePath: "skills",
       },
     ]);
+    // Detection reports nothing on disk. Under toggle-authoritative visibility,
+    // every enabled target must still appear — including a plain built-in like
+    // Codex that was previously hidden when undetected.
     vi.mocked(window.api.skill.detectPlatforms).mockResolvedValue([]);
 
     await renderWithI18n(
@@ -210,15 +213,28 @@ describe("SkillBatchDeployDialog install mode", () => {
       expect(
         screen.getByRole("button", { name: /Team Agent/ }),
       ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Codex CLI/ }),
+      ).toBeInTheDocument();
     });
-    expect(screen.queryByText("Codex CLI")).not.toBeInTheDocument();
   });
 
-  it("still hides disabled configured Agent targets while keeping the shared target", async () => {
+  it("hides disabled built-in Agent targets while keeping custom and shared targets", async () => {
     bindSettingsState(
-      createSettingsState({ disabledPlatformIds: ["custom-agent-1"] }),
+      createSettingsState({ disabledPlatformIds: ["claude"] }),
     );
     vi.mocked(window.api.skill.getSupportedPlatforms).mockResolvedValue([
+      {
+        id: "claude",
+        name: "Claude Code",
+        icon: "Terminal",
+        rootDir: {
+          darwin: "~/.agent",
+          win32: "~/.agent",
+          linux: "~/.agent",
+        },
+        skillsRelativePath: "skills",
+      },
       {
         id: "custom-agent-1",
         name: "Team Agent",
@@ -245,7 +261,10 @@ describe("SkillBatchDeployDialog install mode", () => {
     await waitFor(() => {
       expect(window.api.skill.getSupportedPlatforms).toHaveBeenCalled();
     });
-    expect(screen.queryByText("Team Agent")).not.toBeInTheDocument();
+    expect(screen.queryByText("Claude Code")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Team Agent/ }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Shared Agent Skills/ }),
     ).toBeInTheDocument();

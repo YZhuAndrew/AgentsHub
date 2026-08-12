@@ -27,6 +27,7 @@ import { SkillPlatformTargetRow } from "./SkillPlatformTargetRow";
 
 interface SkillPlatformPanelProps {
   availablePlatforms: SkillPlatform[];
+  detectedPlatformIds?: string[];
   handleExport: (format: "skillmd" | "zip") => void;
   installMode: "copy" | "symlink";
   projectDeployMode?: "copy" | "symlink";
@@ -82,6 +83,7 @@ const PROJECT_TARGET_OPTIONS = [
 
 export function SkillPlatformPanel({
   availablePlatforms,
+  detectedPlatformIds,
   handleExport,
   installMode,
   projectDeployMode = "copy",
@@ -783,6 +785,11 @@ export function SkillPlatformPanel({
                         isBatchInstalling={isBatchInstalling}
                         isInstalled={Boolean(isInstalled)}
                         isSelected={isSelected}
+                        isDetected={
+                          detectedPlatformIds
+                            ? detectedPlatformIds.includes(platform.id)
+                            : undefined
+                        }
                         onToggle={() => togglePlatformSelection(platform.id)}
                         onUninstall={() => uninstallFromPlatform(platform.id)}
                         platform={platform}

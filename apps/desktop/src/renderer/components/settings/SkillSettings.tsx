@@ -27,6 +27,7 @@ import {
   type SkillPlatform,
 } from "@prompthub/shared/constants/platforms";
 import { useSettingsStore } from "../../stores/settings.store";
+import { isPlatformEnabled } from "../../services/platform-visibility";
 import {
   buildAgentRootAssetPreview,
   getEffectiveBuiltinAgentConfig,
@@ -561,6 +562,17 @@ export function SkillSettings() {
                     const index = managedAgentEntries.findIndex(
                       (entry) => entry.id === platform.id,
                     );
+                    // Same predicate that gates Skills distribution visibility,
+                    // so the Settings toggle state can never drift from it.
+                    const platformEnabled = isPlatformEnabled(
+                      { id: platform.id, isCustom: platform.kind === "custom" },
+                      {
+                        disabledPlatformIds: settings.disabledPlatformIds,
+                        customAgentEnabled: platform.customAgent
+                          ? () => platform.customAgent?.enabled !== false
+                          : undefined,
+                      },
+                    );
                     return (
                       <div
                         key={platform.id}
@@ -612,15 +624,9 @@ export function SkillSettings() {
                                   : t("settings.builtinAgentBadge", "Built-in")}
                               </span>
                               <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-                                {(
-                                  platform.kind === "custom"
-                                    ? platform.customAgent?.enabled === false
-                                    : settings.disabledPlatformIds.includes(
-                                        platform.id,
-                                      )
-                                )
-                                  ? t("settings.platformDisabled", "Disabled")
-                                  : t("settings.platformEnabled", "Enabled")}
+                                {platformEnabled
+                                  ? t("settings.platformEnabled", "Enabled")
+                                  : t("settings.platformDisabled", "Disabled")}
                               </span>
                             </div>
                             <div className="text-[11px] text-muted-foreground">
@@ -631,13 +637,7 @@ export function SkillSettings() {
                         <div className="flex items-center gap-1">
                           <ToggleSwitch
                             ariaLabel={platform.name}
-                            checked={
-                              platform.kind === "custom"
-                                ? platform.customAgent?.enabled !== false
-                                : !settings.disabledPlatformIds.includes(
-                                    platform.id,
-                                  )
-                            }
+                            checked={platformEnabled}
                             onChange={(checked) => {
                               if (
                                 platform.kind === "custom" &&

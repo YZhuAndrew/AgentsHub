@@ -1,5 +1,12 @@
 import type { SkillPlatform } from "@prompthub/shared/constants/platforms";
+import { SHARED_AGENT_SKILLS_TARGET_ID } from "@prompthub/shared/constants/skill-distribution-targets";
 
+/**
+ * Low-level disabled-only filter. Keeps every platform whose id is not in the
+ * disabled list. Use this directly only when you intentionally want to ignore
+ * custom/shared semantics; prefer {@link filterEnabledPlatforms} for surfaces
+ * that must match the Settings toggle contract.
+ */
 export function filterVisiblePlatforms<T extends { id: string }>(
   platforms: T[],
   disabledPlatformIds: string[],
@@ -19,9 +26,61 @@ export function isPlatformVisible(
   return !disabledPlatformIds.includes(platformId);
 }
 
+export function isExplicitlyConfiguredPlatform(
+  platform: SkillPlatform,
+): boolean {
+  return platform.isCustom === true || platform.isConfigured === true;
+}
+
+export interface PlatformEnabledContext {
+  disabledPlatformIds: string[];
+  /**
+   * Returns whether a custom Agent platform is enabled. When omitted, custom
+   * platforms are treated as enabled (matching `customAgent.enabled !== false`).
+   */
+  customAgentEnabled?: (platformId: string) => boolean;
+}
+
 /**
- * Detection-only visibility: platforms whose roots already exist on disk.
- * Do not use this for Skill distribution pickers; use filterDeployablePlatforms.
+ * Authoritative "is this platform enabled" predicate shared by Settings and
+ * every Skills distribution / Agent list surface.
+ *
+ * Detection is intentionally NOT consulted here: an enabled platform remains
+ * visible even when its root directory is absent on disk. The skill installer
+ * creates missing roots, so on-disk detection is a hint (shown in the row),
+ * not a gate. This keeps the Skills list consistent with the Settings toggle.
+ */
+export function isPlatformEnabled(
+  platform: { id: string; isCustom?: boolean },
+  ctx: PlatformEnabledContext,
+): boolean {
+  if (platform.id === SHARED_AGENT_SKILLS_TARGET_ID) {
+    return true;
+  }
+
+  if (platform.isCustom) {
+    return ctx.customAgentEnabled?.(platform.id) !== false;
+  }
+
+  return !ctx.disabledPlatformIds.includes(platform.id);
+}
+
+/**
+ * Distribution / Agent list membership: platforms that pass
+ * {@link isPlatformEnabled}. Use this everywhere a platform list must agree
+ * with the Settings "Platform Display Order" toggle.
+ */
+export function filterEnabledPlatforms(
+  platforms: SkillPlatform[],
+  ctx: PlatformEnabledContext,
+): SkillPlatform[] {
+  return platforms.filter((platform) => isPlatformEnabled(platform, ctx));
+}
+
+/**
+ * Detection-only visibility: platforms whose roots already exist on disk,
+ * minus disabled. Use this for surfaces that browse real installations; do not
+ * use it for distribution pickers (use {@link filterEnabledPlatforms}).
  */
 export function filterDetectedPlatforms(
   platforms: SkillPlatform[],
@@ -30,33 +89,6 @@ export function filterDetectedPlatforms(
 ): SkillPlatform[] {
   return filterVisiblePlatforms(
     platforms.filter((platform) => detectedPlatformIds.includes(platform.id)),
-    disabledPlatformIds,
-  );
-}
-
-export function isExplicitlyConfiguredPlatform(
-  platform: SkillPlatform,
-): boolean {
-  return platform.isCustom === true || platform.isConfigured === true;
-}
-
-/**
- * Distribution visibility: detected platforms plus user-configured targets
- * (custom Agents or built-in Agents with explicit overrides), minus disabled.
- */
-export function filterDeployablePlatforms(
-  platforms: SkillPlatform[],
-  detectedPlatformIds: string[],
-  disabledPlatformIds: string[],
-): SkillPlatform[] {
-  const detectedSet = new Set(detectedPlatformIds);
-
-  return filterVisiblePlatforms(
-    platforms.filter(
-      (platform) =>
-        detectedSet.has(platform.id) ||
-        isExplicitlyConfiguredPlatform(platform),
-    ),
     disabledPlatformIds,
   );
 }

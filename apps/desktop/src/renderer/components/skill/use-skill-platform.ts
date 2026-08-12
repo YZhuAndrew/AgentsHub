@@ -12,7 +12,7 @@ import {
 import { useSkillStore } from "../../stores/skill.store";
 import { useSettingsStore } from "../../stores/settings.store";
 import { getRuntimeCapabilities } from "../../runtime";
-import { filterDeployablePlatforms } from "../../services/platform-visibility";
+import { filterEnabledPlatforms } from "../../services/platform-visibility";
 import { appendSharedSkillDistributionTarget } from "../../services/shared-skill-distribution-target";
 
 export type { SkillInstallMode } from "@prompthub/shared/types";
@@ -179,19 +179,10 @@ export function useSkillPlatform(
   const availablePlatforms = useMemo(
     () =>
       sortSkillPlatformsByPreference(
-        filterDeployablePlatforms(
-          supportedPlatforms,
-          detectedPlatforms,
-          disabledPlatformIds,
-        ),
+        filterEnabledPlatforms(supportedPlatforms, { disabledPlatformIds }),
         skillPlatformOrder,
       ),
-    [
-      detectedPlatforms,
-      disabledPlatformIds,
-      skillPlatformOrder,
-      supportedPlatforms,
-    ],
+    [disabledPlatformIds, skillPlatformOrder, supportedPlatforms],
   );
 
   const uninstalledPlatforms = useMemo(
@@ -310,6 +301,7 @@ export function useSkillPlatform(
 
   return {
     availablePlatforms,
+    detectedPlatformIds: detectedPlatforms,
     installProgress,
     installDetails,
     installStatus,

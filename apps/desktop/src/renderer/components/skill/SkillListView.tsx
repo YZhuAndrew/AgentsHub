@@ -17,7 +17,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useSkillStore } from "../../stores/skill.store";
 import { useSettingsStore } from "../../stores/settings.store";
 import { PlatformIcon } from "../ui/PlatformIcon";
-import { filterDeployablePlatforms } from "../../services/platform-visibility";
+import { filterEnabledPlatforms } from "../../services/platform-visibility";
 import type { Skill, SkillSafetyLevel } from "@prompthub/shared/types";
 import type { SkillPlatform } from "@prompthub/shared/constants/platforms";
 import { getRuntimeCapabilities } from "../../runtime";
@@ -275,13 +275,11 @@ export function SkillListView({
   const [supportedPlatforms, setSupportedPlatforms] = useState<SkillPlatform[]>(
     [],
   );
-  const [detectedPlatforms, setDetectedPlatforms] = useState<string[]>([]);
 
   // Load platforms on mount
   useEffect(() => {
     if (!runtimeCapabilities.skillPlatformIntegration) {
       setSupportedPlatforms([]);
-      setDetectedPlatforms([]);
       return;
     }
 
@@ -289,8 +287,6 @@ export function SkillListView({
       try {
         const platforms = await window.api.skill.getSupportedPlatforms();
         setSupportedPlatforms(platforms);
-        const detected = await window.api.skill.detectPlatforms();
-        setDetectedPlatforms(detected);
       } catch (e) {
         console.error("Failed to load platforms:", e);
       }
@@ -350,12 +346,8 @@ export function SkillListView({
   }, [runtimeCapabilities.skillPlatformIntegration, skills]);
 
   const availablePlatforms = useMemo(() => {
-    return filterDeployablePlatforms(
-      supportedPlatforms,
-      detectedPlatforms,
-      disabledPlatformIds,
-    );
-  }, [supportedPlatforms, detectedPlatforms, disabledPlatformIds]);
+    return filterEnabledPlatforms(supportedPlatforms, { disabledPlatformIds });
+  }, [supportedPlatforms, disabledPlatformIds]);
 
   // Get install count for a skill
   const getInstallCount = (skillId: string) => {

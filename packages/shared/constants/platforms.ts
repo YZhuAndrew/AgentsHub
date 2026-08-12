@@ -160,7 +160,9 @@ export function getPlatformPluginsRelativePath(
 
 export const DEFAULT_SKILL_PLATFORM_ORDER = [
   "claude",
+  "copilot",
   "codex",
+  "amp",
   "kimi",
   "reasonix",
   "augment",

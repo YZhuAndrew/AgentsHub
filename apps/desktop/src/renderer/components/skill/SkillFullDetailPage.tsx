@@ -569,6 +569,7 @@ export function SkillFullDetailPage({
     availablePlatforms,
     batchInstall: installSelectedPlatforms,
     deselectAllPlatforms,
+    detectedPlatformIds,
     installProgress,
     installDetails: skillMdInstallDetails = {},
     installStatus: skillMdInstallStatus,
@@ -1099,6 +1100,7 @@ export function SkillFullDetailPage({
         isSavingUserNotes={isSavingUserNotes}
         platformPanelProps={{
           availablePlatforms,
+          detectedPlatformIds,
           handleExport,
           installMode,
           installProgress,

@@ -2470,6 +2470,7 @@
     "installed": "Installed",
     "clickToInstall": "Click to select",
     "clickToSelect": "Click to select",
+    "platformNotDetectedHint": "Client directory not detected; it will be created when you install.",
     "selectedForInstall": "Pending install",
     "sharedTargetDuplicateWarning": "The selected Agent may discover both its native Skill copy and the shared ~/.agents/skills copy.",
     "sharedTargetLabel": "Shared Agent Skills",

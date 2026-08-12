@@ -5,7 +5,7 @@ import { usePluginStore } from "../../stores/plugin.store";
 import { useSettingsStore } from "../../stores/settings.store";
 import { getRemoteStoreSkillCount } from "../../services/remote-store-entry";
 import { buildSkillStats } from "../../services/skill-stats";
-import { filterDeployablePlatforms } from "../../services/platform-visibility";
+import { filterEnabledPlatforms } from "../../services/platform-visibility";
 import {
   deriveProjectMcpTargetPresets,
   filterVisibleMcpTargetPresets,
@@ -375,9 +375,7 @@ function useSidebarSkillAgentCount(
   activeModule: string,
   skillLocalScan: boolean,
 ) {
-  const [detectedSkillAgentCount, setDetectedSkillAgentCount] = useState<
-    number | null
-  >(null);
+  const [skillAgentCount, setSkillAgentCount] = useState<number | null>(null);
   const cached = useMemo(
     () =>
       Object.entries(skill.agentScanState).filter(
@@ -387,23 +385,19 @@ function useSidebarSkillAgentCount(
   );
   useEffect(() => {
     if (activeModule !== "skill" || !skillLocalScan || !window.api?.skill) {
-      setDetectedSkillAgentCount(null);
+      setSkillAgentCount(null);
       return;
     }
     let disposed = false;
     const load = async () => {
       try {
-        const [supported, detected] = await Promise.all([
-          window.api.skill.getSupportedPlatforms(),
-          window.api.skill.detectPlatforms(),
-        ]);
+        const supported = await window.api.skill.getSupportedPlatforms();
         if (!disposed)
-          setDetectedSkillAgentCount(
-            filterDeployablePlatforms(supported, detected, disabledPlatformIds)
-              .length,
+          setSkillAgentCount(
+            filterEnabledPlatforms(supported, { disabledPlatformIds }).length,
           );
       } catch {
-        if (!disposed) setDetectedSkillAgentCount(null);
+        if (!disposed) setSkillAgentCount(null);
       }
     };
     void load();
@@ -411,7 +405,7 @@ function useSidebarSkillAgentCount(
       disposed = true;
     };
   }, [activeModule, disabledPlatformIds, skillLocalScan]);
-  return detectedSkillAgentCount ?? cached;
+  return skillAgentCount ?? cached;
 }
 
 function useSidebarSkillStoreNavigation(
