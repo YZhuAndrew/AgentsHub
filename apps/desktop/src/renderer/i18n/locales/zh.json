@@ -1661,6 +1661,7 @@
     "updateAvailableDesc": "版本 {{version}} 可用，是否下载？",
     "newVersion": "v{{version}} 可用",
     "macManualInstall": "下载完成！由于 macOS 签名限制，请手动安装：\n\n1. 打开下载文件夹\n2. 双击 DMG 安装包进行安装\n3. 如遇安全提示，请在「系统设置 > 隐私与安全性」中允许运行\n\n如果你是通过 Homebrew 安装的，可以直接运行：\nbrew upgrade --cask prompthub",
+    "macUnsignedUpdateHint": "AgentsHub 是未签名的构建，不支持应用内自动更新。请从 Releases 页面下载新的 DMG 安装包并手动安装。",
     "homebrewUpdateHint": "当前 AgentsHub 是通过 Homebrew 安装的。请使用 Homebrew 升级，不要再走应用内 DMG 更新流程。",
     "homebrewUpdateRequired": "检测到当前 AgentsHub 可能是通过 Homebrew 安装的。请运行 'brew upgrade --cask prompthub'，不要使用应用内更新。",
     "openReleasesPage": "打开 Releases 页面",

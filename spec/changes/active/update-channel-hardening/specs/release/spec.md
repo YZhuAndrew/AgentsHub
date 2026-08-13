@@ -95,21 +95,32 @@ Desktop update dialogs must not show manual-backup install gates for Homebrew-ma
 - When the update dialog renders the `available` state
 - Then it guides the user to Homebrew / Releases instead of showing the in-app installation backup gate
 
-### `FR-UPDATER-005`: Signed direct macOS builds must support in-app updates
+### `FR-UPDATER-005`: Unsigned direct macOS builds must route to manual DMG download
 
-Desktop clients installed directly from PromptHub's signed and notarized macOS
-release artifacts must download the matching ZIP update through
-`electron-updater` and restart into the update without asking users to mount a
-DMG or copy an application bundle manually.
+AgentsHub ships macOS artifacts unsigned (no Apple Developer credentials), so
+the native `electron-updater`/Squirrel.Mac swap cannot verify an update (the
+project's own history documents this failure). Direct macOS installations must
+NOT attempt the in-app ZIP download or native restart. The update dialog must
+route the user to download the new DMG manually from the Releases page instead.
+Update detection still runs so users learn a new version exists; only the
+automated install is replaced by manual DMG guidance. (Supersedes the earlier
+"signed direct macOS builds must support in-app updates" intent; the signing it
+assumed was never activated for the fork.)
 
-#### Scenario: Direct-install macOS user installs a downloaded update
+#### Scenario: Direct-install macOS user is offered an update
 
 - Given PromptHub is running from a direct macOS installation rather than Homebrew
-- And the selected release includes a signed, notarized ZIP update artifact for the current architecture
-- When the user downloads and confirms installation in the update dialog
-- Then PromptHub creates its pre-upgrade snapshot
-- And invokes the native updater restart path
-- And the dialog presents the action as an in-app installation rather than opening Downloads
+- And an update is available
+- When the update dialog renders the available or downloaded state
+- Then it shows an unsigned-fork notice and an "Open Releases" action
+- And it does NOT offer an in-app "Download Update" or "Install Now" native path
+
+#### Scenario: Direct-install macOS update handler short-circuits the native swap
+
+- Given the main process receives an updater download or install request for a direct macOS install
+- Then it still creates the pre-upgrade snapshot (install path only)
+- And it does NOT call `electron-updater` `downloadUpdate` or `quitAndInstall`
+- And it returns a manual result directing the user to the Releases page
 
 #### Scenario: Homebrew macOS user installs a downloaded update
 

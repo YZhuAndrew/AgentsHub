@@ -503,6 +503,13 @@ function getHomebrewUpgradeMessage(): string {
   );
 }
 
+function getDirectMacUpdateMessage(): string {
+  return (
+    "This AgentsHub build is unsigned, so in-app auto-update is not supported. " +
+    "Download the new DMG from the Releases page and install it manually."
+  );
+}
+
 async function openPathOrError(targetPath: string): Promise<string | null> {
   const error = await shell.openPath(targetPath);
   return typeof error === "string" && error.trim().length > 0 ? error : null;
@@ -799,7 +806,18 @@ export function registerUpdaterIPC() {
         };
       }
 
-      // All direct installs use electron-updater's verified package workflow.
+      // The fork ships unsigned, so the Squirrel.Mac ZIP swap cannot verify.
+      // Route direct macOS installs to a manual DMG download from Releases.
+      if (isMacPlatform() && getMacInstallSource() === "direct") {
+        return {
+          success: false,
+          manual: true,
+          installSource: "direct",
+          error: getDirectMacUpdateMessage(),
+        };
+      }
+
+      // Non-macOS direct installs use electron-updater's verified package workflow.
       applyMirrorDownloadSettings(useMirror);
 
       // If mirror is enabled, use mirror sources directly
@@ -870,7 +888,20 @@ export function registerUpdaterIPC() {
         };
       }
 
-      // Direct installations restart through electron-updater after the snapshot.
+      // The fork ships unsigned, so the native Squirrel.Mac restart would fail
+      // signature verification. Route direct macOS installs to a manual DMG
+      // download instead of the native swap.
+      if (isMacPlatform() && getMacInstallSource() === "direct") {
+        return {
+          success: false,
+          manual: true,
+          installSource: "direct",
+          error: getDirectMacUpdateMessage(),
+          backupPath: backup.backupPath,
+        };
+      }
+
+      // Non-macOS direct installations restart through electron-updater.
       autoUpdater.quitAndInstall(false, true);
       return {
         success: true,

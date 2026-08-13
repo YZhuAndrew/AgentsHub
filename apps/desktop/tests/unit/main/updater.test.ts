@@ -175,8 +175,12 @@ describe("Updater Service (Main Process)", () => {
     expect(autoUpdater.channel).toBe("latest");
   });
 
-  it("uses electron-updater for direct macOS downloads", async () => {
+  it("short-circuits direct macOS downloads to manual Releases guidance", async () => {
     Object.defineProperty(process, "platform", { value: "darwin" });
+    Object.defineProperty(process, "execPath", {
+      value: "/Applications/AgentsHub.app/Contents/MacOS/AgentsHub",
+      configurable: true,
+    });
     initUpdater(mockWindow);
     registerUpdaterIPC();
 
@@ -184,6 +188,9 @@ describe("Updater Service (Main Process)", () => {
       ([channel]) => channel === "updater:download",
     )?.[1] as ((options: { useMirror: boolean; channel: "stable" }) => Promise<{
       success: boolean;
+      manual?: boolean;
+      installSource?: string;
+      error?: string;
     }>);
 
     const result = await downloadHandler({
@@ -191,8 +198,12 @@ describe("Updater Service (Main Process)", () => {
       channel: "stable",
     });
 
-    expect(autoUpdater.downloadUpdate).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ success: true });
+    // The unsigned fork must not fetch the Squirrel ZIP payload.
+    expect(autoUpdater.downloadUpdate).not.toHaveBeenCalled();
+    expect(result.success).toBe(false);
+    expect(result.manual).toBe(true);
+    expect(result.installSource).toBe("direct");
+    expect(result.error).toContain("Releases");
   });
 
   it('should send "available" status to window when update found', () => {

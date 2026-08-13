@@ -34,6 +34,26 @@
   check and verifies that its real disabled result remains stable after the
   former timer window.
 
+## Revision: unsigned-fork manual DMG routing
+
+`DES-UPDATER-005` / `FR-UPDATER-005` were reversed because the fork ships macOS
+artifacts unsigned. The native `electron-updater.downloadUpdate()` +
+`quitAndInstall(false, true)` path assumed signed/notarized ZIPs; Squirrel.Mac
+cannot verify an unsigned update, so the in-app restart is unreliable. Direct
+macOS installs now:
+
+- short-circuit `updater:download` and `updater:install` in `updater.ts` before
+  touching `electron-updater` (the install path still creates the pre-upgrade
+  snapshot), returning a manual result that directs the user to Releases;
+- render an unsigned-fork notice + "Open Releases" action in `UpdateDialog.tsx`
+  for both `available` and `downloaded` states, never offering the in-app
+  download/install buttons for a direct macOS install.
+
+Win32/Linux and Homebrew paths are unchanged. `CHANGELOG.md` 0.7.2 entry for
+in-app updates was corrected to reflect manual DMG routing. See the related
+`spec/changes/active/macos-unsigned-fork-notice/` change for the broader
+unsigned-fork policy.
+
 ## Verification
 
 - `pnpm test -- --run tests/unit/main/updater.test.ts tests/unit/components/update-dialog.test.tsx tests/unit/components/about-settings.test.tsx tests/unit/main/updater-real-scenario.test.ts`

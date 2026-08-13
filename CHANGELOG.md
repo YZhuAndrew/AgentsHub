@@ -116,8 +116,8 @@
   - **Self-hosted Web Captcha Toggle**: Self-hosted Web login captcha can be disabled through an environment variable for private intranet deployments
 - 🚀 **发布链路加固**：发布 workflow 对可选镜像发布、macOS 未签名 fork 安装说明和产物校验增加保护
   - **Release Pipeline Hardening**: Release workflows now guard optional mirror publishing, document the unsigned-fork install notice, and verify artifacts
-- 🍎 **macOS 应用内更新恢复**：通过官网或 GitHub 直接安装的签名、公证版本可在应用内下载 ZIP 更新并重启完成替换；Homebrew 安装仍由 Brew 管理升级
-  - **macOS In-App Updates Restored**: Signed and notarized direct installs from the website or GitHub can download ZIP updates in-app and replace the app after restart, while Homebrew installations remain Brew-managed
+- 🍎 **macOS 更新流程调整**：AgentsHub 未签名，直接安装版不再走应用内原生替换（无代码签名证书时 Squirrel 校验会失败），改为检测到更新后引导从 Releases 手动下载 DMG；Homebrew 安装仍由 Brew 管理升级
+  - **macOS Update Flow Adjusted**: AgentsHub is unsigned, so direct installs no longer use the native in-app swap (Squirrel verification fails without a code-signing certificate); detected updates now route users to manually download the DMG from Releases. Homebrew installations remain Brew-managed.
 - 🗄️ **CLI 与桌面数据库并发写入修复**：共享 SQLite 数据库写入增加跨进程协调、语句释放和明确的争用错误，并在桌面端恢复可见后刷新数据
   - **CLI and Desktop Database Write Coordination**: Shared SQLite writes now use cross-process coordination, statement finalization, explicit contention errors, and desktop refresh after the app becomes visible again
 - 👁️ **隐藏启动同步可靠恢复**：从菜单栏、快捷键、托盘命令或第二实例恢复窗口时会主动广播权威可见状态，确保隐藏启动期间挂起的 WebDAV、S3 与自部署同步立即继续

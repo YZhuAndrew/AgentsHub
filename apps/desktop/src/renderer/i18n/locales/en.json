@@ -1661,6 +1661,7 @@
     "updateAvailableDesc": "Version {{version}} is available. Download now?",
     "newVersion": "v{{version}} available",
     "macManualInstall": "Download complete! Due to macOS signing restrictions, please install manually:\n\n1. Open the Downloads folder\n2. Double-click the DMG installer to install\n3. If you see a security warning, allow it in System Settings > Privacy & Security\n\nIf you installed via Homebrew, you can simply run:\nbrew upgrade --cask prompthub",
+    "macUnsignedUpdateHint": "This AgentsHub build is unsigned, so in-app auto-update is not supported. Download the new DMG from the Releases page and install it manually.",
     "homebrewUpdateHint": "This AgentsHub build was installed via Homebrew. Please upgrade it with Homebrew instead of the in-app DMG updater.",
     "homebrewUpdateRequired": "This AgentsHub build appears to be installed via Homebrew. Please run 'brew upgrade --cask prompthub' instead of using the in-app updater.",
     "openReleasesPage": "Open Releases",

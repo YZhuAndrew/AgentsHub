@@ -14,12 +14,12 @@
       propagate to `website/src/content/docs/changelog.md` via
       `pnpm --dir website sync:release`.
 - [x] Fix signing-info link text in `README.md` and `docs/README.ja.md`.
-- [ ] **Follow-up (needs user direction):** `CHANGELOG.md` 0.7.2 lines 119-120
-      claim in-app updates for "signed and notarized" direct installs. This is
-      a behavioral claim tied to the active `update-channel-hardening` change,
-      which assumes signed/notarized macOS artifacts. Decide wording once the
-      unsigned in-app-update behavior is confirmed.
-- [ ] **Follow-up (§0.6 conflict):** the active `update-channel-hardening`
-      change is built on a "signed and notarized" premise that conflicts with
-      the unsigned-fork policy established here. Needs reconciliation.
+- [x] **Follow-up (resolved):** `CHANGELOG.md` 0.7.2 in-app-update entry
+      corrected to reflect manual DMG routing for the unsigned fork; propagated
+      to the website changelog via `pnpm --dir website sync:release`.
+- [x] **Follow-up (resolved):** the active `update-channel-hardening` change was
+      reconciled — `FR-UPDATER-005` / `DES-UPDATER-005` reversed to unsigned-fork
+      manual DMG routing, code reverted in `updater.ts` + `UpdateDialog.tsx`,
+      and `macUnsignedUpdateHint` added to all 7 locales. See that change's
+      implementation.md revision note.
 - [x] Update `implementation.md` with what shipped and verification status.

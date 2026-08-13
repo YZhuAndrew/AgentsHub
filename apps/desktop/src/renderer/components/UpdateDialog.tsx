@@ -211,6 +211,13 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
       });
       return;
     }
+    if (platform === 'darwin' && installSource === 'direct') {
+      setUpdateStatus({
+        status: 'error',
+        error: t('settings.macUnsignedUpdateHint'),
+      });
+      return;
+    }
     await window.electron?.updater?.download({
       useMirror,
       channel: updateChannel,
@@ -225,6 +232,13 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
       setUpdateStatus({
         status: 'error',
         error: t('settings.homebrewUpdateRequired'),
+      });
+      return;
+    }
+    if (platform === 'darwin' && installSource === 'direct') {
+      setUpdateStatus({
+        status: 'error',
+        error: t('settings.macUnsignedUpdateHint'),
       });
       return;
     }
@@ -276,6 +290,10 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
       : 'settings.stableChannel',
   );
   const isMacHomebrew = platform === 'darwin' && installSource === 'homebrew';
+  const isMacDirect = platform === 'darwin' && installSource === 'direct';
+  // The fork ships unsigned, so direct macOS installs (like Homebrew) must use a
+  // manual DMG download from Releases rather than the native Squirrel swap.
+  const needsManualMacUpdate = isMacHomebrew || isMacDirect;
 
   const primaryButtonClass =
     'inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50';
@@ -444,7 +462,14 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
                 </pre>
               </div>
             )}
-            {!isMacHomebrew &&
+            {isMacDirect && (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
+                <p className="text-sm text-amber-600 dark:text-amber-400 whitespace-pre-line">
+                  {t('settings.macUnsignedUpdateHint')}
+                </p>
+              </div>
+            )}
+            {!needsManualMacUpdate &&
               renderBackupGate({
                 showDescription: false,
                 showConfirmation: false,
@@ -452,11 +477,11 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={isMacHomebrew ? () => window.electron?.updater?.openReleases() : handleDownload}
+                onClick={needsManualMacUpdate ? () => window.electron?.updater?.openReleases() : handleDownload}
                 disabled={isCreatingBackup}
                 className={primaryButtonClass}
               >
-                {isMacHomebrew ? (
+                {needsManualMacUpdate ? (
                   <>
                     <ExternalLinkIcon aria-hidden="true" className="w-4 h-4" />
                     {t('settings.openReleasesPage')}
@@ -515,6 +540,10 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
       case 'downloaded':
         const isMacHomebrewDownloaded =
           platform === 'darwin' && installSource === 'homebrew';
+        const isMacDirectDownloaded =
+          platform === 'darwin' && installSource === 'direct';
+        const needsManualMacDownloaded =
+          isMacHomebrewDownloaded || isMacDirectDownloaded;
         const downloadedVersion = getStatusVersion(updateStatus.info);
         return (
           <div className="space-y-4">
@@ -529,12 +558,19 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
                 </p>
               </div>
             </div>
-            {!isMacHomebrewDownloaded && (
+            {isMacDirectDownloaded && (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
+                <p className="text-sm text-amber-600 dark:text-amber-400 whitespace-pre-line">
+                  {t('settings.macUnsignedUpdateHint')}
+                </p>
+              </div>
+            )}
+            {!needsManualMacDownloaded && (
               <p className="text-xs text-muted-foreground">
                 {t('settings.installRestartHint')}
               </p>
             )}
-            {!isMacHomebrewDownloaded &&
+            {!needsManualMacDownloaded &&
               renderBackupGate({
                 showDescription: true,
                 showConfirmation: true,
@@ -544,18 +580,18 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
                 <button
                   type="button"
                   onClick={
-                    isMacHomebrewDownloaded
+                    needsManualMacDownloaded
                       ? () => window.electron?.updater?.openReleases()
                       : handleInstall
                   }
                   disabled={
-                    isMacHomebrewDownloaded
+                    needsManualMacDownloaded
                       ? false
                       : isCreatingBackup || isInstalling || !canInstallUpgrade
                   }
                   className={primaryButtonClass}
                 >
-                  {isMacHomebrewDownloaded ? (
+                  {needsManualMacDownloaded ? (
                     <>
                       <ExternalLinkIcon aria-hidden="true" className="w-4 h-4" />
                       {t('settings.openReleasesPage')}

@@ -117,7 +117,7 @@ describe("updater install backup", () => {
     });
   });
 
-  it("restarts a direct macOS installation through the native updater", async () => {
+  it("routes a direct macOS installation to a manual DMG download", async () => {
     Object.defineProperty(process, "platform", { value: "darwin" });
     Object.defineProperty(process, "execPath", {
       value: "/Applications/AgentsHub.app/Contents/MacOS/AgentsHub",
@@ -130,23 +130,29 @@ describe("updater install backup", () => {
       ([channel]) => channel === "updater:install",
     )?.[1] as (() => Promise<{
       success: boolean;
-      manual: boolean;
-      backupPath: string;
+      manual?: boolean;
+      installSource?: string;
+      error?: string;
+      backupPath?: string;
     }>);
 
     const result = await installHandler();
 
+    // The pre-upgrade snapshot is still created so user data stays protected.
     expect(backupMocks.createUpgradeDataSnapshotMock).toHaveBeenCalledWith(
       "/tmp/AgentsHub",
       { fromVersion: "0.5.1" },
     );
-    expect(electronMocks.openPathMock).not.toHaveBeenCalled();
-    expect(autoUpdater.quitAndInstall).toHaveBeenCalledWith(false, true);
-    expect(result).toEqual({
-      success: true,
-      manual: false,
-      backupPath: "/tmp/AgentsHub/backups/v0.5.1-2026-04-16T00-00-00",
-    });
+    // The unsigned fork cannot use the native Squirrel.Mac swap.
+    expect(autoUpdater.quitAndInstall).not.toHaveBeenCalled();
+    expect(result.success).toBe(false);
+    expect(result.manual).toBe(true);
+    expect(result.installSource).toBe("direct");
+    expect(result.backupPath).toBe(
+      "/tmp/AgentsHub/backups/v0.5.1-2026-04-16T00-00-00",
+    );
+    expect(result.error).toContain("unsigned");
+    expect(result.error).toContain("Releases");
   });
 
   it("returns a blocking error when the automatic backup fails", async () => {

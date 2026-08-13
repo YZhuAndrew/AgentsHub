@@ -39,14 +39,13 @@
 
 ## Pending / Follow-ups
 
-- `CHANGELOG.md` 0.7.2 lines 119-120 claim in-app updates for "signed and
-  notarized" direct installs. This behavioral claim is tied to the active
-  `update-channel-hardening` change and needs confirmation of unsigned in-app
-  update behavior before rewording.
-- §0.6 conflict: the active `update-channel-hardening` change assumes signed/
-  notarized macOS artifacts for `electron-updater` verification, which
-  conflicts with the unsigned-fork policy established here. Requires user
-  direction to reconcile.
+- None remaining. Both flagged follow-ups were resolved: the active
+  `update-channel-hardening` change's `FR-UPDATER-005` / `DES-UPDATER-005` were
+  reversed to unsigned-fork manual DMG routing (code reverted in `updater.ts` +
+  `UpdateDialog.tsx`, `macUnsignedUpdateHint` added to all 7 locales), and the
+  `CHANGELOG.md` 0.7.2 in-app-update entry was corrected and re-synced to the
+  website changelog. See `update-channel-hardening/implementation.md` revision
+  note.
 
 ## Synced Docs
 
