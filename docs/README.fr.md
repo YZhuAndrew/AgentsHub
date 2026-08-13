@@ -9,7 +9,7 @@ Un espace de travail local-first pour les prompts, les skills et les assets de c
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.7.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.7.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -309,6 +309,10 @@ Options globales courantes :
 ## Journal des modifications
 
 Journal complet : **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.7.2 (2026-08-13, stable)
+
+- Icône permanente de la barre d'état : un nouveau commutateur optionnel garde l'icône de la barre des menus / tray visible même fenêtre ouverte ; compatible avec la minimisation et appliqué en direct
 
 ### v0.7.1 (2026-08-13, stable)
 

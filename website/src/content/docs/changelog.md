@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [0.7.2] - 2026-08-13
+
+### 新功能 / Features
+
+- 📌 **常驻状态栏图标**：设置新增「常驻状态栏图标」开关（默认关闭）。开启后启动即创建托盘/菜单栏图标，窗口打开时也常驻可见；关闭则保持原行为（仅最小化到托盘时显示）。开关可即时生效，并与「最小化到托盘」叠加（两者任一开启即显示图标）
+  - **Persistent status-bar icon**: a new "Persistent Status Bar Icon" toggle (default off) creates the tray/menu-bar icon on launch so it stays visible even while the window is open; off keeps the prior minimize-to-tray-only behavior. The toggle takes effect live and composes with minimize-to-tray (icon shows when either is on)
+
 ## [0.7.1] - 2026-08-13
 
 ### 修复 / Fixes

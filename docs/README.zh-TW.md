@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.7.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.7.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -309,6 +309,10 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 ## 更新日誌
 
 完整版本說明：**[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.7.2（2026-08-13，正式版）
+
+- 常駐狀態列圖示：設定新增「常駐狀態列圖示」開關（預設關閉），開啟後啟動即建立選單列/系統匣圖示，視窗開啟時也常駐可見；可與最小化到系統匣疊加，開關即時生效
 
 ### v0.7.1（2026-08-13，正式版）
 
