@@ -1,5 +1,21 @@
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-13
+
+### 新功能 / Features
+
+- 📦 **技能批量导入**：新增「批量导入」模式，可拖入/选择多个本地 ZIP 压缩包，或粘贴多个 GitHub/Git 仓库 URL 一次性安装；支持把一个或多个 ZIP 直接拖到 My Skills 视图触发批量导入；本地 ZIP 走与远程包相同的原子安装管线（加固解压、指纹、安全审查、原子替换）
+  - **Skill Batch Import**: a new "Batch Import" mode installs one or more local `.zip` archives (drag/drop or file picker) and/or multiple GitHub/Git URLs in one action; dropping one or more ZIPs onto the My Skills view opens batch import pre-filled; local ZIP install reuses the same atomic package lifecycle as remote packages (hardened extraction, fingerprint, safety review, atomic replace)
+- 🆕 **QwenWork CN 平台**：新增 `qwenworkcn` 内置 Agent 平台目标（QwenWork 的中国区变体），可直接向其分发 Skills
+  - **QwenWork CN platform**: registers the `qwenworkcn` built-in agent platform target (the China-region variant of QwenWork) so Skills can be distributed to it directly
+
+### 修复 / Fixes
+
+- 🔧 **平台可见性与设置开关统一**：Skills 分发/Agent 列表改为以设置里的「平台开关」为唯一判定（开启即在各处可见，关闭即在各处消失），磁盘检测降级为「未检测到目录，安装时将自动创建」提示；补齐 `copilot`/`amp` 排序，设置与 Skills 排序一致
+  - **Unified platform visibility with the Settings toggle**: Skills distribution/Agent list membership now follows the Settings "enabled" toggle as the single source of truth (enabled = visible everywhere, disabled = hidden everywhere); disk detection becomes a non-blocking "directory not detected; will be created on install" hint; `copilot`/`amp` were added to the default order so Settings and Skills sort identically
+- 🐛 **trae-work-cn 根目录修正**：`trae-work-cn` 默认根目录由 `~/.trae-work-cn` 改为 `~/.trae-cn`（与 TRAE IDE CN 共享同一数据目录，用户确认）；平台 id 不变，自定义根覆盖仍优先
+  - **trae-work-cn root fix**: the `trae-work-cn` default root changes from `~/.trae-work-cn` to `~/.trae-cn` (shares the TRAE IDE CN data directory, user-confirmed); the platform id is unchanged and custom root overrides still take precedence
+
 ## [0.6.2] - 2026-08-11
 
 ### 新功能 / Features

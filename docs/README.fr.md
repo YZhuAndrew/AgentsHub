@@ -9,7 +9,7 @@ Un espace de travail local-first pour les prompts, les skills et les assets de c
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.7.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -309,6 +309,11 @@ Options globales courantes :
 ## Journal des modifications
 
 Journal complet : **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.7.0 (2026-08-13, stable)
+
+- Import de compétences par lot : un nouveau mode d'import par lot installe plusieurs archives ZIP locales (glisser-déposer ou sélecteur) et/ou plusieurs URLs GitHub/Git à la fois ; les ZIP locaux réutilisent le même cycle d'installation atomique que les paquets distants ; déposer des ZIP sur My Skills ouvre l'import par lot
+- Visibilité des plateformes unifiée avec le bouton Settings (la détection devient un indice ; copilot/amp ajoutés à l'ordre) ; ajout de la plateforme QwenWork CN ; correction de la racine par défaut de trae-work-cn vers ~/.trae-cn
 
 ### v0.6.2 (2026-08-11, stable)
 

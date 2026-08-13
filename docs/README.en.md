@@ -9,7 +9,7 @@ A local-first workspace for prompts, skills, and AI coding assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.7.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -326,6 +326,11 @@ Common global flags:
 ## Changelog
 
 Full changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.7.0 (2026-08-13, stable)
+
+- Skill batch import: a new "Batch Import" mode installs multiple local ZIP archives (drag/drop or picker) and/or multiple GitHub/Git URLs at once; local ZIP reuses the same atomic install lifecycle as remote packages; dropping ZIPs onto My Skills opens batch import
+- Platform visibility unified with the Settings toggle (detection becomes a hint; copilot/amp added to order); added the QwenWork CN platform; fixed the trae-work-cn default root to ~/.trae-cn
 
 ### v0.6.2 (2026-08-11, stable)
 

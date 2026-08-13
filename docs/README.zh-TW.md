@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.7.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -309,6 +309,11 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 ## 更新日誌
 
 完整版本說明：**[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.7.0（2026-08-13，正式版）
+
+- 技能批次匯入：新增「批次匯入」模式，可拖入/選擇多個本地 ZIP 壓縮檔或貼上多個 GitHub/Git 倉庫 URL 一次安裝；本地 ZIP 沿用與遠端包相同的原子安裝管線；把 ZIP 拖到 My Skills 檢視即開啟批次匯入
+- 平台可見性與設定開關統一（偵測降為提示；補齊 copilot/amp 排序）；新增 QwenWork CN 平台；修正 trae-work-cn 預設根目錄為 ~/.trae-cn
 
 ### v0.6.2（2026-08-11，正式版）
 

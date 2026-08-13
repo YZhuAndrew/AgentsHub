@@ -9,7 +9,7 @@ Ein Local-First-Arbeitsbereich für Prompts, Skills und KI-Coding-Assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.7.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -309,6 +309,11 @@ Häufige globale Flags:
 ## Änderungsprotokoll
 
 Vollständiges Changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.7.0 (2026-08-13, Stable)
+
+- Stapel-Import von Skills: Ein neuer Modus "Stapelimport" installiert mehrere lokale ZIP-Archive (Drag & Drop oder Auswahl) und/oder mehrere GitHub/Git-URLs auf einmal; lokale ZIPs nutzen denselben atomaren Installations-Lebenszyklus wie Remote-Pakete; ZIPs auf My Skills ziehen öffnet den Stapelimport
+- Plattformsichtbarkeit mit dem Settings-Schalter vereinheitlicht (Erkennung wird zum Hinweis; copilot/amp zur Reihenfolge hinzugefügt); QwenWork CN-Plattform hinzugefügt; trae-work-cn-Standardwurzel auf ~/.trae-cn korrigiert
 
 ### v0.6.2 (2026-08-11, Stable)
 

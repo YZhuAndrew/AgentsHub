@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.6.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.7.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,11 @@ Skill のインポート、バージョンスナップショット、配布で�
 ## 変更履歴
 
 完全な変更履歴: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.7.0（2026-08-13、正式版）
+
+- スキル一括インポート：新規「一括インポート」モードで複数のローカル ZIP アーカイブ（ドロップ/選択）や複数の GitHub/Git URL を一括インストール。ローカル ZIP はリモートパッケージと同じ原子インストールパイプラインを再利用。My Skills への ZIP ドロップで一括インポートを起動
+- プラットフォーム表示を Settings トグルに統一（検出はヒント化、copilot/amp を並び順に追加）。QwenWork CN プラットフォームを追加。trae-work-cn の既定ルートを ~/.trae-cn に修正
 
 ### v0.6.2（2026-08-11、正式版）
 
