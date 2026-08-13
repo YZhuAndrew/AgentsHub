@@ -174,17 +174,64 @@ function isTransientDatabaseEntry(entryName: string): boolean {
   return TRANSIENT_DATABASE_ENTRY_PATTERNS.some((pattern) => pattern.test(entryName));
 }
 
-function shouldCopySnapshotPath(sourcePath: string): boolean {
-  if (isTransientDatabaseEntry(path.basename(sourcePath))) {
-    return false;
+function isWithinPath(rootDir: string, targetPath: string): boolean {
+  const root = path.resolve(rootDir);
+  const target = path.resolve(targetPath);
+  return target === root || target.startsWith(root + path.sep);
+}
+
+/**
+ * Build the `fs.cp` filter used when snapshotting userData (and when migrating
+ * legacy snapshots). Symlinks are part of normal operation — e.g. symlink-mode
+ * Skill installs point into the managed skills directory — so snapshotting must
+ * not abort on them.
+ *
+ * - Skip transient database sidecar files.
+ * - Preserve symlinks that resolve WITHIN the source root (faithful, restorable
+ *   copies of internal links such as symlink-installed Skills).
+ * - Skip symlinks that escape the source root so the snapshot stays restorable
+ *   (the restore path rejects links resolving outside userData).
+ * - Preserve dangling symlinks as-is (realpath cannot resolve them; they are
+ *   harmless to copy and faithfully represent the source tree).
+ */
+function createSnapshotCopyFilter(
+  sourceRoot: string,
+): (source: string, _destination: string) => boolean {
+  // Normalize the root with realpath so symlink-within checks are consistent
+  // even on platforms where system dirs are themselves symlinks (e.g. macOS
+  // /var -> /private/var); otherwise an internal link's realpath would compare
+  // against a non-normalized root and be misclassified as escaping.
+  let resolvedRoot: string;
+  try {
+    resolvedRoot = fs.realpathSync(sourceRoot);
+  } catch {
+    resolvedRoot = path.resolve(sourceRoot);
   }
 
-  const stats = fs.lstatSync(sourcePath);
-  if (stats.isSymbolicLink()) {
-    throw new Error(`Cannot copy upgrade backup path from symbolic link: ${sourcePath}`);
-  }
+  return (source) => {
+    if (isTransientDatabaseEntry(path.basename(source))) {
+      return false;
+    }
 
-  return true;
+    let stats: fs.Stats;
+    try {
+      stats = fs.lstatSync(source);
+    } catch {
+      return false;
+    }
+
+    if (!stats.isSymbolicLink()) {
+      return true;
+    }
+
+    try {
+      const resolved = fs.realpathSync(source);
+      return isWithinPath(resolvedRoot, resolved);
+    } catch {
+      // Dangling link: cannot resolve, so it cannot escape the root either.
+      return true;
+    }
+  };
 }
 
 function parseManifest(raw: unknown): UpgradeBackupManifest | null {
@@ -307,7 +354,7 @@ export async function createUpgradeDataSnapshot(
         preserveTimestamps: true,
         errorOnExist: true,
         force: false,
-        filter: shouldCopySnapshotPath,
+        filter: createSnapshotCopyFilter(resolvedUserDataPath),
       });
     }
 
@@ -543,7 +590,7 @@ export async function migrateLegacyUpgradeBackups(
         preserveTimestamps: true,
         errorOnExist: true,
         force: false,
-        filter: shouldCopySnapshotPath,
+        filter: createSnapshotCopyFilter(legacyBackupPath),
       });
     } catch (error) {
       console.warn(

@@ -191,6 +191,66 @@ describe("upgrade-backup", () => {
       ).toBe("prompt body");
     });
 
+    it("preserves internal symlinks (e.g. symlink-installed skill files) and does not block the snapshot", async () => {
+      const userDataPath = path.join(tmpBase, "PromptHub");
+      seedUserData(userDataPath);
+      // An internal symlink pointing within userData, like a symlink-mode skill.
+      fs.symlinkSync(
+        path.join(userDataPath, "skills", "demo-skill", "SKILL.md"),
+        path.join(userDataPath, "skills", "demo-skill", "CLAUDE.md"),
+        "file",
+      );
+
+      const snapshot = await createUpgradeDataSnapshot(userDataPath, {
+        fromVersion: "0.7.0",
+      });
+
+      const backedLink = path.join(
+        snapshot.backupPath,
+        "skills",
+        "demo-skill",
+        "CLAUDE.md",
+      );
+      expect(fs.lstatSync(backedLink).isSymbolicLink()).toBe(true);
+      expect(
+        fs.readFileSync(
+          path.join(snapshot.backupPath, "skills", "demo-skill", "SKILL.md"),
+          "utf8",
+        ),
+      ).toBe("# skill");
+    });
+
+    it("skips symlinks escaping userData so the snapshot stays restorable", async () => {
+      const userDataPath = path.join(tmpBase, "PromptHub");
+      const externalPath = path.join(tmpBase, "outside-secret.txt");
+      seedUserData(userDataPath);
+      fs.writeFileSync(externalPath, "external secret");
+      fs.symlinkSync(
+        externalPath,
+        path.join(userDataPath, "workspace", "linked-secret.md"),
+        "file",
+      );
+
+      const snapshot = await createUpgradeDataSnapshot(userDataPath, {
+        fromVersion: "0.7.0",
+      });
+
+      // The escaping symlink is skipped, but the snapshot still succeeds and
+      // captures the regular files.
+      expect(
+        fs.existsSync(
+          path.join(snapshot.backupPath, "workspace", "linked-secret.md"),
+        ),
+      ).toBe(false);
+      expect(
+        fs.readFileSync(
+          path.join(snapshot.backupPath, "workspace", "prompt-1.md"),
+          "utf8",
+        ),
+      ).toBe("prompt body");
+      expect(fs.readFileSync(externalPath, "utf8")).toBe("external secret");
+    });
+
     it("does not recurse into the backup root when snapshotting", async () => {
       const userDataPath = path.join(tmpBase, "PromptHub");
       seedUserData(userDataPath);
@@ -209,7 +269,7 @@ describe("upgrade-backup", () => {
       expect(fs.existsSync(path.join(second.backupPath, "backups"))).toBe(false);
     });
 
-    it("rejects symlinked user data entries and cleans up the partial snapshot", async () => {
+    it("skips escaping symlinks (directory) and still creates the snapshot", async () => {
       const userDataPath = path.join(tmpBase, "PromptHub");
       const externalPath = path.join(tmpBase, "outside-user-data");
       seedUserData(userDataPath);
@@ -217,15 +277,21 @@ describe("upgrade-backup", () => {
       fs.writeFileSync(path.join(externalPath, "external.md"), "external prompt");
       fs.symlinkSync(externalPath, path.join(userDataPath, "workspace", "linked"), "dir");
 
-      await expect(
-        createUpgradeDataSnapshot(userDataPath, { fromVersion: "0.5.1" }),
-      ).rejects.toThrow(/symbolic link/i);
+      const snapshot = await createUpgradeDataSnapshot(userDataPath, {
+        fromVersion: "0.5.1",
+      });
 
-      const backupRoot = getUpgradeBackupRoot(userDataPath);
-      const backupEntries = fs.existsSync(backupRoot)
-        ? fs.readdirSync(backupRoot).filter((entry) => !entry.startsWith("."))
-        : [];
-      expect(backupEntries).toEqual([]);
+      // The escaping directory symlink is skipped; the snapshot still succeeds
+      // and captures the regular files. The external target is untouched.
+      expect(
+        fs.existsSync(path.join(snapshot.backupPath, "workspace", "linked")),
+      ).toBe(false);
+      expect(
+        fs.readFileSync(
+          path.join(snapshot.backupPath, "workspace", "prompt-1.md"),
+          "utf8",
+        ),
+      ).toBe("prompt body");
       expect(
         fs.readFileSync(path.join(externalPath, "external.md"), "utf8"),
       ).toBe("external prompt");
@@ -553,7 +619,7 @@ describe("upgrade-backup", () => {
       expect(fs.existsSync(legacyBackup)).toBe(true);
     });
 
-    it("skips legacy snapshots containing symlinks and cleans up the partial copy", async () => {
+    it("migrates a legacy snapshot containing an escaping symlink, skipping only the link", async () => {
       const userDataPath = path.join(tmpBase, "PromptHub");
       const externalPath = path.join(tmpBase, "outside-legacy-backup");
       fs.mkdirSync(userDataPath, { recursive: true });
@@ -584,12 +650,20 @@ describe("upgrade-backup", () => {
 
       const result = await migrateLegacyUpgradeBackups(userDataPath);
 
-      expect(result.migrated).toBe(0);
-      expect(result.skipped).toBe(1);
-      expect(fs.existsSync(legacyBackup)).toBe(true);
-      expect(fs.existsSync(path.join(getUpgradeBackupRoot(userDataPath), id))).toBe(
-        false,
-      );
+      const migratedBackup = path.join(getUpgradeBackupRoot(userDataPath), id);
+      // The snapshot migrates (the escaping symlink is skipped, the rest copies),
+      // and the legacy copy is removed once the new copy is in place.
+      expect(result.migrated).toBe(1);
+      expect(result.skipped).toBe(0);
+      expect(fs.existsSync(legacyBackup)).toBe(false);
+      expect(fs.existsSync(migratedBackup)).toBe(true);
+      expect(
+        fs.readFileSync(path.join(migratedBackup, "workspace", "safe.md"), "utf8"),
+      ).toBe("safe prompt");
+      // The escaping symlink itself is NOT carried into the migrated snapshot.
+      expect(
+        fs.existsSync(path.join(migratedBackup, "workspace", "linked")),
+      ).toBe(false);
       expect(
         fs.readFileSync(path.join(externalPath, "external.md"), "utf8"),
       ).toBe("external prompt");
