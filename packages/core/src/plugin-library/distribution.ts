@@ -22,7 +22,6 @@ import {
   TARGET_PLUGIN_MARKER_PATHS,
   ensureInsideDirectory,
   getManagedPluginsDir,
-  getPluginLibraryFilePath,
   getPluginLocalPackagePath,
   normalizeDistributedTargetIds,
   normalizeRelativePosixPath,
@@ -530,6 +529,17 @@ const PLUGIN_TARGET_MATRIX: PluginTargetCompatibility[] = [
       "PromptHub currently discovers native Qwen extensions but leaves installation and updates to Qwen Code.",
   },
   {
+    id: "oh-my-pi",
+    displayName: "Oh My Pi",
+    status: "native",
+    enabled: false,
+    nativeMarker:
+      ".omp-plugin/plugin.json / .claude-plugin/plugin.json / plugin.json",
+    installSurface: "~/.omp/plugins/installed_plugins.json",
+    unsupportedReason:
+      "PromptHub reads installed Oh My Pi plugin inventory but leaves installation and updates to Oh My Pi.",
+  },
+  {
     id: "opencode",
     displayName: "OpenCode",
     status: "runtime-only",
@@ -600,6 +610,7 @@ export function getPluginTargetMatrix(): PluginTargetCompatibility[] {
 
 interface DistributionContext {
   readLibrary: () => PluginLibraryFile;
+  persistLibrary: (library: PluginLibraryFile) => PluginLibraryFile;
   resolveTargetPath?: PluginTargetPathResolver;
 }
 
@@ -627,6 +638,7 @@ function requireTargetResolver(
 }
 
 function persistDistributedPlugin(
+  context: DistributionContext,
   library: PluginLibraryFile,
   plugin: PluginLibraryEntry,
 ): PluginLibraryFile {
@@ -637,8 +649,7 @@ function persistDistributedPlugin(
       entry.id === plugin.id ? plugin : entry,
     ),
   };
-  writeJsonFileAtomic(getPluginLibraryFilePath(), nextLibrary);
-  return nextLibrary;
+  return context.persistLibrary(nextLibrary);
 }
 
 function resolveDistributionTargets(
@@ -707,7 +718,7 @@ export function distributePlugin(
   };
   return {
     plugin: nextPlugin,
-    library: persistDistributedPlugin(library, nextPlugin),
+    library: persistDistributedPlugin(context, library, nextPlugin),
     targets,
   };
 }
@@ -768,7 +779,7 @@ export function removePluginDistribution(
   };
   return {
     plugin: nextPlugin,
-    library: persistDistributedPlugin(library, nextPlugin),
+    library: persistDistributedPlugin(context, library, nextPlugin),
     ...result,
   };
 }

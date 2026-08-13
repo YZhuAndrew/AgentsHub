@@ -50,6 +50,8 @@ export interface SkillPlatform {
   agentsRelativePath?: string;
   commandsRelativePath?: string;
   globalRuleFile?: string;
+  projectRuleFile?: string;
+  projectRuleKind?: "workspace" | "cursor";
   configFiles?: string[];
   cli?: AgentCliDescriptor;
   isCustom?: boolean;
@@ -289,6 +291,8 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
       linux: "~/.cursor",
     },
     skillsRelativePath: "skills",
+    projectRuleFile: ".cursor/rules/prompthub.mdc",
+    projectRuleKind: "cursor",
     agentsRelativePath: "agents",
     mcpRelativePath: "mcp.json",
     pluginsRelativePath: "plugins",
@@ -343,6 +347,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
     agentsRelativePath: "agents",
     mcpRelativePath: "settings/mcp.json",
     pluginsRelativePath: "powers",
+    globalRuleFile: "steering/AGENTS.md",
     configFiles: ["settings/cli.json"],
     launchPaths: {
       darwin: ["/Applications/Kiro.app", "~/Applications/Kiro.app"],
@@ -468,6 +473,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
     },
     rootEnvironmentVariable: "PI_CODING_AGENT_DIR",
     skillsRelativePath: "skills",
+    mcpRelativePath: "mcp.json",
     pluginsRelativePath: "extensions",
     globalRuleFile: "AGENTS.md",
     configFiles: ["settings.json", "models.json", "AGENTS.md"],
@@ -517,6 +523,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
     },
     skillsRelativePath: "skills",
     mcpRelativePath: "data/settings/cline_mcp_settings.json",
+    globalRuleFile: "data/settings/rules/AGENTS.md",
     configFiles: [
       "data/settings/global-settings.json",
       "data/settings/cline_mcp_settings.json",
@@ -612,6 +619,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
     // Auggie persists MCP servers in settings.json; no generic MCP writer is
     // exposed until the settings schema has a dedicated target adapter.
     mcpRelativePath: "settings.json",
+    globalRuleFile: "user-guidelines.md",
     configFiles: ["settings.json"],
   },
   {
@@ -726,6 +734,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
       linux: "~/.openclaw",
     },
     skillsRelativePath: "skills",
+    mcpRelativePath: "openclaw.json",
     globalRuleFile: "workspace/SOUL.md",
     configFiles: ["openclaw.json"],
     cli: {
@@ -749,6 +758,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
       linux: ["~/.copaw"],
     },
     skillsRelativePath: "skills",
+    configFiles: ["config.json"],
   },
   {
     id: "autoclaw",
@@ -765,6 +775,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
       linux: ["~/.openclaw-autoclaw"],
     },
     skillsRelativePath: "skills",
+    configFiles: ["setting.json"],
   },
   {
     id: "nanoclaw",
@@ -793,6 +804,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
     },
     skillsRelativePath: "skills",
     globalRuleFile: "workspace/SOUL.md",
+    configFiles: ["openclaw.json"],
   },
   {
     id: "qoder",
@@ -804,6 +816,10 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
       linux: "~/.qoder",
     },
     skillsRelativePath: "skills",
+    mcpRelativePath: "settings.json",
+    projectRuleFile: "AGENTS.md",
+    projectRuleKind: "workspace",
+    configFiles: ["settings.json"],
   },
   {
     id: "qoderwork",
@@ -849,6 +865,7 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
     },
     skillsRelativePath: "skills",
     globalRuleFile: "AGENTS.md",
+    configFiles: ["config.yaml"],
   },
   {
     id: "codebuddy",

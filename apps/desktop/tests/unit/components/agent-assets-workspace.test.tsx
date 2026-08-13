@@ -163,6 +163,19 @@ function seedSkillScan(
 }
 
 function seedStores() {
+  const claudeRule = {
+    id: "claude-global",
+    platformId: "claude",
+    platformName: "Claude Code",
+    platformIcon: "Sparkles",
+    platformDescription: "Global Claude rules",
+    name: "CLAUDE.md",
+    description: "Global Claude rules",
+    path: "~/.claude/CLAUDE.md",
+    exists: true,
+    group: "assistant" as const,
+  };
+
   seedSkillScan([
     createAgentSkill({ localPath: "/Users/demo/skills/write" }),
     createAgentSkill({
@@ -175,7 +188,20 @@ function seedStores() {
       kind: "prompthub-mcp-library",
       version: 1,
       updatedAt: "2026-01-01T00:00:00.000Z",
-      servers: [],
+      servers: [
+        {
+          id: "library-files",
+          name: "library-files",
+          displayName: "Library Files",
+          transport: "stdio",
+          command: "npx",
+          args: ["-y", "@modelcontextprotocol/server-filesystem"],
+          enabled: true,
+          source: { type: "manual" },
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ],
       bindings: [],
     },
     targetPresets: [
@@ -214,20 +240,8 @@ function seedStores() {
   useRulesStore.setState({
     hasLoadedFiles: true,
     selectedRuleId: "claude-global",
-    files: [
-      {
-        id: "claude-global",
-        platformId: "claude",
-        platformName: "Claude Code",
-        platformIcon: "Sparkles",
-        platformDescription: "Global Claude rules",
-        name: "CLAUDE.md",
-        description: "Global Claude rules",
-        path: "~/.claude/CLAUDE.md",
-        exists: true,
-        group: "assistant",
-      },
-    ],
+    availableFiles: [claudeRule],
+    files: [claudeRule],
     currentFile: {
       id: "claude-global",
       platformId: "claude",
@@ -326,7 +340,7 @@ describe("AgentAssetsWorkspace", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByText("write")).toBeVisible();
     expect(screen.getByText("ext-one")).toBeVisible();
-    expect(screen.getByText("~/.claude/skills")).toBeVisible();
+    expect(screen.queryByText("~/.claude/skills")).not.toBeInTheDocument();
     expect(
       screen.getByTestId("agent-asset-management-surface"),
     ).toHaveAttribute("data-domain", "skills");
@@ -359,7 +373,7 @@ describe("AgentAssetsWorkspace", () => {
       screen.queryByTestId("mcp-agent-target-row"),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("ext-one")).not.toBeInTheDocument();
-    expect(screen.getAllByText("~/.claude.json").length).toBeGreaterThan(0);
+    expect(screen.queryByText("~/.claude.json")).not.toBeInTheDocument();
 
     view.rerender(<AgentAssetsWorkspace agent={claudeAgent} domain="rules" />);
     expect(screen.getByText("CLAUDE.md")).toBeVisible();
@@ -394,12 +408,123 @@ describe("AgentAssetsWorkspace", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("localizes MCP filters and keeps raw target paths out of the toolbar", async () => {
+    await renderWithI18n(
+      <AgentAssetsWorkspace agent={claudeAgent} domain="mcp" />,
+      { language: "zh" },
+    );
+
+    expect(screen.getByTestId("mcp-agent-filter-managed")).toHaveTextContent(
+      "0 个已管理",
+    );
+    expect(screen.getByTestId("mcp-agent-filter-external")).toHaveTextContent(
+      "2 个外部",
+    );
+    expect(screen.getByTestId("mcp-agent-filter-enabled")).toHaveTextContent(
+      "2 个已启用",
+    );
+    expect(screen.getByTestId("mcp-agent-filter-disabled")).toHaveTextContent(
+      "0 个已停用",
+    );
+
+    const toolbar = screen
+      .getByRole("textbox", { name: "搜索资产" })
+      .closest("div");
+    expect(toolbar).not.toBeNull();
+    expect(
+      within(toolbar as HTMLElement).queryByText("~/.claude.json"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens localized in-context add dialogs for Skills, MCP, and Plugins", async () => {
+    const view = await renderWithI18n(
+      <AgentAssetsWorkspace agent={claudeAgent} domain="skills" />,
+      { language: "zh" },
+    );
+
+    const skillAction = screen.getByRole("button", { name: "添加 Skill" });
+    fireEvent.click(skillAction);
+    expect(screen.getByTestId("skill-library-import-modal")).toBeVisible();
+
+    const applyTarget = vi.fn().mockResolvedValue({});
+    const refreshTargetStatus = vi.fn().mockResolvedValue(undefined);
+    useMcpStore.setState({ applyTarget, refreshTargetStatus });
+    view.rerender(<AgentAssetsWorkspace agent={claudeAgent} domain="mcp" />);
+    const mcpAction = screen.getByRole("button", { name: "添加 MCP" });
+    expect(mcpAction.className).toBe(skillAction.className);
+    expect(mcpAction).toBeEnabled();
+    fireEvent.click(mcpAction);
+    const mcpDialog = screen.getByRole("dialog", {
+      name: "从我的 MCP 添加",
+    });
+    fireEvent.click(
+      within(mcpDialog).getByRole("button", { name: "Library Files" }),
+    );
+    fireEvent.click(
+      within(mcpDialog).getByRole("button", { name: /添加 1 个 MCP/ }),
+    );
+    await waitFor(() =>
+      expect(applyTarget).toHaveBeenCalledWith({
+        target: "claude",
+        scope: "global",
+        path: "~/.claude.json",
+        serverIds: ["library-files"],
+      }),
+    );
+    expect(refreshTargetStatus).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "从我的 MCP 添加" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(useUIStore.getState().appModule).toBe("agents");
+
+    view.rerender(
+      <AgentAssetsWorkspace agent={claudeAgent} domain="plugins" />,
+    );
+    const pluginAction = screen.getByRole("button", { name: "添加 Plugin" });
+    expect(pluginAction.className).toBe(skillAction.className);
+    fireEvent.click(pluginAction);
+    expect(screen.getByRole("dialog", { name: "添加 Plugin" })).toBeVisible();
+    expect(useUIStore.getState().appModule).toBe("agents");
+  });
+
+  it("keeps every asset Add action on the fixed toolbar right edge", async () => {
+    const view = await renderWithI18n(
+      <AgentAssetsWorkspace agent={claudeAgent} domain="skills" />,
+      { language: "zh" },
+    );
+    const search = screen.getByRole("textbox", { name: "搜索资产" });
+    fireEvent.change(search, { target: { value: "ext-one" } });
+    expect(search).toHaveValue("ext-one");
+
+    for (const [domain, actionName] of [
+      ["skills", "添加 Skill"],
+      ["mcp", "添加 MCP"],
+      ["plugins", "添加 Plugin"],
+    ] as const) {
+      view.rerender(
+        <AgentAssetsWorkspace agent={claudeAgent} domain={domain} />,
+      );
+
+      const toolbar = screen.getByTestId("agent-asset-toolbar");
+      const filters = screen.getByTestId("agent-asset-toolbar-filters");
+      const action = screen.getByRole("button", { name: actionName });
+
+      expect(toolbar).toHaveClass("flex-nowrap");
+      expect(filters).toHaveClass("min-w-0", "flex-1", "overflow-x-auto");
+      expect(action.parentElement).toBe(toolbar);
+      expect(toolbar.lastElementChild).toBe(action);
+    }
+  });
+
   it("uses one icon-led card anatomy across Skills, MCP, and Plugins", async () => {
     const view = await renderWithI18n(
       <AgentAssetsWorkspace agent={claudeAgent} domain="skills" />,
     );
 
     const readAnatomy = (card: HTMLElement) => ({
+      cardClass: card.className,
       contentClass: within(card).getByTestId("agent-asset-card-content")
         .className,
       avatarClass: within(card).getByTestId("agent-asset-card-avatar")
@@ -418,6 +543,14 @@ describe("AgentAssetsWorkspace", () => {
 
     const skillCard = screen.getAllByTestId("agent-skill-asset-card")[0];
     const skillAnatomy = readAnatomy(skillCard);
+    expect(skillCard).toHaveClass("h-[232px]");
+    expect(skillAnatomy.contentClass).toContain("h-full");
+    expect(skillAnatomy.titleClass).toContain("h-6");
+    expect(skillAnatomy.titleClass).toContain("overflow-hidden");
+    expect(skillAnatomy.descriptionClass).toContain("h-10");
+    expect(skillAnatomy.sourceClass).toContain("h-4");
+    expect(skillAnatomy.metadataClass).toContain("h-10");
+    expect(skillAnatomy.metadataClass).toContain("overflow-hidden");
     expect(
       within(skillCard).getByTestId("agent-skill-asset-icon"),
     ).toBeVisible();
@@ -653,6 +786,140 @@ describe("AgentAssetsWorkspace", () => {
         "plugin-distributed",
         ["claude"],
       );
+    });
+  });
+
+  it("offers confirmed removal on a target card backed by a managed distribution", async () => {
+    const removePluginDistribution = vi.fn().mockResolvedValue(undefined);
+    const managedPlugin: PluginLibraryEntry = {
+      id: "plugin-formatter-managed",
+      name: "formatter",
+      displayName: "Formatter",
+      description: "Managed Formatter Plugin",
+      trustLevel: "custom",
+      inventory: {
+        skills: 0,
+        mcpServers: 0,
+        apps: 0,
+        commands: 0,
+        hooks: 0,
+        agents: 0,
+        assets: 0,
+        docs: 0,
+        lspServers: 0,
+        scripts: 0,
+      },
+      classification: "bundle",
+      source: {
+        kind: "local",
+        localPackagePath: "/Users/demo/formatter",
+      },
+      distributedTargetIds: ["claude"],
+      installedAt: 1,
+      updatedAt: 1,
+    };
+    usePluginStore.setState({
+      library: {
+        kind: "prompthub-plugin-library",
+        version: 1,
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        plugins: [managedPlugin],
+      },
+      removePluginDistribution,
+    });
+
+    await renderWithI18n(
+      <AgentAssetsWorkspace agent={claudeAgent} domain="plugins" />,
+    );
+
+    const targetCard = screen.getByTestId("agent-plugin-target-card");
+    fireEvent.click(
+      within(targetCard).getByRole("button", {
+        name: /remove formatter from claude code/i,
+      }),
+    );
+
+    const dialog = await screen.findByRole("alertdialog", {
+      name: "Remove Plugin from Agent",
+    });
+    expect(removePluginDistribution).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Remove from Agent" }),
+    );
+    await waitFor(() => {
+      expect(removePluginDistribution).toHaveBeenCalledWith(
+        "plugin-formatter-managed",
+        ["claude"],
+      );
+    });
+  });
+
+  it("confirms deleting a managed Plugin and does not invent deletion for an external target", async () => {
+    const deletePlugin = vi.fn().mockResolvedValue(undefined);
+    const managedPlugin: PluginLibraryEntry = {
+      id: "plugin-local",
+      name: "local-plugin",
+      displayName: "Local Plugin",
+      description: "A locally managed Plugin",
+      trustLevel: "custom",
+      inventory: {
+        skills: 0,
+        mcpServers: 0,
+        apps: 0,
+        commands: 0,
+        hooks: 0,
+        agents: 0,
+        assets: 0,
+        docs: 0,
+        lspServers: 0,
+        scripts: 0,
+      },
+      classification: "bundle",
+      source: {
+        kind: "local",
+        localPackagePath: "/Users/demo/local-plugin",
+      },
+      installedAt: 1,
+      updatedAt: 1,
+    };
+    usePluginStore.setState({
+      library: {
+        kind: "prompthub-plugin-library",
+        version: 1,
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        plugins: [managedPlugin],
+      },
+      deletePlugin,
+    });
+
+    await renderWithI18n(
+      <AgentAssetsWorkspace agent={claudeAgent} domain="plugins" />,
+    );
+
+    const targetCard = screen.getByTestId("agent-plugin-target-card");
+    expect(
+      within(targetCard).queryByRole("button", { name: /delete/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(targetCard).queryByRole("button", { name: /remove .* from/i }),
+    ).not.toBeInTheDocument();
+
+    const libraryCard = screen.getByTestId("agent-plugin-library-card");
+    fireEvent.click(
+      within(libraryCard).getByRole("button", { name: "Delete Plugin" }),
+    );
+
+    const dialog = await screen.findByRole("alertdialog", {
+      name: "Delete Plugin",
+    });
+    expect(deletePlugin).not.toHaveBeenCalled();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+    await waitFor(() => {
+      expect(deletePlugin).toHaveBeenCalledWith("plugin-local", {
+        removeDistributedTargets: true,
+      });
     });
   });
 
@@ -1161,9 +1428,7 @@ describe("AgentAssetsWorkspace", () => {
         screen.queryByTestId("skill-library-import-modal"),
       ).not.toBeInTheDocument();
 
-      fireEvent.click(
-        screen.getByRole("button", { name: /install my skill/i }),
-      );
+      fireEvent.click(screen.getByRole("button", { name: /add skill/i }));
 
       expect(screen.getByTestId("skill-library-import-modal")).toBeVisible();
       expect(screen.getByTestId("import-modal-title")).toHaveTextContent(

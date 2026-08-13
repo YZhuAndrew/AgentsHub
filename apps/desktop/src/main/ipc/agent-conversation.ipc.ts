@@ -16,6 +16,8 @@ interface AgentConversationIpcOptions {
 }
 
 const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/;
+const PREVIEW_TOKEN_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function registerAgentConversationIPC(
   options: AgentConversationIpcOptions,
@@ -42,15 +44,10 @@ export function registerAgentConversationIPC(
     async (_, value: unknown) =>
       invoke(async () => {
         const request = identityRequest(value);
-        return options.service.softDelete(request.agentId, request.sessionId);
-      }),
-  );
-  ipcMain.handle(
-    IPC_CHANNELS.AGENT_CONVERSATION_RESTORE,
-    async (_, value: unknown) =>
-      invoke(async () => {
-        const request = identityRequest(value);
-        return options.service.restore(request.agentId, request.sessionId);
+        return options.service.deleteConversation(
+          request.agentId,
+          request.sessionId,
+        );
       }),
   );
   ipcMain.handle(
@@ -138,9 +135,11 @@ function continueRequest(value: unknown): ContinueAgentConversationRequest {
     request.confirmedPayloadDigest,
     80,
   );
+  const previewToken = requireText(request.previewToken, 100);
   if (
     !DIGEST_PATTERN.test(payloadDigest) ||
     !DIGEST_PATTERN.test(confirmedPayloadDigest) ||
+    !PREVIEW_TOKEN_PATTERN.test(previewToken) ||
     (request.transport !== "direct" &&
       request.transport !== "launch" &&
       request.transport !== "unavailable")
@@ -150,6 +149,7 @@ function continueRequest(value: unknown): ContinueAgentConversationRequest {
   return {
     ...base,
     sourceTitle: requireText(request.sourceTitle, 500),
+    previewToken,
     payload: requireText(request.payload, 500_000),
     payloadDigest,
     confirmedPayloadDigest,

@@ -10,6 +10,7 @@ import {
   AgentSessionIndexDB,
   closeDatabase,
   initDatabase,
+  listDatabaseSafetyPoints,
 } from "@prompthub/db";
 import Database from "../../../src/main/database/sqlite";
 import { SCHEMA } from "../../../src/main/database/schema";
@@ -440,6 +441,7 @@ describe("AgentSessionIndexDB", () => {
             ? "Literal 100%_complete"
             : `Session ${indexValue}`,
         projectPath: `/workspace/${indexValue}`,
+        redactedPreview: indexValue === 203 ? "body-only-preview" : undefined,
         updatedAt: indexValue,
         sourcePath: `/sessions/${indexValue}.jsonl`,
         sourceStatus: "present" as const,
@@ -469,6 +471,27 @@ describe("AgentSessionIndexDB", () => {
         title: "Literal 100%_complete",
       }),
     ]);
+    expect(
+      index.listSessions({
+        sourceId: source.id,
+        search: "/WORKSPACE/42",
+        limit: 10,
+        offset: 0,
+      }).items,
+    ).toEqual([
+      expect.objectContaining({
+        externalId: "session-042",
+        projectPath: "/workspace/42",
+      }),
+    ]);
+    expect(
+      index.listSessions({
+        sourceId: source.id,
+        search: "body-only-preview",
+        limit: 10,
+        offset: 0,
+      }).items,
+    ).toEqual([]);
     expect(
       index.listSessions({
         sourceId: source.id,
@@ -737,10 +760,11 @@ describe("Agent session index migration", () => {
     initDatabase(dbPath);
     closeDatabase();
 
+    expect(listDatabaseSafetyPoints(dbPath)).toHaveLength(1);
     expect(
       fs
         .readdirSync(tempDir)
         .filter((entry) => entry.startsWith("prompthub.db.backup-")),
-    ).toHaveLength(1);
+    ).toEqual([]);
   });
 });

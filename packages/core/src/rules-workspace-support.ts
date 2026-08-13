@@ -77,6 +77,7 @@ export interface ExtraGlobalRuleTemplate {
 
 export interface RulesWorkspaceServiceDeps {
   getRulesDir: () => string;
+  assertStorageAvailable?: () => void;
   createRuleDb: () => RuleDB;
   getPlatformGlobalRulePath: (platform: SkillPlatform) => string | null;
   getPlatformRootDir: (platform: SkillPlatform) => string;
@@ -226,6 +227,22 @@ export async function fileExists(filePath: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function coalesceInFlight<K, V>(
+  pending: Map<K, Promise<V>>,
+  key: K,
+  create: () => Promise<V>,
+): Promise<V> {
+  const current = pending.get(key);
+  if (current) return current;
+  const operation = create();
+  pending.set(key, operation);
+  try {
+    return await operation;
+  } finally {
+    if (pending.get(key) === operation) pending.delete(key);
   }
 }
 

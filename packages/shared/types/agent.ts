@@ -57,6 +57,8 @@ export interface ManagedAgentPaths {
   mcp?: string;
   plugins?: string;
   rules?: string;
+  projectRules?: string;
+  projectRuleKind?: "workspace" | "cursor";
   configFiles: string[];
   configFileRelativePaths: string[];
 }
@@ -252,6 +254,43 @@ export interface AgentPetSummary {
   spritesheetBytes: number;
 }
 
+export interface UpdateAgentPetInput {
+  agentId: string;
+  petId: string;
+  name: string;
+  description: string;
+}
+
+export interface AgentPetStoreItem {
+  id: string;
+  name: string;
+  localizedName: string | null;
+  author: string;
+  authorHandle: string;
+  category: string;
+  license: string;
+  description: string;
+  spriteVersionNumber: 1 | 2;
+  installed: boolean;
+}
+
+export interface AgentPetStoreQuery {
+  agentId: string;
+  search?: string;
+  locale?: string;
+  page?: number;
+  pageSize?: number;
+  refresh?: boolean;
+}
+
+export interface AgentPetStorePage {
+  items: AgentPetStoreItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
 export interface AgentAppearanceOverview {
   agentId: string;
   supported: boolean;
@@ -299,6 +338,79 @@ export type AgentCredentialStatus =
   | "missing"
   | "unknown";
 
+export type AgentPiThinkingLevel =
+  | "off"
+  | "minimal"
+  | "low"
+  | "medium"
+  | "high"
+  | "xhigh"
+  | "max";
+
+export interface AgentPiCustomModelInput {
+  id: string;
+  name?: string;
+  reasoning?: boolean;
+  input?: string[];
+  contextWindow?: number;
+  maxTokens?: number;
+  thinkingLevelMap?: Partial<Record<AgentPiThinkingLevel, string | null>>;
+}
+
+export type AgentPiProviderApi =
+  | "openai-completions"
+  | "openai-responses"
+  | "anthropic-messages"
+  | "google-generative-ai";
+
+export interface AgentPiCustomProviderInput {
+  providerId: string;
+  baseUrl: string;
+  api: AgentPiProviderApi;
+  /** Optional environment reference such as "$GEMINI_API_KEY"; never a literal key. */
+  apiKeyRef?: string;
+  models: AgentPiCustomModelInput[];
+}
+
+export interface AgentPiCustomProviderUpdateInput {
+  providerId: string;
+  baseUrl: string;
+  api: AgentPiProviderApi;
+}
+
+export interface AgentPiCustomModelUpdateInput extends AgentPiCustomModelInput {
+  originalId: string;
+}
+
+export interface AgentPiWriteResult {
+  backupPath: string | null;
+}
+
+export interface AgentModelCatalogEntry {
+  id: string;
+  name?: string;
+  api?: string;
+  reasoning?: boolean;
+  input?: string[];
+  contextWindow?: number;
+  maxTokens?: number;
+  thinkingLevelMap?: Partial<Record<AgentPiThinkingLevel, string | null>>;
+  source: "built-in" | "custom";
+}
+
+export interface AgentModelCatalogProvider {
+  id: string;
+  models: AgentModelCatalogEntry[];
+  credentialReady: boolean;
+  source: "built-in" | "custom";
+  /** Provider API adapter from Pi's catalog; never contains credentials. */
+  api?: AgentPiProviderApi | null;
+  /** Sanitized endpoint (userinfo/query/fragment removed); null = platform default. */
+  endpoint?: string | null;
+  /** Credential mechanism only; the credential value never crosses IPC. */
+  credentialSource?: "auth" | "environment" | "provider-config" | "missing";
+}
+
 export interface AgentModelConfiguration {
   agentId: string;
   adapter: string | null;
@@ -314,12 +426,18 @@ export interface AgentModelConfiguration {
   canSetModel: boolean;
   formattingMayChange: boolean;
   errorCode?: string;
+  /** Full provider -> models catalog for platforms with a native model store. */
+  modelCatalog?: AgentModelCatalogProvider[];
+  /** Pi's persisted default thinking level from settings.json. */
+  thinkingLevel?: AgentPiThinkingLevel | null;
 }
 
 export interface UpdateAgentModelInput {
   agentId: string;
   model: string;
   secondaryModel?: string | null;
+  /** Pi-only default thinking level persisted to settings.json. */
+  thinkingLevel?: AgentPiThinkingLevel;
 }
 
 export interface UpdateAgentModelResult extends AgentModelConfiguration {
@@ -475,8 +593,15 @@ export interface AgentSessionMetadata {
   updatedAt: number | null;
   model: string | null;
   messageCount: number | null;
+  sizeBytes?: number | null;
+  nativeDeleteSupported?: boolean;
   sourcePath: string | null;
   resume: AgentResumeCommand | null;
+}
+
+export interface AgentConversationDeleteResult {
+  agentId: string;
+  sessionId: string;
 }
 
 export interface AgentSessionListResult {
@@ -520,7 +645,6 @@ export interface AgentConversationMetadata {
   note: string | null;
   favorite: boolean;
   archivedAt: number | null;
-  deletedAt: number | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -597,6 +721,7 @@ export interface AgentConversationHandoffRequest {
 }
 
 export interface AgentConversationHandoffPreview extends AgentConversationHandoffRequest {
+  previewToken: string;
   sourceTitle: string;
   payload: string;
   payloadDigest: string;
@@ -744,6 +869,26 @@ export interface AgentProviderCurrentState {
   checkedAt: number;
 }
 
+export interface AgentCodexAccountSummary {
+  id: string;
+  label: string;
+  maskedAccountId: string | null;
+  isActive: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ImportAgentCodexAccountRequest {
+  label: string;
+  /** Write-only. Main process responses must never echo this value. */
+  authJson: string;
+}
+
+export interface AgentCodexAccountActivationResult {
+  account: AgentCodexAccountSummary;
+  preservedCurrent: boolean;
+}
+
 export interface CreateAgentProviderProfileRequest {
   profile: Omit<CreateAgentProviderProfileInput, "secretRef">;
   modelMappings: CreateAgentProviderModelMappingInput[];
@@ -786,7 +931,10 @@ export interface AgentProviderSourceCandidate {
   sourceId: string;
   name: string;
   providerKind: string;
+  /** Recommended direct mapping for the destination Agent. */
   protocol: string | null;
+  /** Ordered writable protocol choices for the destination Agent. */
+  protocols: string[];
   endpoint: string;
   credentialReady: boolean;
   compatible: boolean;
@@ -798,6 +946,7 @@ export interface ImportAgentProviderSourceRequest {
   platformId: string;
   sourceId: string;
   modelId: string;
+  protocol: string;
 }
 
 export type AgentProviderMigrationCredentialSource =
@@ -996,6 +1145,9 @@ export interface AgentProviderActivateRequest extends AgentProviderPreviewReques
 
 export type AgentProviderConnectionTestRequest = AgentProviderPreviewRequest;
 
+export type AgentProviderCurrentConnectionTestRequest =
+  AgentProviderImportCurrentRequest;
+
 export type AgentProviderConnectionTestStatus =
   | "ok"
   | "model-not-found"
@@ -1027,6 +1179,10 @@ export interface AgentProviderConnectionTestResult {
 }
 
 export interface AgentProviderModelTestRequest extends AgentProviderPreviewRequest {
+  requestId: string;
+}
+
+export interface AgentProviderCurrentModelTestRequest extends AgentProviderImportCurrentRequest {
   requestId: string;
 }
 
@@ -1172,20 +1328,44 @@ export interface AgentCodexProviderTestResult {
   errorCode?: string;
 }
 
-export type AgentUsageMetricKind = "window" | "quota";
+export type AgentQuotaScope =
+  | { kind: "account" }
+  | { kind: "model-group"; id: string; label: string }
+  | { kind: "model"; id: string; label: string }
+  | { kind: "feature"; id: string; label: string };
+
+export type AgentQuotaPeriod =
+  | { kind: "rolling"; durationSeconds: number | null }
+  | {
+      kind: "calendar";
+      unit: "day" | "week" | "month" | "billing-cycle";
+    }
+  | { kind: "lifetime" }
+  | { kind: "provider-defined"; label: string };
+
+export type AgentQuotaValue =
+  | { kind: "percentage"; remainingPercent: number }
+  | {
+      kind: "amount";
+      remainingPercent: number;
+      remainingAmount: number;
+      limitAmount: number;
+      unit: string;
+    }
+  | { kind: "unlimited" }
+  | { kind: "unknown" };
 
 export interface AgentUsageMetric {
   id: string;
   label: string;
-  kind: AgentUsageMetricKind;
-  utilization: number;
+  scope: AgentQuotaScope;
+  period: AgentQuotaPeriod;
+  value: AgentQuotaValue;
   resetsAt: number | null;
-  usedAmount?: number;
-  totalAmount?: number;
-  unit?: string;
 }
 
 export interface AgentUsageQuota {
+  schemaVersion: 2;
   agentId: string;
   adapter: string;
   status: AgentUsageQuotaStatus;
@@ -1194,4 +1374,8 @@ export interface AgentUsageQuota {
   fetchedAt: number;
   errorCode?: string;
   metrics: AgentUsageMetric[];
+}
+
+export interface AgentUsageQueryOptions {
+  forceRefresh?: boolean;
 }

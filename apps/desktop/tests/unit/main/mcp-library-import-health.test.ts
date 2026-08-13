@@ -95,7 +95,8 @@ describe("CoreMcpLibraryService", () => {
     });
     const afterRemove = JSON.parse(fs.readFileSync(targetPath, "utf8"));
 
-    expect(result.backupPath).toBeTruthy();
+    expect(result.backupPath).toBeUndefined();
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual(["opencode.json"]);
     expect(afterRemove.provider.openai.npm).toBe("@ai-sdk/openai");
     expect(afterRemove.mcp.external.url).toBe("https://example.com/mcp");
     expect(afterRemove.mcp.memory).toBeUndefined();
@@ -195,8 +196,8 @@ describe("CoreMcpLibraryService", () => {
     const written = JSON.parse(fs.readFileSync(targetPath, "utf8"));
 
     expect(result.removedServerNames).toEqual(["external"]);
-    expect(result.backupPath).toBeTruthy();
-    expect(fs.existsSync(result.backupPath!)).toBe(true);
+    expect(result.backupPath).toBeUndefined();
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual(["external.json"]);
     expect(written.keep).toBe(true);
     expect(written.mcpServers.external).toBeUndefined();
     expect(written.mcpServers.keep.command).toBe("uvx");
@@ -563,35 +564,140 @@ describe("CoreMcpLibraryService", () => {
   });
 
   it("warns when env values use unresolved config-file references", () => {
-    const service = new CoreMcpLibraryService();
-    const mineru = service.createServer({
-      name: "mineru",
-      displayName: "MinerU",
-      transport: "stdio",
-      command: process.execPath,
-      args: ["mineru-mcp"],
-      env: {
-        MINERU_TOKEN: "${MINERU_TOKEN}",
-      },
-    });
+    const variableName = "PROMPTHOOK_MCP_HEALTH_MISSING";
+    const previousValue = process.env[variableName];
+    delete process.env[variableName];
+    try {
+      const service = new CoreMcpLibraryService();
+      const mineru = service.createServer({
+        name: "mineru",
+        displayName: "MinerU",
+        transport: "stdio",
+        command: process.execPath,
+        args: ["mineru-mcp"],
+        env: {
+          MINERU_TOKEN: `\${${variableName}}`,
+        },
+      });
 
-    expect(service.checkServer(mineru.id)).toMatchObject({
-      serverId: mineru.id,
-      status: "warning",
-      issues: expect.arrayContaining([
-        expect.objectContaining({
-          code: "UNRESOLVED_ENV_REFERENCE",
-          severity: "warning",
-          field: "MINERU_TOKEN",
-        }),
-      ]),
-    });
-    expect(JSON.stringify(service.checkServer(mineru.id))).not.toContain(
-      "ph-token",
-    );
+      expect(service.checkServer(mineru.id)).toMatchObject({
+        serverId: mineru.id,
+        status: "warning",
+        issues: expect.arrayContaining([
+          expect.objectContaining({
+            code: "UNRESOLVED_ENV_REFERENCE",
+            severity: "warning",
+            field: variableName,
+          }),
+        ]),
+      });
+      expect(JSON.stringify(service.checkServer(mineru.id))).not.toContain(
+        "ph-token",
+      );
+    } finally {
+      if (previousValue === undefined) {
+        delete process.env[variableName];
+      } else {
+        process.env[variableName] = previousValue;
+      }
+    }
   });
 
-  it("applies Codex TOML targets with a backup and managed block", () => {
+  it("does not expose a warning when a reference is available or has a default", () => {
+    const availableName = "PROMPTHOOK_MCP_HEALTH_AVAILABLE";
+    const optionalName = "PROMPTHOOK_MCP_HEALTH_OPTIONAL";
+    const previousAvailable = process.env[availableName];
+    const previousOptional = process.env[optionalName];
+    process.env[availableName] = "available";
+    delete process.env[optionalName];
+    try {
+      const service = new CoreMcpLibraryService();
+      const server = service.createServer({
+        name: "reference-health",
+        displayName: "Reference Health",
+        transport: "stdio",
+        command: process.execPath,
+        envRefs: {
+          AVAILABLE: `\${${availableName}}`,
+          OPTIONAL: `\${${optionalName}:-fallback}`,
+        },
+      });
+
+      expect(service.checkServer(server.id)).toMatchObject({
+        status: "ok",
+        issues: [],
+      });
+    } finally {
+      if (previousAvailable === undefined) {
+        delete process.env[availableName];
+      } else {
+        process.env[availableName] = previousAvailable;
+      }
+      if (previousOptional === undefined) {
+        delete process.env[optionalName];
+      } else {
+        process.env[optionalName] = previousOptional;
+      }
+    }
+  });
+
+  it("preserves local direct values when a redacted renderer draft is saved", () => {
+    const service = new CoreMcpLibraryService();
+    const server = service.createServer({
+      name: "private-api",
+      displayName: "Private API",
+      transport: "streamable-http",
+      url: "https://example.com/mcp",
+      headers: { Authorization: "Bearer local-secret" },
+    });
+
+    const updated = service.updateServer(server.id, {
+      displayName: "Private API (edited)",
+      headers: { Authorization: "[REDACTED]" },
+    });
+
+    expect(updated.displayName).toBe("Private API (edited)");
+    expect(updated.headers).toEqual({
+      Authorization: "Bearer local-secret",
+    });
+    expect(service.read().servers[0].headers).toEqual({
+      Authorization: "Bearer local-secret",
+    });
+  });
+
+  it("redacts apply and remove result content without redacting the target file", () => {
+    const service = new CoreMcpLibraryService();
+    const server = service.createServer({
+      name: "private-api",
+      displayName: "Private API",
+      transport: "streamable-http",
+      url: "https://example.com/mcp",
+      headers: { Authorization: "Bearer local-secret" },
+    });
+    const targetPath = path.join(userDataPath, "private", "mcp.json");
+
+    const applied = service.apply({
+      target: "claude",
+      scope: "custom",
+      path: targetPath,
+      serverIds: [server.id],
+    });
+    const written = fs.readFileSync(targetPath, "utf8");
+
+    expect(written).toContain("Bearer local-secret");
+    expect(applied.content).toContain("[REDACTED]");
+    expect(applied.content).not.toContain("local-secret");
+
+    const removed = service.removeFromTarget({
+      target: "claude",
+      scope: "custom",
+      path: targetPath,
+      serverIds: [server.id],
+    });
+    expect(removed.content).not.toContain("local-secret");
+  });
+
+  it("applies Codex TOML targets without leaving a sidecar backup", () => {
     const service = new CoreMcpLibraryService();
     const server = service.createServer({
       name: "filesystem",
@@ -612,8 +718,8 @@ describe("CoreMcpLibraryService", () => {
     });
     const written = fs.readFileSync(targetPath, "utf8");
 
-    expect(result.backupPath).toBeTruthy();
-    expect(fs.existsSync(result.backupPath!)).toBe(true);
+    expect(result.backupPath).toBeUndefined();
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual(["config.toml"]);
     expect(written).toContain('model = "gpt-5"');
     expect(written).toContain("# >>> PromptHub MCP managed block >>>");
     expect(written).toContain("[mcp_servers.filesystem]");

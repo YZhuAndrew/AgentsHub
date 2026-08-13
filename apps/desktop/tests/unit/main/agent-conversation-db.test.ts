@@ -54,9 +54,12 @@ describe("AgentConversationDB", () => {
         .join(" ")
         .toLowerCase(),
     ).not.toMatch(/transcript|messages_json|content_json/);
+    expect(
+      tables.find((table) => table.name === "agent_conversation_metadata")?.sql,
+    ).not.toContain("deleted_at");
   });
 
-  it("creates, updates, soft-deletes, and restores conversation metadata", () => {
+  it("creates, updates, archives, and deletes conversation metadata", () => {
     const created = conversations.upsertMetadata({
       agentId: "claude",
       sessionId: "session-1",
@@ -76,7 +79,6 @@ describe("AgentConversationDB", () => {
       tags: ["release", "urgent"],
       favorite: true,
       archivedAt: null,
-      deletedAt: null,
     });
     expect(
       conversations.listMetadata("claude", ["session-1", "missing"]),
@@ -103,9 +105,8 @@ describe("AgentConversationDB", () => {
     });
     expect(updated.archivedAt).toEqual(expect.any(Number));
 
-    const deleted = conversations.softDelete("claude", "session-1");
-    expect(deleted.deletedAt).toEqual(expect.any(Number));
-    expect(conversations.restore("claude", "session-1").deletedAt).toBeNull();
+    conversations.deleteMetadata("claude", "session-1");
+    expect(conversations.getMetadata("claude", "session-1")).toBeNull();
   });
 
   it("records a bounded handoff without storing the portable payload", () => {
@@ -251,6 +252,74 @@ describe("Agent conversation projection migration", () => {
            AND name IN ('agent_conversation_metadata', 'agent_conversation_handoffs')`,
       ),
     ).toEqual({ count: 2 });
+
+    closeDatabase();
+    expect(() => initDatabase(dbPath)).not.toThrow();
+  });
+
+  it("removes the legacy soft-delete column without reviving deleted metadata", () => {
+    const dbPath = path.join(tempDir, "prompthub.db");
+    const legacy = new Database(dbPath);
+    legacy.exec(`
+      CREATE TABLE agent_conversation_metadata (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        session_id TEXT NOT NULL,
+        title TEXT,
+        project_id TEXT,
+        project_path TEXT,
+        tags_json TEXT NOT NULL DEFAULT '[]',
+        note TEXT,
+        is_favorite INTEGER NOT NULL DEFAULT 0 CHECK(is_favorite IN (0, 1)),
+        archived_at INTEGER,
+        deleted_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        UNIQUE(agent_id, session_id)
+      );
+      INSERT INTO agent_conversation_metadata (
+        id, agent_id, session_id, title, tags_json, is_favorite,
+        deleted_at, created_at, updated_at
+      ) VALUES
+        ('active', 'claude', 'session-active', 'Keep me', '[]', 0, NULL, 1, 2),
+        ('deleted', 'claude', 'session-deleted', 'Do not revive', '[]', 0, 3, 1, 3);
+    `);
+    legacy.close();
+
+    const migrated = initDatabase(dbPath);
+    expect(
+      migrated
+        .pragma("table_info(agent_conversation_metadata)")
+        .map((column: { name: string }) => column.name),
+    ).not.toContain("deleted_at");
+    expect(
+      migrated.all(
+        `SELECT id, title
+         FROM agent_conversation_metadata
+         ORDER BY id ASC`,
+      ),
+    ).toEqual([{ id: "active", title: "Keep me" }]);
+    expect(
+      migrated.get(
+        "SELECT name FROM schema_migrations WHERE name = ?",
+        "drop_agent_conversation_metadata_deleted_at_v1",
+      ),
+    ).toEqual({ name: "drop_agent_conversation_metadata_deleted_at_v1" });
+    expect(
+      migrated.all(
+        `SELECT name
+         FROM sqlite_master
+         WHERE type = 'index'
+           AND name IN (
+             'idx_agent_conversation_metadata_agent_updated',
+             'idx_agent_conversation_metadata_project'
+           )
+         ORDER BY name ASC`,
+      ),
+    ).toEqual([
+      { name: "idx_agent_conversation_metadata_agent_updated" },
+      { name: "idx_agent_conversation_metadata_project" },
+    ]);
 
     closeDatabase();
     expect(() => initDatabase(dbPath)).not.toThrow();

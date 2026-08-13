@@ -2,13 +2,10 @@ import path from "node:path";
 
 import {
   AgentAdapterRegistry,
+  CanonicalAgentProviderProfileDB,
   AgentProviderActivationService,
 } from "@prompthub/core";
-import {
-  AgentConversationDB,
-  AgentProviderProfileDB,
-  AgentSessionIndexDB,
-} from "@prompthub/db";
+import { AgentConversationDB, AgentSessionIndexDB } from "@prompthub/db";
 import { getPlatformById } from "@prompthub/shared/constants/platforms";
 import Database from "../database/sqlite";
 import { createAgentClaudeProviderAdapter } from "./agent-claude-provider-adapter";
@@ -17,6 +14,10 @@ import {
   type AgentManagementBackupService,
 } from "./agent-management-backup-service";
 import { createAgentCodexProviderAdapter } from "./agent-codex-provider-adapter";
+import {
+  createAgentCodexAccountService,
+  type AgentCodexAccountService,
+} from "./agent-codex-account-service";
 import { createAgentCodexProviderService } from "./agent-codex-provider-service";
 import { createAgentGeminiProviderAdapter } from "./agent-gemini-provider-adapter";
 import { createAgentGrokProviderAdapter } from "./agent-grok-provider-adapter";
@@ -50,9 +51,10 @@ interface CreateAgentProviderRuntimeOptions {
 
 export interface AgentProviderRuntime {
   activationService: AgentProviderActivationService;
+  codexAccountService: AgentCodexAccountService;
   backupService: AgentManagementBackupService;
   legacyProviderService: ReturnType<typeof createAgentCodexProviderService>;
-  profileDb: AgentProviderProfileDB;
+  profileDb: CanonicalAgentProviderProfileDB;
   conversationDb: AgentConversationDB;
   sessionIndexDb: AgentSessionIndexDB;
   profileService: AgentProviderProfileService;
@@ -66,11 +68,17 @@ export function createAgentProviderRuntime({
   userDataPath,
 }: CreateAgentProviderRuntimeOptions): AgentProviderRuntime {
   const backupRoot = path.join(userDataPath, "agent-config-backups");
-  const profileDb = new AgentProviderProfileDB(database);
+  const profileDb = new CanonicalAgentProviderProfileDB(database);
   const conversationDb = new AgentConversationDB(database);
   const sessionIndexDb = new AgentSessionIndexDB(database);
   const secretStore = createAgentSecretStore({
     userDataPath,
+    encryption,
+  });
+  const codexRoot = resolveAgentProviderContext("codex").rootPath;
+  const codexAccountService = createAgentCodexAccountService({
+    authPath: path.join(codexRoot, "auth.json"),
+    vaultPath: path.join(userDataPath, "agent-codex-accounts.json"),
     encryption,
   });
   const profileService = new AgentProviderProfileService(
@@ -159,6 +167,7 @@ export function createAgentProviderRuntime({
 
   return {
     activationService,
+    codexAccountService,
     backupService,
     conversationDb,
     legacyProviderService,

@@ -93,6 +93,8 @@ interface UIState {
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  isWorkbenchSidebarExpanded: boolean;
+  setWorkbenchSidebarExpanded: (expanded: boolean) => void;
   // Resizable column widths (#119)
   sidebarPanelWidth: number;
   promptListPaneWidth: number;
@@ -115,6 +117,7 @@ export const useUIStore = create<UIState>()(
         set({
           appModule,
           viewMode: appModule === "skill" ? "skill" : "prompt",
+          isWorkbenchSidebarExpanded: false,
         });
       },
       isSidebarCollapsed: false,
@@ -122,6 +125,9 @@ export const useUIStore = create<UIState>()(
         set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
       setSidebarCollapsed: (collapsed) =>
         set({ isSidebarCollapsed: collapsed }),
+      isWorkbenchSidebarExpanded: false,
+      setWorkbenchSidebarExpanded: (expanded) =>
+        set({ isWorkbenchSidebarExpanded: expanded }),
       sidebarPanelWidth: SIDEBAR_PANEL_WIDTH_DEFAULT,
       promptListPaneWidth: PROMPT_LIST_PANE_WIDTH_DEFAULT,
       setSidebarPanelWidth: (width) =>
@@ -156,10 +162,9 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: "ui-storage",
-      // Persist sidebar collapse state AND the user's chosen column widths
-      // so the layout survives across sessions (#119). The active home module
-      // is also persisted so reopening the app returns to the user's last
-      // Prompts / Skills / Rules workspace instead of forcing Prompts.
+      // Persist the ordinary sidebar preference and chosen column widths. The
+      // image-workbench expansion is intentionally transient so leaving the
+      // workbench restores the user's normal Prompt layout.
       partialize: (state) => ({
         appModule: state.appModule,
         viewMode: state.viewMode,
@@ -177,6 +182,7 @@ export const useUIStore = create<UIState>()(
           ...merged,
           appModule,
           viewMode: getViewModeForModule(appModule),
+          isWorkbenchSidebarExpanded: false,
           sidebarPanelWidth: clamp(
             merged.sidebarPanelWidth ?? SIDEBAR_PANEL_WIDTH_DEFAULT,
             SIDEBAR_PANEL_WIDTH_MIN,

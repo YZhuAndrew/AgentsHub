@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { AgentUsageQuota } from "@prompthub/shared/types";
 import type { AntigravityLocalUsageResult } from "../../../src/main/services/agent-usage-antigravity-local";
 import { createAgentUsageService } from "../../../src/main/services/agent-usage-service";
+import type { KimiOAuthTokenService } from "../../../src/main/services/kimi-oauth-token-service";
 
 const HOME = "/Users/tester";
 const KIMI_ROOT = "/Users/tester/.kimi-code";
@@ -55,6 +56,7 @@ function createHarness(
   options: {
     platform?: NodeJS.Platform;
     antigravityLocalResult?: AntigravityLocalUsageResult;
+    kimiOAuthTokenService?: KimiOAuthTokenService;
   } = {},
 ): Harness {
   const files = new Map<string, string>();
@@ -99,6 +101,7 @@ function createHarness(
           options.antigravityLocalResult ?? { kind: "not-running" },
       ),
     },
+    kimiOAuthTokenService: options.kimiOAuthTokenService,
   });
   return {
     service,
@@ -143,17 +146,20 @@ function kimiUsagePayload(overrides: Record<string, unknown> = {}) {
   return {
     usage: {
       limit: 100,
-      used: 42,
       remaining: 58,
       resetTime: "2027-01-15T00:00:00.000Z",
     },
     limits: [
       {
-        detail: { used: 10, limit: 50 },
-        window: { duration: 5, timeUnit: "hours" },
-        resetTime: "2027-01-08T12:00:00.000Z",
+        detail: {
+          limit: 50,
+          remaining: 40,
+          resetTime: "2027-01-08T12:00:00.000Z",
+        },
+        window: { duration: 300, timeUnit: "TIME_UNIT_MINUTE" },
       },
     ],
+    totalQuota: { limit: 999, remaining: 999 },
     user: { membership: { level: "LEVEL_INTERMEDIATE" } },
     ...overrides,
   };
@@ -161,6 +167,72 @@ function kimiUsagePayload(overrides: Record<string, unknown> = {}) {
 
 describe("Agent usage service (Kimi adapter)", () => {
   describe("credential resolution", () => {
+    it("queries quota with an access token renewed by the current Kimi credential service", async () => {
+      const getAccessToken = vi.fn().mockResolvedValue({
+        kind: "ok",
+        accessToken: "renewed-kimi-access-token",
+      });
+      const h = createHarness({
+        kimiOAuthTokenService: { getAccessToken },
+      });
+      h.fetchImpl.mockResolvedValue(fakeResponse(200, kimiUsagePayload()));
+
+      const quota = await h.service.getUsage("kimi");
+
+      expect(quota.status).toBe("ok");
+      expect(getAccessToken).toHaveBeenCalledWith(KIMI_ROOT);
+      expect(h.fetchImpl).toHaveBeenCalledWith(
+        "https://api.kimi.com/coding/v1/usages",
+        expect.objectContaining({
+          headers: { Authorization: "Bearer renewed-kimi-access-token" },
+        }),
+      );
+    });
+
+    it("keeps Kimi renewal failures explicit and sanitized", async () => {
+      const h = createHarness({
+        kimiOAuthTokenService: {
+          getAccessToken: vi.fn().mockResolvedValue({
+            kind: "unavailable",
+            errorCode: "credential-write-error",
+          }),
+        },
+      });
+
+      const quota = await h.service.getUsage("kimi");
+
+      expect(quota).toMatchObject({
+        status: "unavailable",
+        errorCode: "credential-write-error",
+      });
+      expect(h.fetchImpl).not.toHaveBeenCalled();
+    });
+
+    it("forces one token renewal and retries usage after an accepted token returns 401", async () => {
+      const getAccessToken = vi
+        .fn()
+        .mockResolvedValueOnce({ kind: "ok", accessToken: KIMI_TOKEN })
+        .mockResolvedValueOnce({
+          kind: "ok",
+          accessToken: "renewed-kimi-access-token",
+        });
+      const h = createHarness({
+        kimiOAuthTokenService: { getAccessToken },
+      });
+      h.fetchImpl
+        .mockResolvedValueOnce(fakeResponse(401, {}))
+        .mockResolvedValueOnce(fakeResponse(200, kimiUsagePayload()));
+
+      const quota = await h.service.getUsage("kimi");
+
+      expect(quota.status).toBe("ok");
+      expect(getAccessToken).toHaveBeenNthCalledWith(1, KIMI_ROOT);
+      expect(getAccessToken).toHaveBeenNthCalledWith(2, KIMI_ROOT, {
+        forceRefresh: true,
+      });
+      expect(h.fetchImpl).toHaveBeenCalledTimes(2);
+    });
+
     it("returns no-credentials without a network call when no credential file exists", async () => {
       const h = createHarness();
 
@@ -285,19 +357,67 @@ describe("Agent usage service (Kimi adapter)", () => {
       expect(metricById(quota, "weekly")).toEqual({
         id: "weekly",
         label: "Weekly quota",
-        kind: "quota",
-        utilization: 42,
+        scope: { kind: "account" },
+        period: { kind: "calendar", unit: "week" },
+        value: {
+          kind: "amount",
+          remainingPercent: 58,
+          remainingAmount: 58,
+          limitAmount: 100,
+          unit: "requests",
+        },
         resetsAt: Date.parse("2027-01-15T00:00:00.000Z"),
-        usedAmount: 42,
-        totalAmount: 100,
-        unit: "%",
       });
       expect(metricById(quota, "rolling")).toEqual({
         id: "rolling",
         label: "Rolling window",
-        kind: "window",
-        utilization: 20,
+        scope: { kind: "account" },
+        period: { kind: "rolling", durationSeconds: 18_000 },
+        value: {
+          kind: "amount",
+          remainingPercent: 80,
+          remainingAmount: 40,
+          limitAmount: 50,
+          unit: "requests",
+        },
         resetsAt: Date.parse("2027-01-08T12:00:00.000Z"),
+      });
+      expect(quota.metrics).toHaveLength(2);
+    });
+
+    it("keeps compatibility with Kimi payloads that report used amounts and plain time units", async () => {
+      const h = createHarness();
+      h.setFile(
+        path.join(KIMI_ROOT, "credentials", "kimi-code.json"),
+        kimiCredentialsPayload(),
+      );
+      h.fetchImpl.mockResolvedValue(
+        fakeResponse(
+          200,
+          kimiUsagePayload({
+            usage: {
+              limit: 100,
+              used: 42,
+              resetTime: "2027-01-15T00:00:00.000Z",
+            },
+            limits: [
+              {
+                detail: { used: 10, limit: 50 },
+                window: { duration: 5, timeUnit: "hours" },
+              },
+            ],
+          }),
+        ),
+      );
+
+      const quota = await h.service.getUsage("kimi");
+
+      expect(metricById(quota, "weekly")).toMatchObject({
+        value: { remainingPercent: 58, remainingAmount: 58 },
+      });
+      expect(metricById(quota, "rolling")).toMatchObject({
+        period: { kind: "rolling", durationSeconds: 18_000 },
+        value: { remainingPercent: 80, remainingAmount: 40 },
       });
     });
 
@@ -313,10 +433,40 @@ describe("Agent usage service (Kimi adapter)", () => {
 
       const quota = await h.service.getUsage("kimi");
 
-      const weekly = metricById(quota, "weekly");
-      expect(weekly).toMatchObject({ utilization: 0, unit: "%" });
-      expect(weekly).not.toHaveProperty("usedAmount");
-      expect(weekly).not.toHaveProperty("totalAmount");
+      expect(metricById(quota, "weekly")).toMatchObject({
+        value: { kind: "unknown" },
+      });
+    });
+
+    it("keeps incomplete Kimi quota rows unknown instead of inventing values", async () => {
+      const h = createHarness();
+      h.setFile(
+        path.join(KIMI_ROOT, "credentials", "kimi-code.json"),
+        kimiCredentialsPayload(),
+      );
+      h.fetchImpl.mockResolvedValue(
+        fakeResponse(
+          200,
+          kimiUsagePayload({
+            usage: { limit: 100 },
+            limits: [
+              {
+                detail: { remaining: 40 },
+                window: { duration: 300, timeUnit: "TIME_UNIT_MINUTE" },
+              },
+            ],
+          }),
+        ),
+      );
+
+      const quota = await h.service.getUsage("kimi");
+
+      expect(metricById(quota, "weekly")).toMatchObject({
+        value: { kind: "unknown" },
+      });
+      expect(quota.metrics.some((metric) => metric.id === "rolling")).toBe(
+        false,
+      );
     });
   });
 
@@ -438,10 +588,15 @@ describe("Agent usage service (Antigravity adapter)", () => {
           plan: "Pro",
           metrics: [
             {
-              id: "promptCredits",
-              label: "Monthly prompt credits",
-              kind: "quota",
-              utilization: 25,
+              id: "antigravity:gemini-weekly:weekly",
+              label: "Weekly quota",
+              scope: {
+                kind: "model-group",
+                id: "group-0",
+                label: "Gemini Models",
+              },
+              period: { kind: "calendar", unit: "week" },
+              value: { kind: "percentage", remainingPercent: 75 },
               resetsAt: null,
             },
           ],
@@ -462,9 +617,12 @@ describe("Agent usage service (Antigravity adapter)", () => {
         adapter: "antigravity-local-v1",
         plan: "Pro",
       });
-      expect(metricById(quota, "promptCredits")).toMatchObject({
-        utilization: 25,
+      expect(
+        metricById(quota, "antigravity:gemini-weekly:weekly"),
+      ).toMatchObject({
+        value: { kind: "percentage", remainingPercent: 75 },
       });
+      expect(metricById(quota, "promptCredits")).toBeUndefined();
       expect(h.fetchImpl).not.toHaveBeenCalled();
       expect(h.commandRunner.resolve).not.toHaveBeenCalled();
     });
@@ -671,16 +829,26 @@ describe("Agent usage service (Antigravity adapter)", () => {
       });
       expect(metricById(quota, "model:gemini-2.5-pro")).toEqual({
         id: "model:gemini-2.5-pro",
-        label: "gemini-2.5-pro",
-        kind: "quota",
-        utilization: 75,
+        label: "Model quota",
+        scope: {
+          kind: "model",
+          id: "gemini-2.5-pro",
+          label: "gemini-2.5-pro",
+        },
+        period: { kind: "provider-defined", label: "Provider quota" },
+        value: { kind: "percentage", remainingPercent: 25 },
         resetsAt: Date.parse("2027-01-02T00:00:00.000Z"),
       });
       expect(metricById(quota, "model:gemini-2.5-flash")).toEqual({
         id: "model:gemini-2.5-flash",
-        label: "gemini-2.5-flash",
-        kind: "quota",
-        utilization: 0,
+        label: "Model quota",
+        scope: {
+          kind: "model",
+          id: "gemini-2.5-flash",
+          label: "gemini-2.5-flash",
+        },
+        period: { kind: "provider-defined", label: "Provider quota" },
+        value: { kind: "percentage", remainingPercent: 100 },
         resetsAt: null,
       });
     });
@@ -711,7 +879,7 @@ describe("Agent usage service (Antigravity adapter)", () => {
       expect(quota.status).toBe("ok");
       expect(quota.plan).toBe("tier-free");
       expect(metricById(quota, "model:gemini-2.5-pro")).toMatchObject({
-        utilization: 50,
+        value: { kind: "percentage", remainingPercent: 50 },
       });
       expect(h.fetchImpl).toHaveBeenNthCalledWith(
         2,
@@ -885,16 +1053,26 @@ describe("Agent usage service (Gemini CLI adapter)", () => {
       });
       expect(metricById(quota, "model:gemini-2.5-pro")).toEqual({
         id: "model:gemini-2.5-pro",
-        label: "gemini-2.5-pro",
-        kind: "quota",
-        utilization: 50,
+        label: "Model quota",
+        scope: {
+          kind: "model",
+          id: "gemini-2.5-pro",
+          label: "gemini-2.5-pro",
+        },
+        period: { kind: "provider-defined", label: "Provider quota" },
+        value: { kind: "percentage", remainingPercent: 50 },
         resetsAt: Date.parse("2027-01-02T00:00:00.000Z"),
       });
       expect(metricById(quota, "model:gemini-2.5-flash")).toEqual({
         id: "model:gemini-2.5-flash",
-        label: "gemini-2.5-flash",
-        kind: "quota",
-        utilization: 25,
+        label: "Model quota",
+        scope: {
+          kind: "model",
+          id: "gemini-2.5-flash",
+          label: "gemini-2.5-flash",
+        },
+        period: { kind: "provider-defined", label: "Provider quota" },
+        value: { kind: "percentage", remainingPercent: 75 },
         resetsAt: null,
       });
     });
@@ -1091,22 +1269,34 @@ describe("Agent usage service (Copilot adapter)", () => {
       expect(metricById(quota, "premium")).toEqual({
         id: "premium",
         label: "Premium requests",
-        kind: "quota",
-        utilization: 50,
+        scope: {
+          kind: "feature",
+          id: "premium",
+          label: "Premium requests",
+        },
+        period: { kind: "calendar", unit: "billing-cycle" },
+        value: {
+          kind: "amount",
+          remainingPercent: 50,
+          remainingAmount: 150,
+          limitAmount: 300,
+          unit: "requests",
+        },
         resetsAt: Date.parse("2027-02-01T00:00:00.000Z"),
-        usedAmount: 150,
-        totalAmount: 300,
-        unit: "requests",
       });
       expect(metricById(quota, "chat")).toEqual({
         id: "chat",
         label: "Chat requests",
-        kind: "quota",
-        utilization: 75,
+        scope: { kind: "feature", id: "chat", label: "Chat requests" },
+        period: { kind: "calendar", unit: "billing-cycle" },
+        value: {
+          kind: "amount",
+          remainingPercent: 25,
+          remainingAmount: 250,
+          limitAmount: 1000,
+          unit: "requests",
+        },
         resetsAt: Date.parse("2027-02-01T00:00:00.000Z"),
-        usedAmount: 750,
-        totalAmount: 1000,
-        unit: "requests",
       });
     });
 
@@ -1127,14 +1317,17 @@ describe("Agent usage service (Copilot adapter)", () => {
       const quota = await h.service.getUsage("copilot");
 
       expect(metricById(quota, "premium")).toMatchObject({
-        utilization: 75,
-        usedAmount: 150,
-        totalAmount: 200,
+        value: {
+          kind: "amount",
+          remainingPercent: 25,
+          remainingAmount: 50,
+          limitAmount: 200,
+        },
       });
       expect(metricById(quota, "chat")).toBeUndefined();
     });
 
-    it("skips snapshots marked unlimited", async () => {
+    it("preserves snapshots marked unlimited", async () => {
       const h = createHarness();
       seedGhToken(h);
       h.fetchImpl.mockResolvedValue(
@@ -1152,8 +1345,12 @@ describe("Agent usage service (Copilot adapter)", () => {
       const quota = await h.service.getUsage("copilot");
 
       expect(quota.status).toBe("ok");
-      expect(metricById(quota, "premium")).toBeUndefined();
-      expect(metricById(quota, "chat")).toMatchObject({ utilization: 10 });
+      expect(metricById(quota, "premium")).toMatchObject({
+        value: { kind: "unlimited" },
+      });
+      expect(metricById(quota, "chat")).toMatchObject({
+        value: { kind: "amount", remainingPercent: 90 },
+      });
     });
 
     it("returns ok with empty metrics when no snapshots are reported", async () => {

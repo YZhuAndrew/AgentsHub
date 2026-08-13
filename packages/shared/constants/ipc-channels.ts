@@ -7,6 +7,7 @@ export const IPC_CHANNELS = {
   PROMPT_CREATE: "prompt:create",
   PROMPT_GET: "prompt:get",
   PROMPT_GET_ALL: "prompt:getAll",
+  PROMPT_GET_ALL_META: "prompt:getAllMeta",
   PROMPT_GET_ALL_TAGS: "prompt:getAllTags",
   PROMPT_RENAME_TAG: "prompt:renameTag",
   PROMPT_DELETE_TAG: "prompt:deleteTag",
@@ -59,6 +60,20 @@ export const IPC_CHANNELS = {
   // Settings
   SETTINGS_GET: "settings:get",
   SETTINGS_SET: "settings:set",
+  SETTINGS_RENDERER_PERSISTENCE_MIGRATE: "settings:rendererPersistence:migrate",
+  SETTINGS_RENDERER_PERSISTENCE_GET: "settings:rendererPersistence:get",
+  SETTINGS_RENDERER_PERSISTENCE_REPLACE_SETTINGS:
+    "settings:rendererPersistence:replaceSettings",
+  SETTINGS_RENDERER_PERSISTENCE_REPLACE_SOURCES:
+    "settings:rendererPersistence:replaceSources",
+  SETTINGS_RENDERER_PERSISTENCE_REPLACE_RECOVERY_PATHS:
+    "settings:rendererPersistence:replaceRecoveryPaths",
+  SETTINGS_RENDERER_PERSISTENCE_DEVICE_ID:
+    "settings:rendererPersistence:deviceId",
+  SETTINGS_RENDERER_PERSISTENCE_IDB_STATUS:
+    "settings:rendererPersistence:idbStatus",
+  SETTINGS_RENDERER_PERSISTENCE_IDB_DONE:
+    "settings:rendererPersistence:idbDone",
 
   // PromptHub Cloud account and Store
   CLOUD_AUTH_GET_STATE: "cloud:auth:getState",
@@ -180,15 +195,22 @@ export const IPC_CHANNELS = {
   // Agent native configuration files
   AGENT_CONFIG_FILES_LIST: "agent:configFiles:list",
   AGENT_LAUNCH: "agent:launch",
-  AGENT_CLI_DIAGNOSE: "agent:cli:diagnose",
-  AGENT_CLI_UPDATE_PLAN: "agent:cli:update:plan",
-  AGENT_CLI_UPDATE_APPLY: "agent:cli:update:apply",
   AGENT_CONFIG_FILE_READ: "agent:configFile:read",
   AGENT_CONFIG_FILE_WRITE: "agent:configFile:write",
   AGENT_DEFINITIONS_LIST: "agent:definitions:list",
   AGENT_DEFINITION_OPEN: "agent:definition:open",
   AGENT_MODEL_CONFIG_GET: "agent:modelConfig:get",
   AGENT_MODEL_CONFIG_SET: "agent:modelConfig:set",
+  AGENT_PI_PROVIDER_ADD: "agent:pi:provider:add",
+  AGENT_PI_PROVIDER_IMPORT_CURRENT: "agent:pi:provider:importCurrent",
+  AGENT_PI_PROVIDER_SOURCE_IMPORT: "agent:pi:providerSource:import",
+  AGENT_PI_PROVIDER_UPDATE: "agent:pi:provider:update",
+  AGENT_PI_PROVIDER_REMOVE: "agent:pi:provider:remove",
+  AGENT_PI_MODEL_ADD: "agent:pi:model:add",
+  AGENT_PI_MODEL_UPDATE: "agent:pi:model:update",
+  AGENT_PI_MODEL_REMOVE: "agent:pi:model:remove",
+  AGENT_PI_MODEL_TEST: "agent:pi:model:test",
+  AGENT_PI_CREDENTIAL_SET: "agent:pi:credential:set",
   AGENT_SESSIONS_LIST: "agent:sessions:list",
   AGENT_SESSION_READ: "agent:session:read",
   AGENT_SESSION_INDEX_GET_STATE: "agent:sessionIndex:getState",
@@ -199,7 +221,6 @@ export const IPC_CHANNELS = {
   AGENT_CONVERSATION_METADATA_LIST: "agent:conversationMetadata:list",
   AGENT_CONVERSATION_METADATA_UPDATE: "agent:conversationMetadata:update",
   AGENT_CONVERSATION_DELETE: "agent:conversation:delete",
-  AGENT_CONVERSATION_RESTORE: "agent:conversation:restore",
   AGENT_CONVERSATION_RESUME: "agent:conversation:resume",
   AGENT_CONVERSATION_HANDOFF_PREVIEW: "agent:conversation:handoffPreview",
   AGENT_CONVERSATION_HANDOFF_CONTINUE: "agent:conversation:handoffContinue",
@@ -218,9 +239,17 @@ export const IPC_CHANNELS = {
   AGENT_MANAGEMENT_BACKUP_EXPORT: "agent:managementBackup:export",
   AGENT_MANAGEMENT_BACKUP_RESTORE: "agent:managementBackup:restore",
   AGENT_PROVIDER_CURRENT_STATE: "agent:provider:currentState",
+  AGENT_CODEX_ACCOUNTS_LIST: "agent:codexAccounts:list",
+  AGENT_CODEX_ACCOUNT_SAVE_CURRENT: "agent:codexAccounts:saveCurrent",
+  AGENT_CODEX_ACCOUNT_IMPORT: "agent:codexAccounts:import",
+  AGENT_CODEX_ACCOUNT_ACTIVATE: "agent:codexAccounts:activate",
+  AGENT_CODEX_ACCOUNT_DELETE: "agent:codexAccounts:delete",
   AGENT_PROVIDER_MIGRATION_PREVIEW: "agent:providerMigration:preview",
   AGENT_PROVIDER_MIGRATION_APPLY: "agent:providerMigration:apply",
   AGENT_PROVIDER_IMPORT_CURRENT: "agent:provider:importCurrent",
+  AGENT_PROVIDER_TEST_CURRENT_CONNECTION:
+    "agent:provider:testCurrentConnection",
+  AGENT_PROVIDER_TEST_CURRENT_MODEL: "agent:provider:testCurrentModel",
   AGENT_PROVIDER_TEST_CONNECTION: "agent:provider:testConnection",
   AGENT_PROVIDER_TEST_MODEL: "agent:provider:testModel",
   AGENT_PROVIDER_CANCEL_MODEL_TEST: "agent:provider:cancelModelTest",
@@ -237,6 +266,10 @@ export const IPC_CHANNELS = {
   AGENT_APPEARANCE_EXPORT_PET: "agent:appearance:pet:export",
   AGENT_APPEARANCE_DELETE_PET: "agent:appearance:pet:delete",
   AGENT_APPEARANCE_PET_PREVIEW: "agent:appearance:pet:preview",
+  AGENT_APPEARANCE_UPDATE_PET: "agent:appearance:pet:update",
+  AGENT_APPEARANCE_PET_STORE_LIST: "agent:appearance:pet-store:list",
+  AGENT_APPEARANCE_PET_STORE_INSTALL: "agent:appearance:pet-store:install",
+  AGENT_APPEARANCE_PET_STORE_PREVIEW: "agent:appearance:pet-store:preview",
 
   // Skill Local Repo Storage
   SKILL_LIST_LOCAL_FILES: "skill:listLocalFiles",
@@ -346,6 +379,9 @@ export const IPC_CHANNELS = {
   DATA_PERFORM_RECOVERY: "data:performRecovery",
   DATA_DISMISS_RECOVERY: "data:dismissRecovery",
   DATA_EXPORT_ZIP: "data:exportZip",
+  DATA_PORTABLE_PREVIEW: "data:portablePreview",
+  DATA_PORTABLE_RESTORE: "data:portableRestore",
+  DATA_PORTABLE_LOGICAL_RESTORE: "data:portableLogicalRestore",
   UPGRADE_BACKUP_LIST: "upgradeBackup:list",
   UPGRADE_BACKUP_CREATE: "upgradeBackup:create",
   UPGRADE_BACKUP_RESTORE: "upgradeBackup:restore",

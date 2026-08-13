@@ -40,7 +40,11 @@ import {
 } from "./settings-normalizers";
 import { normalizeBuiltinAgentOverrides } from "../../services/agent-root-paths";
 import { normalizeSkillProjects } from "../../services/skill-project-settings";
-import type { SettingsState } from "./settings-types";
+import {
+  SUPPORTED_LANGUAGES,
+  type SettingsState,
+  type SupportedLanguage,
+} from "./settings-types";
 import { normalizeAgentIdentityPreferences } from "../../services/agent-identity";
 import {
   isSkillSafetyChannel,
@@ -50,12 +54,65 @@ import {
   type SkillSafetyPolicyValue,
 } from "../../services/skill-safety-policy";
 
-type PersistedSettingsState = Omit<SettingsState, "githubToken">;
+type PersistedSettingsState = Partial<Omit<SettingsState, "githubToken">>;
+
+const DESKTOP_RENDERER_PREFERENCE_FIELDS = new Set<keyof SettingsState>([
+  "creationMode",
+  "themeMode",
+  "isDarkMode",
+  "themeColor",
+  "themeHue",
+  "themeSaturation",
+  "customThemeHex",
+  "fontSize",
+  "backgroundImageEnabled",
+  "backgroundImageFileName",
+  "backgroundImageOpacity",
+  "backgroundImageBlur",
+  "renderMarkdown",
+  "editorMarkdownPreview",
+  "motionPreference",
+  "showLineNumbers",
+  "tagFilterMode",
+  "tagsSectionHeight",
+  "isTagsSectionCollapsed",
+  "resourceTagsSectionHeight",
+  "isResourceTagsSectionCollapsed",
+  "skillTagsSectionHeight",
+  "isSkillTagsSectionCollapsed",
+  "desktopHomeModules",
+  "skillListPageSize",
+  "translationMode",
+  "imageReverseAttachReferenceByDefault",
+]);
+
+export function getPersistedLanguageSetting(
+  persistedState: unknown,
+): SupportedLanguage | null {
+  if (!persistedState || typeof persistedState !== "object") return null;
+  const language = (persistedState as { language?: unknown }).language;
+  return typeof language === "string" &&
+    SUPPORTED_LANGUAGES.includes(language as SupportedLanguage)
+    ? (language as SupportedLanguage)
+    : null;
+}
 
 export function stripEphemeralSettings(
   state: SettingsState,
 ): PersistedSettingsState {
   const { githubToken: _githubToken, ...persistedState } = state;
+  if (
+    typeof window !== "undefined" &&
+    window.__PROMPTHUB_WEB__ !== true &&
+    window.api?.settings?.rendererPersistence
+  ) {
+    return Object.fromEntries(
+      Object.entries(persistedState).filter(([key, value]) =>
+        DESKTOP_RENDERER_PREFERENCE_FIELDS.has(key as keyof SettingsState) &&
+        typeof value !== "function",
+      ),
+    ) as PersistedSettingsState;
+  }
   return persistedState;
 }
 
@@ -409,6 +466,7 @@ export function rehydrateSettingsState(
   state: SettingsState | undefined,
   setState: StoreApi<SettingsState>["setState"],
   syncSettingsToMain: (settings: Partial<Settings>) => Promise<void>,
+  shouldSyncLanguage: boolean,
 ): void {
   const syncProvider = clampSyncProvider(
     normalizeSyncProvider(state?.syncProvider),
@@ -439,7 +497,7 @@ export function rehydrateSettingsState(
     networkProxy: normalizeNetworkProxySettings(state?.networkProxy),
     sync: buildMainProcessSyncSettings(syncProvider),
   };
-  if (state?.language) {
+  if (shouldSyncLanguage && state?.language) {
     mainProcessSettings.language = state.language;
   }
   void syncSettingsToMain(mainProcessSettings);

@@ -7,6 +7,10 @@ import {
 } from "@prompthub/shared/constants/mcp-market";
 import {
   isMcpTargetKind,
+  type McpServerConfig,
+} from "@prompthub/shared/types/mcp";
+import { MCP_REDACTED_VALUE } from "@prompthub/shared/utils/mcp-config";
+import {
   type McpEnvImportResult,
   type McpCreateFromSourceRequest,
   type McpCreateFromSourceResult,
@@ -23,7 +27,6 @@ import {
   type McpMarketUpdateResult,
   type McpRemoveResult,
   type McpRemoveTargetNames,
-  type McpServerConfig,
   type McpServerDraft,
   type McpTargetBinding,
   type McpTargetEntryDigest,
@@ -39,22 +42,36 @@ import {
   computeMcpTargetEntryDigest,
   getMcpTargetEntryObject,
   getMcpJsonServerEntries,
+  getMcpEnvReferences,
   inferMcpEnvRequirements,
   inferMcpPlaceholderRequirements,
   inferMcpRuntimeDetails,
   installMcpTemplate,
   listMcpServerNamesInJson,
   listMcpServerNamesInToml,
-  mergeCodexMcpToml,
+  mergeMcpToml,
   mergeMcpServersJson,
   normalizeMcpServerDraft,
   parseMcpJsonConfigContent,
+  redactMcpConfigContent,
+  redactMcpServerConfig,
   removeCodexMcpTomlServers,
   removeMcpServersFromJson,
   sanitizeMcpServerName,
 } from "@prompthub/shared/utils/mcp-config";
 
-import { getConfigDir, getDataDir } from "./runtime-paths";
+import {
+  getConfigDir,
+  getDataDir,
+  getRuntimeStorageContext,
+  getUserDataPath,
+} from "./runtime-paths";
+import {
+  readCanonicalMcpLibrary,
+  writeCanonicalMcpLibrary,
+  type CanonicalMcpLibraryOptions,
+} from "./canonical-mcp-library";
+import { assertStorageMaintenanceAvailable } from "./storage-maintenance-intent";
 import { inferMcpSource } from "./mcp-source";
 import { buildMcpEnvImportResult } from "./mcp-env-import";
 import {
@@ -71,6 +88,7 @@ import {
   getMcpTargetSyncReason,
   shouldSkipDisabledMcpPlatform,
 } from "./mcp-target-sync-policy";
+import { commitMcpTargetProjection } from "./mcp-target-projection";
 
 export { getMcpTargetPresets } from "./mcp-target-presets";
 export type { McpTargetPreset } from "./mcp-target-presets";
@@ -120,6 +138,7 @@ function defaultLibrary(): McpLibraryFile {
 }
 
 function writeJsonFileAtomic(filePath: string, data: unknown): void {
+  assertStorageMaintenanceAvailable(getUserDataPath());
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
   fs.writeFileSync(tempPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
@@ -215,6 +234,21 @@ function assertUniqueName(
   }
 }
 
+function restoreRedactedDraftValues(
+  local: Record<string, string> | undefined,
+  incoming: Record<string, string> | undefined,
+): Record<string, string> | undefined {
+  if (incoming === undefined) {
+    return undefined;
+  }
+  return Object.fromEntries(
+    Object.entries(incoming).map(([key, value]) => [
+      key,
+      value === MCP_REDACTED_VALUE ? (local?.[key] ?? "") : value,
+    ]),
+  );
+}
+
 function selectServers(
   library: McpLibraryFile,
   serverIds: string[],
@@ -227,24 +261,10 @@ function selectServers(
   return servers;
 }
 
-function createBackup(filePath: string): string | undefined {
-  if (!fs.existsSync(filePath)) {
-    return undefined;
-  }
-  const backupPath = `${filePath}.prompthub-mcp-backup-${Date.now()}`;
-  fs.copyFileSync(filePath, backupPath);
-  return backupPath;
-}
-
-function writeTextFileAtomic(filePath: string, content: string): void {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
-  fs.writeFileSync(tempPath, content, "utf8");
-  fs.renameSync(tempPath, filePath);
-}
-
-function isTomlTarget(target: McpTargetKind): boolean {
-  return target === "codex" || target === "custom-toml";
+function isTomlTarget(
+  target: McpTargetKind,
+): target is Extract<McpTargetKind, "codex" | "custom-toml" | "grok"> {
+  return target === "codex" || target === "custom-toml" || target === "grok";
 }
 
 function createBindingId(target: McpApplyTarget): string {
@@ -302,6 +322,44 @@ function findOverwrittenTargetNames(
   return servers
     .filter((server) => server.enabled && existingNames.has(server.name))
     .map((server) => server.name);
+}
+
+function verifyMcpTargetProjection(
+  filePath: string,
+  target: McpTargetKind,
+  expectedContent: string,
+  presentNames: string[],
+  absentNames: string[],
+): void {
+  try {
+    const writtenContent = fs.readFileSync(filePath, "utf8");
+    if (writtenContent !== expectedContent) {
+      throw new Error("written bytes do not match the projected content");
+    }
+    const names = new Set(
+      listExistingTargetServerNames(
+        {
+          target,
+          scope: "custom",
+          path: filePath,
+          serverIds: [],
+        },
+        writtenContent,
+      ),
+    );
+    const missing = presentNames.filter((name) => !names.has(name));
+    const retained = absentNames.filter((name) => names.has(name));
+    if (missing.length > 0 || retained.length > 0) {
+      throw new Error(
+        `entry verification failed (missing: ${missing.join(", ") || "none"}; retained: ${retained.join(", ") || "none"})`,
+      );
+    }
+  } catch (error) {
+    throw new CoreMcpError(
+      "TARGET_VERIFY_FAILED",
+      `MCP 目标配置写入校验失败: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 function buildEntryDigest(
@@ -569,8 +627,57 @@ function createHealthResult(server: McpServerConfig): McpHealthCheckResult {
     }
   }
 
+  const referenceDetails = new Map<string, { hasDefault: boolean }>();
+  const referenceValues = [
+    ...Object.values(server.env ?? {}),
+    ...Object.values(server.envRefs ?? {}),
+    ...(server.args ?? []),
+    ...(server.url ? [server.url] : []),
+    ...Object.values(server.headers ?? {}),
+    ...Object.values(server.headerRefs ?? {}),
+  ];
+  for (const value of referenceValues) {
+    for (const reference of getMcpEnvReferences(value)) {
+      const current = referenceDetails.get(reference.name);
+      referenceDetails.set(reference.name, {
+        hasDefault: (current?.hasDefault ?? false) || reference.hasDefault,
+      });
+    }
+  }
+
   for (const requirement of inferMcpEnvRequirements(server)) {
-    const value = server.env?.[requirement.name];
+    const reference = referenceDetails.get(requirement.name);
+    const directValue = server.env?.[requirement.name];
+    const hasMissingDirectValue =
+      Object.prototype.hasOwnProperty.call(
+        server.env ?? {},
+        requirement.name,
+      ) &&
+      (!directValue || /^<[^>]+>$/.test(directValue.trim()));
+    if (reference) {
+      if (hasMissingDirectValue) {
+        issues.push({
+          code: "MISSING_ENV",
+          severity: "error",
+          field: requirement.name,
+          message: `缺少环境变量: ${requirement.name}`,
+        });
+        continue;
+      }
+      const resolvedInCurrentProcess = Boolean(
+        process.env[requirement.name]?.trim(),
+      );
+      if (!reference.hasDefault && !resolvedInCurrentProcess) {
+        issues.push({
+          code: "UNRESOLVED_ENV_REFERENCE",
+          severity: "warning",
+          field: requirement.name,
+          message: `当前进程未设置环境变量引用: ${requirement.name}`,
+        });
+      }
+      continue;
+    }
+    const value = directValue;
     if (requirement.required && (!value || /^<[^>]+>$/.test(value.trim()))) {
       issues.push({
         code: "MISSING_ENV",
@@ -671,6 +778,7 @@ function importServerEntry(
   name: string,
   entry: unknown,
   now: number,
+  target?: McpTargetKind,
 ): McpServerConfig | null {
   if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
     return null;
@@ -681,7 +789,12 @@ function importServerEntry(
     : [];
   const command =
     typeof record.command === "string" ? record.command : commandParts[0];
-  const url = typeof record.url === "string" ? record.url : undefined;
+  const url =
+    target === "antigravity" && typeof record.serverUrl === "string"
+      ? record.serverUrl
+      : typeof record.url === "string"
+        ? record.url
+        : undefined;
   if (!command && !url) {
     return null;
   }
@@ -702,9 +815,13 @@ function importServerEntry(
         typeof record.description === "string" ? record.description : undefined,
       transport: command
         ? "stdio"
-        : record.type === "sse"
-          ? "sse"
-          : "streamable-http",
+        : target === "openclaw"
+          ? record.transport === "streamable-http"
+            ? "streamable-http"
+            : "sse"
+          : record.type === "sse"
+            ? "sse"
+            : "streamable-http",
       command,
       args,
       cwd: typeof record.cwd === "string" ? record.cwd : undefined,
@@ -719,7 +836,10 @@ function importServerEntry(
         !Array.isArray(headersRecord)
           ? (headersRecord as Record<string, string>)
           : undefined,
-      enabled: record.enable !== false && record.enabled !== false,
+      enabled:
+        record.enable !== false &&
+        record.enabled !== false &&
+        record.disabled !== true,
       source: { type: "import" },
     },
     now,
@@ -814,7 +934,7 @@ function parseCodexTomlServers(
     const value = line.slice(separatorIndex + 1).trim();
     if (key === "args") {
       current.args = parseTomlStringArray(value);
-    } else if (key === "env" || key === "http_headers") {
+    } else if (key === "env" || key === "http_headers" || key === "headers") {
       current[key === "env" ? "env" : "headers"] = parseTomlInlineTable(value);
     } else if (key === "command" || key === "cwd" || key === "url") {
       current[key] = parseTomlString(value);
@@ -922,7 +1042,7 @@ function readTargetServers(
     return [];
   }
   return Object.entries(source)
-    .map(([name, entry]) => importServerEntry(name, entry, now))
+    .map(([name, entry]) => importServerEntry(name, entry, now, target))
     .filter((server): server is McpServerConfig => Boolean(server))
     .map((server) => ({
       ...server,
@@ -931,7 +1051,21 @@ function readTargetServers(
 }
 
 export class CoreMcpLibraryService {
+  constructor(
+    private readonly canonicalOptions: CanonicalMcpLibraryOptions = {},
+  ) {}
+
   read(): McpLibraryFile {
+    if (getRuntimeStorageContext().localAuthority === "canonical-files") {
+      try {
+        return normalizeLibrary(readCanonicalMcpLibrary(this.canonicalOptions));
+      } catch (error) {
+        throw new CoreMcpError(
+          "INVALID_LIBRARY",
+          error instanceof Error ? error.message : "MCP 配置库无法解析",
+        );
+      }
+    }
     const primaryPath = getMcpLibraryFilePath();
     try {
       if (fs.existsSync(primaryPath)) {
@@ -959,7 +1093,11 @@ export class CoreMcpLibraryService {
       ...library,
       updatedAt: nowIso(),
     });
-    writeJsonFileAtomic(getMcpLibraryFilePath(), next);
+    if (getRuntimeStorageContext().localAuthority === "canonical-files") {
+      writeCanonicalMcpLibrary(next, this.canonicalOptions);
+    } else {
+      writeJsonFileAtomic(getMcpLibraryFilePath(), next);
+    }
     return next;
   }
 
@@ -999,6 +1137,12 @@ export class CoreMcpLibraryService {
     const nextServer = normalizeMcpServerDraft({
       ...current,
       ...draft,
+      ...(draft.env !== undefined && {
+        env: restoreRedactedDraftValues(current.env, draft.env),
+      }),
+      ...(draft.headers !== undefined && {
+        headers: restoreRedactedDraftValues(current.headers, draft.headers),
+      }),
       id,
       createdAt: current.createdAt,
       updatedAt: nowMs(),
@@ -1143,7 +1287,8 @@ export class CoreMcpLibraryService {
         "没有已启用的 MCP 服务可分发",
       );
     }
-    const existingContent = fs.existsSync(target.path)
+    const targetExisted = fs.existsSync(target.path);
+    const existingContent = targetExisted
       ? fs.readFileSync(target.path, "utf8")
       : "";
     const externalConflicts = findExternalTargetConflicts(
@@ -1170,7 +1315,7 @@ export class CoreMcpLibraryService {
         ? removeCodexMcpTomlServers(existingContent, externalConflicts)
         : existingContent;
     const content = isTomlTarget(target.target)
-      ? mergeCodexMcpToml(tomlBaseContent, servers)
+      ? mergeMcpToml(tomlBaseContent, target.target, servers)
       : `${JSON.stringify(
           mergeMcpServersJson(
             parseMcpJsonConfigContent(existingContent),
@@ -1180,9 +1325,6 @@ export class CoreMcpLibraryService {
           null,
           2,
         )}\n`;
-
-    const backupPath = createBackup(target.path);
-    writeTextFileAtomic(target.path, content);
 
     const now = nowMs();
     const bindingId = createBindingId(target);
@@ -1214,30 +1356,46 @@ export class CoreMcpLibraryService {
       createdAt: existingBinding?.createdAt ?? now,
       updatedAt: now,
     };
-    this.write({
+    const nextLibrary = {
       ...library,
       bindings: [
         binding,
         ...library.bindings.filter((item) => item.id !== binding.id),
       ],
+    };
+    commitMcpTargetProjection({
+      filePath: target.path,
+      previousContent: targetExisted ? existingContent : undefined,
+      nextContent: content,
+      verify: () =>
+        verifyMcpTargetProjection(
+          target.path,
+          target.target,
+          content,
+          servers.map((server) => server.name),
+          [],
+        ),
+      persist: () => {
+        this.write(nextLibrary);
+      },
     });
 
     return {
       path: target.path,
-      backupPath,
+      backupPath: undefined,
       target: target.target,
       appliedServerNames: servers.map((server) => server.name),
       overwrittenServerNames,
-      content,
+      // The file on disk contains the explicitly selected literal values;
+      // callers only receive a redacted view.
+      content: redactMcpConfigContent(target.target, content),
     };
   }
 
   /**
-   * Remove selected servers from an agent target config file, with backup.
-   * Unrelated config content is preserved. The matching binding is updated
-   * and dropped when it becomes empty.
-   * 从目标配置文件中移除选定的 MCP 服务（带备份），保留无关配置；
-   * 同步更新 binding，为空时删除。
+   * Remove selected servers from an agent target config file. Unrelated
+   * config content is preserved. The matching binding is updated and dropped
+   * when it becomes empty.
    */
   removeFromTarget(target: McpApplyTarget): McpRemoveResult {
     const library = this.read();
@@ -1262,13 +1420,10 @@ export class CoreMcpLibraryService {
           2,
         )}\n`;
 
-    const backupPath = createBackup(target.path);
-    writeTextFileAtomic(target.path, content);
-
     const now = nowMs();
     const bindingId = createBindingId(target);
     const removedIds = new Set(target.serverIds);
-    this.write({
+    const nextLibrary = {
       ...library,
       bindings: library.bindings
         .map((binding) =>
@@ -1290,14 +1445,30 @@ export class CoreMcpLibraryService {
             : binding,
         )
         .filter((binding) => binding.serverIds.length > 0),
+    };
+    commitMcpTargetProjection({
+      filePath: target.path,
+      previousContent: existingContent,
+      nextContent: content,
+      verify: () =>
+        verifyMcpTargetProjection(
+          target.path,
+          target.target,
+          content,
+          [],
+          serverNames,
+        ),
+      persist: () => {
+        this.write(nextLibrary);
+      },
     });
 
     return {
       path: target.path,
-      backupPath,
+      backupPath: undefined,
       target: target.target,
       removedServerNames: serverNames,
-      content,
+      content: redactMcpConfigContent(target.target, content),
     };
   }
 
@@ -1331,9 +1502,6 @@ export class CoreMcpLibraryService {
           2,
         )}\n`;
 
-    const backupPath = createBackup(target.path);
-    writeTextFileAtomic(target.path, content);
-
     const removedNames = new Set(target.serverNames);
     const removedLibraryIds = new Set(
       library.servers
@@ -1342,7 +1510,7 @@ export class CoreMcpLibraryService {
     );
     const now = nowMs();
     const bindingId = createBindingId({ ...target, serverIds: [] });
-    this.write({
+    const nextLibrary = {
       ...library,
       bindings: library.bindings
         .map((binding) =>
@@ -1364,14 +1532,30 @@ export class CoreMcpLibraryService {
             : binding,
         )
         .filter((binding) => binding.serverIds.length > 0),
+    };
+    commitMcpTargetProjection({
+      filePath: target.path,
+      previousContent: existingContent,
+      nextContent: content,
+      verify: () =>
+        verifyMcpTargetProjection(
+          target.path,
+          target.target,
+          content,
+          [],
+          target.serverNames,
+        ),
+      persist: () => {
+        this.write(nextLibrary);
+      },
     });
 
     return {
       path: target.path,
-      backupPath,
+      backupPath: undefined,
       target: target.target,
       removedServerNames: target.serverNames,
-      content,
+      content: redactMcpConfigContent(target.target, content),
     };
   }
 
@@ -1603,7 +1787,7 @@ export class CoreMcpLibraryService {
           exists: true,
           serverNames,
           servers: servers.map((server) => ({
-            ...server,
+            ...redactMcpServerConfig(server),
             source: { type: "import", id: preset.id, label: preset.label },
           })),
         };
