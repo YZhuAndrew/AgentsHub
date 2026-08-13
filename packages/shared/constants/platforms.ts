@@ -425,9 +425,9 @@ export const SKILL_PLATFORMS: SkillPlatform[] = [
     name: "TRAE Work CN",
     icon: "Zap",
     rootDir: {
-      darwin: "~/.trae-work-cn",
-      win32: "%USERPROFILE%\\.trae-work-cn",
-      linux: "~/.trae-work-cn",
+      darwin: "~/.trae-cn",
+      win32: "%USERPROFILE%\\.trae-cn",
+      linux: "~/.trae-cn",
     },
     skillsRelativePath: "skills",
   },

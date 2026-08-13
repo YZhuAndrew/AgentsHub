@@ -249,8 +249,14 @@ describe("skill-installer-utils", () => {
       const resolvedRoot = getPlatformRootDir(platform!);
       const resolvedPath = getPlatformSkillsDir(platform!);
 
-      expect(resolvedRoot).toContain(".trae-work-cn");
-      expect(resolvedPath).toContain(".trae-work-cn/skills");
+      // TRAE Work CN shares the TRAE IDE CN data directory (~/.trae-cn),
+      // per user confirmation; it must not resolve to a separate .trae-work-cn root.
+      const traeCn = getPlatformById("trae-cn");
+      expect(traeCn).toBeDefined();
+      expect(resolvedRoot).toContain(".trae-cn");
+      expect(resolvedRoot).not.toContain(".trae-work-cn");
+      expect(resolvedRoot).toBe(getPlatformRootDir(traeCn!));
+      expect(resolvedPath).toContain(".trae-cn/skills");
     });
 
     it("resolves the built-in Cline path without overrides", () => {

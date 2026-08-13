@@ -232,7 +232,7 @@ Stable product rule:
 | TRAE IDE     | `trae`         | `~/.trae`                                                       | TRAE IDE international client; root dir + `skills/` convention only                                    | Product confirmed; local path PromptHub inferred                           |
 | TRAE Work    | `trae-work`    | `~/.trae-work`                                                  | TRAE Work international client; PromptHub assigns an isolated root + `skills/` convention              | Product confirmed; local path PromptHub inferred                           |
 | TRAE IDE CN  | `trae-cn`      | `~/.trae-cn`                                                    | China-region TRAE IDE preset; visible built-in platform keeps the existing root convention             | Product confirmed; local path PromptHub inferred                           |
-| TRAE Work CN | `trae-work-cn` | `~/.trae-work-cn`                                               | TRAE Work is a separate China-region client; PromptHub assigns an isolated root + `skills/` convention | Product confirmed; local path PromptHub inferred                           |
+| TRAE Work CN | `trae-work-cn` | `~/.trae-cn`                                                    | TRAE Work is a separate China-region client that shares the TRAE IDE CN root (`~/.trae-cn`); user-confirmed shared data directory | Product confirmed; shared root user-confirmed                              |
 | Qoder        | `qoder`        | `~/.qoder`                                                      | Official transcript JSONL read-only history; root dir + `skills/` remains a compatibility convention   | Official Qoder Hooks/CLI docs; local Skill path remains PromptHub inferred |
 | QoderWorker  | `qoderwork`    | `~/.qoderwork`                                                  | root dir + `skills/` convention only                                                                   | PromptHub inferred                                                         |
 | QwenWork     | `qwenwork`     | `~/.qwenwork`                                                   | root dir + `skills/` convention only; minimal skeleton placeholder                                     | User-specified root; local Skill path PromptHub inferred                                                  |
@@ -306,14 +306,14 @@ Current support boundary:
 | QClaw        | Tencent PC Manager localized OpenClaw assistant with WeChat binding, OpenClaw association, ClawHub/GitHub Skills, and MCP protocol support | Product docs confirm QClaw is based on OpenClaw, can associate existing OpenClaw, and supports ClawHub/GitHub Skills, MCP Server protocol, custom/shareable Skills                                                                      | Built-in OpenClaw-compatible platform; no MCP path yet                     |
 | Kilo Code    | Kilo 使用分离的 Skill 与配置根；MCP 位于所选 JSONC 配置的顶层 `mcp` 字段                                                                   | `.kilo/skills/`, `~/.kilo/skills/`, global `~/.config/kilo/kilo.jsonc`, global `~/.config/kilo/AGENTS.md`, project `kilo.jsonc` or `.kilo/kilo.jsonc`, project `AGENTS.md`, global/project `agents/*.md`                                | Built-in platform; MCP supported, split-root Provider/Rules design pending |
 | TRAE Work    | 国际站下载页和文档入口展示 TRAE Work，与 TRAE IDE 分开展示；本轮已作为独立内置 Agent 平台落入 `trae-work`                                  | Product entry available via `trae.ai`; local skills path remains PromptHub inferred                                                                                                                                                     | Promoted to built-in platform with isolated default root                   |
-| TRAE Work CN | 中国站和文档显示 TRAE Work 是独立客户端，不依赖 TRAE IDE；本轮已作为独立内置 Agent 平台落入 `trae-work-cn`                                 | Product docs entry available via `docs.trae.cn`; local skills path remains PromptHub inferred                                                                                                                                           | Promoted to built-in platform with isolated default root                   |
+| TRAE Work CN | 中国站和文档显示 TRAE Work 是独立客户端，不依赖 TRAE IDE；本轮已作为独立内置 Agent 平台落入 `trae-work-cn`                                 | Product docs entry available via `docs.trae.cn`; shares the TRAE IDE CN root `~/.trae-cn` (user-confirmed shared data directory)                                                                                                        | Built-in platform sharing the `trae-cn` root                               |
 
 建模建议：
 
 - `TRAE IDE` 是普通 IDE 产品，继续使用已有 `trae` 平台 id 和 `~/.trae` 根目录，避免破坏历史设置。
 - `TRAE IDE CN` 继续使用已有 `trae-cn` 平台 id 和 `~/.trae-cn` 根目录，避免破坏历史设置和迁移逻辑。
 - `TRAE Work` 是国际版新客户端，使用独立 `trae-work` 平台 id 和 `~/.trae-work` 默认根目录；公开资料确认产品存在，本地 skills 目录是 PromptHub 的保守分发约定。
-- `TRAE Work CN` 是新客户端，使用独立 `trae-work-cn` 平台 id 和 `~/.trae-work-cn` 默认根目录；公开资料确认产品存在，本地 skills 目录是 PromptHub 的保守分发约定。
+- `TRAE Work CN` 是新客户端，使用独立 `trae-work-cn` 平台 id，但与 TRAE IDE CN 共用 `~/.trae-cn` 默认根目录（用户确认二者共享同一数据目录）；公开资料确认产品存在，本地 skills 目录沿用 `~/.trae-cn/skills/`。
 - `Kilo Code` 已作为独立 built-in platform 建模，不能与 `Kiro` 混用；MCP 使用 Kilo 自己的 `mcp` JSON/JSONC 配置结构。
 - `Tencent WorkBuddy` 使用 `workbuddy` 平台 id 和 `~/.workbuddy` 默认根目录；MCP 使用官方用户级 `mcp.json` 与项目级 `.workbuddy/mcp.json`。
 - `CodeBuddy` 保留既有 `codebuddy` 平台 id，但不再只建模 `skills/`；默认资产包括 `CODEBUDDY.md`、`.mcp.json`、`settings.json`、`skills/`、`agents/`、`commands/`。
@@ -1177,7 +1177,7 @@ Current support boundary:
   - localized placeholders already use `~/.trae-cn`
   - unit tests already verify custom platform root resolution against `~/.trae-cn`
   - TRAE Work uses an isolated `~/.trae-work` root to avoid mutating existing TRAE IDE configuration
-  - TRAE Work CN uses an isolated `~/.trae-work-cn` root to avoid mutating existing TRAE IDE CN configuration
+  - TRAE Work CN shares the TRAE IDE CN root `~/.trae-cn` (user-confirmed shared data directory); it no longer uses an isolated root
 - Modeling note:
   - until official local skills/rules path docs are captured, treat TRAE Work variants as product-confirmed Agent clients with PromptHub-inferred `skills/` conventions.
 
