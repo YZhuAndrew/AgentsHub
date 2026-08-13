@@ -752,3 +752,42 @@ describe("Skill package operation policy", () => {
     expect(sanitizeSkillPackageDiagnostic(null)).toBe("");
   });
 });
+
+describe("validateSkillPackageOperationRequest local-zip source", () => {
+  it("accepts a request with a non-empty local-zip filePath", () => {
+    const request = installRequest({
+      source: { kind: "local-zip", filePath: "/tmp/skills/writer.zip" },
+    });
+    expect(() => validateSkillPackageOperationRequest(request)).not.toThrow();
+  });
+
+  it("rejects an empty local-zip filePath", () => {
+    const request = installRequest({
+      source: { kind: "local-zip", filePath: "   " },
+    });
+    expect(() => validateSkillPackageOperationRequest(request)).toThrow(
+      /source\.filePath/i,
+    );
+  });
+
+  it("rejects a null byte in local-zip filePath", () => {
+    const request = installRequest({
+      source: { kind: "local-zip", filePath: "/tmp/ev\0il.zip" },
+    });
+    expect(() => validateSkillPackageOperationRequest(request)).toThrow(
+      /null bytes/i,
+    );
+  });
+
+  it("rejects an over-length local-zip filePath", () => {
+    const request = installRequest({
+      source: {
+        kind: "local-zip",
+        filePath: `/tmp/${"a".repeat(MAX_SKILL_PACKAGE_PATH_LENGTH)}.zip`,
+      },
+    });
+    expect(() => validateSkillPackageOperationRequest(request)).toThrow(
+      /path length limit/i,
+    );
+  });
+});

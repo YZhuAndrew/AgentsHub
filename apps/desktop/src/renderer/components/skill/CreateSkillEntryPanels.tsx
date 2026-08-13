@@ -160,6 +160,15 @@ export function CreateSkillMethodSelection({
         onClick={onSelectGit}
       />
       <MethodButton
+        icon={<UploadIcon className="w-6 h-6 text-foreground" aria-hidden />}
+        title={t("skill.batchImport", "Batch Import")}
+        description={t(
+          "skill.batchImportDesc",
+          "Drop/select multiple ZIP archives or paste multiple Git URLs",
+        )}
+        onClick={() => onSelectMode("batch")}
+      />
+      <MethodButton
         icon={<EditIcon className="w-6 h-6 text-foreground" aria-hidden />}
         title={t("skill.createManually", "Create Manually")}
         description={t("skill.manualDesc", "Build a skill from scratch")}

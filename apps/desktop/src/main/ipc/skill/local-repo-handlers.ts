@@ -7,6 +7,7 @@ import type {
 } from "@prompthub/shared/types";
 import { SKILL_PACKAGE_FINGERPRINT_ALGORITHM } from "@prompthub/shared/utils/skill-source-update";
 import { SkillInstaller } from "../../services/skill-installer";
+import { getLocalZipSkillPackageSnapshot } from "../../services/skill-installer-local-zip";
 import { SkillSafetyReviewRequiredError } from "../../services/skill-update-safety";
 import {
   buildSkillSyncUpdateFromRepo,
@@ -361,6 +362,18 @@ export function registerSkillLocalRepoHandlers({ db }: SkillIPCContext): void {
       return SkillInstaller.getRemoteZipSkillPackageSnapshot({
         zipUrl: options.zipUrl,
       });
+    },
+  );
+
+  ipcMain.handle(
+    IPC_CHANNELS.SKILL_GET_LOCAL_ZIP_PACKAGE_SNAPSHOT,
+    async (_, options?: { filePath?: string }): Promise<SkillPackageSnapshot> => {
+      if (typeof options?.filePath !== "string" || !options.filePath.trim()) {
+        throw new Error(
+          "skill:getLocalZipPackageSnapshot requires a non-empty filePath",
+        );
+      }
+      return getLocalZipSkillPackageSnapshot({ filePath: options.filePath });
     },
   );
 

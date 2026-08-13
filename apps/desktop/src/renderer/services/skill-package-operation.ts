@@ -97,6 +97,9 @@ export function buildSkillPackageOperationSource(
       files: packageFiles,
     };
   }
+  if (registrySkill.local_zip_path?.trim()) {
+    return { kind: "local-zip", filePath: registrySkill.local_zip_path.trim() };
+  }
   if (isLocalRegistrySkill(registrySkill)) {
     return {
       kind: "local-directory",

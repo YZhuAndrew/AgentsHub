@@ -18,6 +18,7 @@ import {
 import { clsx } from "clsx";
 import type { UpdateStatus } from "../UpdateDialog";
 import { usePromptStore } from "../../stores/prompt.store";
+import { useSkillBatchImportRequest } from "../../stores/skill-batch-import-request";
 import { useSettingsStore } from "../../stores/settings.store";
 import { useFolderStore } from "../../stores/folder.store";
 import { useSkillStore } from "../../stores/skill.store";
@@ -140,6 +141,13 @@ export function TopBar({
     "analyze" | "generate"
   >("analyze");
   const [isCreateSkillModalOpen, setIsCreateSkillModalOpen] = useState(false);
+  const batchImportRequest = useSkillBatchImportRequest(
+    (state) => state.request,
+  );
+  const initialBatchZipPaths = batchImportRequest?.zipPaths ?? [];
+  useEffect(() => {
+    if (batchImportRequest) setIsCreateSkillModalOpen(true);
+  }, [batchImportRequest]);
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const createMenuRef = useRef<HTMLDivElement>(null);
@@ -1094,6 +1102,7 @@ export function TopBar({
         {/* 新建 Skill 弹窗 */}
         <CreateSkillModal
           isOpen={isCreateSkillModalOpen}
+          initialBatchZipPaths={initialBatchZipPaths}
           onClose={() => setIsCreateSkillModalOpen(false)}
         />
       </Suspense>

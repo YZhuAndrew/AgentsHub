@@ -3,7 +3,7 @@ import type {
   ScannedSkill,
 } from "@prompthub/shared/types/skill";
 
-export type CreateMode = "select" | "github" | "manual" | "scan" | "ai";
+export type CreateMode = "select" | "github" | "manual" | "scan" | "ai" | "batch";
 
 export function sanitizeSkillName(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9-]/g, "");

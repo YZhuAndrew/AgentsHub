@@ -13,6 +13,8 @@ import {
 import { useCreateSkillGithubImport } from "./useCreateSkillGithubImport";
 import { useCreateSkillLocalScan } from "./useCreateSkillLocalScan";
 import { useCreateSkillManualForm } from "./useCreateSkillManualForm";
+import { useCreateSkillBatchImport } from "./useCreateSkillBatchImport";
+import { useSkillBatchImportRequest } from "../../stores/skill-batch-import-request";
 import { useSkillImportProgress } from "./useSkillImportProgress";
 import { useSkillPackageInstall } from "./useSkillPackageInstall";
 
@@ -22,11 +24,14 @@ export type { CreateMode } from "./create-skill-modal-utils";
 interface CreateSkillModalControllerOptions {
   isOpen: boolean;
   onClose: () => void;
+  /** Pre-seeded ZIP paths from a global drop gesture (consumed once on open). */
+  initialBatchZipPaths?: string[];
 }
 
 export function useCreateSkillModalController({
   isOpen,
   onClose,
+  initialBatchZipPaths,
 }: CreateSkillModalControllerOptions) {
   const { t } = useTranslation();
   const runtimeCapabilities = getRuntimeCapabilities();
@@ -72,6 +77,13 @@ export function useCreateSkillModalController({
     setIsLoading,
     t,
   });
+  const batch = useCreateSkillBatchImport({
+    installSkill: installOperation.install,
+    setIsLoading,
+    setInstallBatchActive: importProgress.setInstallBatchActive,
+    setBatchProgress: importProgress.setBatchProgress,
+    clearProgress: importProgress.clearProgress,
+  });
   const confirmInstallReview = useCallback(async () => {
     const pendingName = installOperation.pendingReview?.skill.name;
     const result = await installOperation.confirmReview();
@@ -113,6 +125,7 @@ export function useCreateSkillModalController({
     github.resetGitHubImportState();
     manual.reset();
     localScan.reset();
+    batch.reset();
     installOperation.resetReviews();
     importProgress.clearProgress();
     onClose();
@@ -140,6 +153,14 @@ export function useCreateSkillModalController({
     localScan.importSelected,
     handleClose,
   );
+  const enterBatchMode = useCallback(() => {
+    batch.reset();
+    setMode("batch");
+  }, [batch]);
+  const handleRunBatchImport = useCallback(async () => {
+    const ok = await batch.runBatch();
+    if (ok) handleClose();
+  }, [batch, handleClose]);
   const handleImportFromAgentSkills = useCallback(() => {
     setStoreView("agents");
     selectSkill(null);
@@ -149,6 +170,16 @@ export function useCreateSkillModalController({
     const selectedFolder = await window.electron?.selectFolder?.();
     if (selectedFolder) await localScan.handleScanLocal([selectedFolder]);
   }, [localScan]);
+
+  // Consume a global "drop ZIPs onto My Skills" request once per opening.
+  useEffect(() => {
+    if (!isOpen) return;
+    const seed = initialBatchZipPaths ?? [];
+    if (seed.length === 0) return;
+    setMode("batch");
+    batch.addZipPaths(seed);
+    useSkillBatchImportRequest.getState().clear();
+  }, [isOpen, initialBatchZipPaths, batch]);
 
   if (!isOpen) return null;
   return {
@@ -168,6 +199,7 @@ export function useCreateSkillModalController({
     ...github,
     ...manual,
     ...localScan,
+    ...batch,
     installReview: installOperation.pendingReview,
     installReviewCount: installOperation.pendingReviewCount,
     trustReviewedInstallSource: installOperation.trustReviewedSource,
@@ -181,11 +213,13 @@ export function useCreateSkillModalController({
     handleCloseRequest,
     handleClose,
     enterGitHubMode,
+    enterBatchMode,
     handleManualCreate,
     handleImportSelectedGitHubSkills,
     handleImportFromAgentSkills,
     handleChooseLocalSkillFolder,
     handleImportSelected,
+    handleRunBatchImport,
     handleGitHubInstall: github.scanRepository,
   };
 }

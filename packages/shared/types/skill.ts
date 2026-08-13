@@ -220,6 +220,7 @@ export interface RegistrySkill {
   content: string; // Embedded SKILL.md content
   content_url?: string; // Remote SKILL.md URL (for updates)
   package_url?: string; // Remote package archive URL (for full-directory installs)
+  local_zip_path?: string; // Local .zip archive path (for local-zip installs)
   prerequisites?: string[];
   compatibility?: string[];
   weekly_installs?: string;
@@ -500,6 +501,7 @@ export type SkillPackageOperationSource =
   | { kind: "remote-zip"; zipUrl: string }
   | { kind: "content"; sourceUrl: string; content: string }
   | { kind: "local-directory"; directory: string }
+  | { kind: "local-zip"; filePath: string }
   | {
       kind: "files";
       sourceUrl: string;

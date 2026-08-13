@@ -153,6 +153,15 @@ function validateOperationSource(source: SkillPackageOperationSource): void {
     case "local-directory":
       requireNonEmptyString(source.directory, "source.directory");
       return;
+    case "local-zip":
+      requireNonEmptyString(source.filePath, "source.filePath");
+      if (source.filePath.includes("\0")) {
+        throw new Error("source.filePath must not contain null bytes");
+      }
+      if (source.filePath.length > MAX_SKILL_PACKAGE_PATH_LENGTH) {
+        throw new Error("source.filePath exceeds the path length limit");
+      }
+      return;
     case "files":
       requireNonEmptyString(source.sourceUrl, "source.sourceUrl");
       validatePackageFiles(source);
@@ -308,6 +317,8 @@ function getSourceIdentity(source: SkillPackageOperationSource): string {
       return sanitizeSkillPackageSourceUrl(source.sourceUrl);
     case "local-directory":
       return source.directory;
+    case "local-zip":
+      return source.filePath;
   }
 }
 

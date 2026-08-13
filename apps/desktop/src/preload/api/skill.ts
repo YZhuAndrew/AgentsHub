@@ -259,6 +259,13 @@ export const skillApi = {
       IPC_CHANNELS.SKILL_GET_REMOTE_ZIP_PACKAGE_SNAPSHOT,
       options,
     ),
+  getLocalZipPackageSnapshot: (options: {
+    filePath: string;
+  }): Promise<SkillPackageSnapshot> =>
+    ipcRenderer.invoke(
+      IPC_CHANNELS.SKILL_GET_LOCAL_ZIP_PACKAGE_SNAPSHOT,
+      options,
+    ),
   getLocalPackageFingerprint: (localPath: string): Promise<string> =>
     ipcRenderer.invoke(
       IPC_CHANNELS.SKILL_GET_LOCAL_PACKAGE_FINGERPRINT,

@@ -741,6 +741,22 @@ ipcMain.handle("dialog:selectMcpSourceFolder", async () => {
   return null;
 });
 
+// Select one or more local skill archive (.zip) files for batch import.
+ipcMain.handle(
+  IPC_CHANNELS.DIALOG_SELECT_SKILL_ARCHIVES,
+  async (): Promise<string[]> => {
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      properties: ["openFile", "multiSelections"],
+      title: "Select Skill Archives",
+      filters: [{ name: "Skill archives", extensions: ["zip"] }],
+    });
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths;
+    }
+    return [];
+  },
+);
+
 // Get current data directory
 // 获取当前数据目录
 ipcMain.handle("data:getPath", () => {

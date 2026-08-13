@@ -239,6 +239,8 @@ contextBridge.exposeInMainWorld("electron", {
   selectMcpSourceFolder: () =>
     ipcRenderer.invoke("dialog:selectMcpSourceFolder"),
   selectMcpConfigFile: () => ipcRenderer.invoke("dialog:selectMcpConfigFile"),
+  selectSkillArchives: (): Promise<string[]> =>
+    ipcRenderer.invoke(IPC_CHANNELS.DIALOG_SELECT_SKILL_ARCHIVES),
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
   openPath: (path: string) => ipcRenderer.invoke("shell:openPath", path),
   showNotification: (title: string, body: string) =>
@@ -533,6 +535,7 @@ declare global {
       selectFolder?: () => Promise<string | null>;
       selectMcpSourceFolder?: () => Promise<string | null>;
       selectMcpConfigFile?: () => Promise<string | null>;
+      selectSkillArchives?: () => Promise<string[]>;
       getPathForFile?: (file: File) => string;
       openPath?: (
         path: string,

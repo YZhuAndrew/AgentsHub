@@ -24,6 +24,8 @@ import { computeRepoDirectoryFingerprint } from "./skill-repo-sync";
 import { SkillInstaller } from "./skill-installer";
 import { validateMaterializedSkillPackage } from "./skill-package-validation";
 import { assertStagedRemoteSkillPackageSafe } from "./skill-update-safety";
+import { extractSkillZipArchive } from "./skill-archive-extractor";
+import { resolveSingleSkillDirFromRepo } from "./skill-installer-discovery";
 import {
   PENDING_INSTALL_MARKER,
   type PackageRecoveryManifest,
@@ -93,6 +95,8 @@ function getSourceUrl(request: SkillPackageOperationRequest): string {
       return request.source.sourceUrl;
     case "local-directory":
       return request.source.directory;
+    case "local-zip":
+      return request.source.filePath;
   }
 }
 
@@ -103,7 +107,8 @@ function deriveSourceId(request: SkillPackageOperationRequest): string {
   return buildSkillSourceId({
     sourceType: request.source.kind,
     sourceUrl:
-      request.source.kind === "local-directory"
+      request.source.kind === "local-directory" ||
+      request.source.kind === "local-zip"
         ? getSourceUrl(request)
         : sanitizeSkillPackageSourceUrl(getSourceUrl(request)),
     branch:
@@ -170,6 +175,21 @@ async function materializeNonRemoteSource(
       stagingRoot,
       { ifExists: "error" },
     );
+  }
+  if (source.kind === "local-zip") {
+    // Extract the archive into a scratch dir, resolve the single skill
+    // directory (handles a wrapper folder), then stage it as `repo` so the
+    // downstream validator/fingerprint see SKILL.md at the root — matching the
+    // local-directory contract. The hardened extractor enforces traversal,
+    // size, depth, and zip-bomb budgets.
+    const extractDir = path.join(stagingRoot, ".zip-extract");
+    await fs.mkdir(extractDir, { recursive: true });
+    const archiveBytes = await fs.readFile(source.filePath);
+    await extractSkillZipArchive(archiveBytes, extractDir);
+    const skillDir = await resolveSingleSkillDirFromRepo(extractDir);
+    return SkillInstaller.copyRepoByPathToDirectory(skillDir, "repo", stagingRoot, {
+      ifExists: "error",
+    });
   }
   const repoPath = path.join(stagingRoot, "repo");
   const files =

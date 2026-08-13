@@ -111,7 +111,14 @@ export function normalizeDroppedSkillPath(filePath: string): string {
       ? normalizedPath.slice(0, slashIndex)
       : normalizedPath;
   }
+  // `.zip` archives are handled by the batch-import flow, not local scan.
+  if (lowerPath.endsWith(".zip")) return "";
   return lowerPath.endsWith(".md") ? "" : normalizedPath;
+}
+
+/** True when a path points at a `.zip` archive. */
+export function isSkillArchivePath(filePath: string): boolean {
+  return /\.zip$/i.test(filePath.replace(/\\/g, "/").trim());
 }
 
 export function hasFileItems(dataTransfer: DataTransfer): boolean {

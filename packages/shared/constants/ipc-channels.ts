@@ -265,6 +265,8 @@ export const IPC_CHANNELS = {
     "skill:getRemoteGitPackageFingerprint",
   SKILL_GET_REMOTE_GIT_PACKAGE_SNAPSHOT: "skill:getRemoteGitPackageSnapshot",
   SKILL_GET_REMOTE_ZIP_PACKAGE_SNAPSHOT: "skill:getRemoteZipPackageSnapshot",
+  SKILL_GET_LOCAL_ZIP_PACKAGE_SNAPSHOT: "skill:getLocalZipPackageSnapshot",
+  DIALOG_SELECT_SKILL_ARCHIVES: "dialog:selectSkillArchives",
   SKILL_GET_LOCAL_PACKAGE_FINGERPRINT: "skill:getLocalPackageFingerprint",
   SKILL_GET_LOCAL_PACKAGE_SNAPSHOT: "skill:getLocalPackageSnapshot",
   SKILL_GET_REPO_PATH: "skill:getRepoPath",

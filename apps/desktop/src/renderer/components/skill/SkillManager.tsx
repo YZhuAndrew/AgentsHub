@@ -65,8 +65,10 @@ import {
   shouldRenderSelectedSkillDetail,
   summarizeInstallDetails,
   withTimeout,
+  isSkillArchivePath,
   type DeleteDistributionSummary,
 } from "./skill-manager-utils";
+import { useSkillBatchImportRequest } from "../../stores/skill-batch-import-request";
 
 const SkillFullDetailPage = lazy(() =>
   import("./SkillFullDetailPage").then((m) => ({
@@ -427,20 +429,32 @@ export function SkillManager() {
 
   const handleDropImport = useCallback(
     async (files: FileList | File[]) => {
-      const droppedPaths = Array.from(files)
+      // Partition dropped items: `.zip` archives route to batch import;
+      // folders / SKILL.md continue through the local-scan flow.
+      const allFiles = Array.from(files);
+      const zipPaths = allFiles
+        .map((file) => window.electron?.getPathForFile?.(file) || "")
+        .filter((filePath) => filePath && isSkillArchivePath(filePath));
+      if (zipPaths.length > 0) {
+        useSkillBatchImportRequest.getState().requestBatchImport(zipPaths);
+      }
+
+      const droppedPaths = allFiles
         .map((file) => window.electron?.getPathForFile?.(file) || "")
         .map(normalizeDroppedSkillPath)
         .filter((value) => value.length > 0);
 
       const uniquePaths = Array.from(new Set(droppedPaths));
       if (uniquePaths.length === 0) {
-        showToast(
-          t(
-            "skill.dropImportUnsupported",
-            "Only local folders or a file named SKILL.md can be imported as skills.",
-          ),
-          "error",
-        );
+        if (zipPaths.length === 0) {
+          showToast(
+            t(
+              "skill.dropImportUnsupported",
+              "Only local folders or a file named SKILL.md can be imported as skills.",
+            ),
+            "error",
+          );
+        }
         return;
       }
 

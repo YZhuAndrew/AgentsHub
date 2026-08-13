@@ -9,6 +9,7 @@ import {
 import { CreateSkillAiDraftPanel } from "./CreateSkillAiDraftPanel";
 import { CreateSkillGithubImportPanel } from "./CreateSkillGithubImportPanel";
 import { CreateSkillLocalScanPanel } from "./CreateSkillLocalScanPanel";
+import { CreateSkillBatchImportPanel } from "./CreateSkillBatchImportPanel";
 import { CreateSkillManualEditor } from "./CreateSkillManualEditor";
 import { CreateSkillModalFooters } from "./CreateSkillModalFooters";
 import {
@@ -19,10 +20,19 @@ import {
 interface CreateSkillModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialBatchZipPaths?: string[];
 }
 
-export function CreateSkillModal({ isOpen, onClose }: CreateSkillModalProps) {
-  const controller = useCreateSkillModalController({ isOpen, onClose });
+export function CreateSkillModal({
+  isOpen,
+  onClose,
+  initialBatchZipPaths,
+}: CreateSkillModalProps) {
+  const controller = useCreateSkillModalController({
+    isOpen,
+    onClose,
+    initialBatchZipPaths,
+  });
   if (!controller) return null;
   if (controller.isNativeFullscreen && controller.mode === "manual") {
     return (
@@ -154,6 +164,8 @@ function getModalTitle(
   if (controller.mode === "select") return t("skill.addSkill", "Add Skill");
   if (controller.mode === "github")
     return t("skill.installFromGithub", "Install from Git Repository");
+  if (controller.mode === "batch")
+    return t("skill.batchImport", "Batch Import");
   if (controller.mode === "manual")
     return t("skill.createTitle", "Create Skill");
   if (controller.mode === "ai") return t("skill.aiCreate", "AI Draft");
@@ -181,7 +193,9 @@ function getModalContentClassName(
   controller: CreateSkillModalController,
 ): string {
   if (controller.mode === "manual") return "flex-1 overflow-y-auto";
-  return controller.mode === "github" || controller.mode === "scan"
+  return controller.mode === "github" ||
+    controller.mode === "batch" ||
+    controller.mode === "scan"
     ? "flex flex-1 min-h-0 flex-col overflow-hidden"
     : "";
 }
@@ -201,6 +215,8 @@ function CreateSkillModalModeContent({
     );
   if (controller.mode === "github")
     return <CreateSkillGithubImportPanel controller={controller} />;
+  if (controller.mode === "batch")
+    return <CreateSkillBatchImportPanel controller={controller} />;
   if (controller.mode === "manual")
     return <CreateSkillManualEditor controller={controller} />;
   if (controller.mode === "ai")
