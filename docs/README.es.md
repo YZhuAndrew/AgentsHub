@@ -79,9 +79,9 @@ Las compilaciones de escritorio se publican en GitHub Releases para macOS / Wind
 
 ### Verificación de seguridad en macOS
 
-Los paquetes para macOS se firman con Developer ID y se notarizan con Apple. Instala desde GitHub Releases; si macOS aún no puede verificar la app, vuelve a descargar el DMG de la versión actual e instálalo de nuevo.
+AgentsHub es un build fork mantenido por la comunidad, sin firma de Apple Developer. Descárgalo desde GitHub Releases; macOS Gatekeeper puede bloquear el primer inicio.
 
-Las compilaciones históricas más antiguas y las primeras previews pueden no estar firmadas ni notarizadas. Si descargaste intencionalmente una de esas versiones y macOS indica que AgentsHub está dañado o que no se puede verificar al desarrollador, ejecuta:
+Si macOS indica que AgentsHub está dañado o que no se puede verificar al desarrollador, ejecuta:
 
 ```bash
 sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
@@ -345,7 +345,7 @@ Changelog completo: **[CHANGELOG.md](../CHANGELOG.md)**
 - Las actualizaciones de origen Skill usan fingerprints SHA-256 de package y conciliación de tres vías, con correcciones para registry fingerprints, content-url baselines y redacción de credenciales en URL
 - Las actualizaciones de origen Plugin y batch store ahora muestran diferencias y requieren confirmación antes de reemplazar packages locales
 - Los Prompts permiten componer, ordenar, persistir y respaldar secuencias de formato de salida personalizadas
-- El flujo macOS se endurece con firma Developer ID, notarización, verificación DMG/ZIP y comprobaciones Gatekeeper
+- El flujo macOS documenta la instalación del fork sin firmar, la verificación DMG/ZIP y el manejo de Gatekeeper
 
 ### v0.5.9-beta.1 (2026-06-14, vista previa)
 
@@ -423,7 +423,7 @@ Changelog completo: **[CHANGELOG.md](../CHANGELOG.md)**
 
 - Plugin / MCP se alinean con la experiencia Skill en tiendas, distribución Agent, detalles, filtros de etiquetas, revisión de actualización y safety checks
 - Sync de assets Agent, proxy de red, instalaciones CLI de proyecto y checks de actualización de origen Skill pasan a estable
-- Árboles de relaciones de Prompt, rutas Windows Agent, toggle de captcha Web, firma/notarización macOS y fixes de release pipeline llegan a usuarios estables
+- Árboles de relaciones de Prompt, rutas Windows Agent, toggle de captcha Web, la instalación macOS del fork sin firmar y fixes de release pipeline llegan a usuarios estables
 
 ### v0.5.8
 

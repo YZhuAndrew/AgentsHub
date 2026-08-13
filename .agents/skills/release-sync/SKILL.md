@@ -76,14 +76,39 @@ before implementation.
   desktop-bundled behavior.
 - Use the website sync command instead of hand-editing generated metadata.
 
+## macOS Security Notice (Required On Every Release)
+
+AgentsHub is a community-maintained fork build without Apple Developer signing.
+Every release that ships a macOS desktop artifact MUST include the following
+notice verbatim in its GitHub release notes / `CHANGELOG.md` entry, and it must
+also be present in the README install section when that section exists:
+
+> **macOS 安全说明**
+>
+> AgentsHub 是社区维护的 fork 构建，未配置 Apple Developer 签名。首次启动时
+> macOS Gatekeeper 可能拦截；如提示"已损坏"或"无法验证开发者"，请运行：
+>
+> ```bash
+> sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
+> ```
+
+Do not paraphrase, translate, or omit this notice on any macOS-bearing release.
+This skill text overrides any inherited upstream PromptHub assumption that
+macOS artifacts are Developer-ID signed and notarized. If a future release
+becomes signed/notarized, update `spec/releases/release-rules.md` and this
+section together before dropping the notice.
+
 ## Verification
 
 Run the lowest relevant checks first, then:
 
 - `pnpm verify:release:quick` for local release-impacting changes
 - `pnpm verify:release` before tagging or publishing a release candidate
-- platform signing/notarization checks required by
-  `spec/releases/release-rules.md` for packaged macOS artifacts
+- for macOS-bearing releases, confirm the unsigned-fork "macOS 安全说明"
+  notice is present in the generated release notes (see the
+  "macOS Security Notice" section above). AgentsHub ships unsigned, so
+  `codesign` / `xcrun stapler validate` / `spctl` Developer ID checks do
+  not apply
 
 Record commands, results, skipped surfaces, and residual risks in the active
 change `implementation.md`. The quick profile is diagnostic and does not grant
@@ -97,6 +122,7 @@ Report:
 - affected distributions and manifests
 - website sync status
 - screenshot status
+- macOS security notice included on the release (required for macOS-bearing releases)
 - updated docs and locales
 - verification results
 - intentionally skipped surfaces and remaining release risk

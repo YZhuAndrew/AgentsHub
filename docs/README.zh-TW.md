@@ -79,7 +79,7 @@ AgentsHub 把你的 Prompt、SKILL.md 和專案級 AI 編程資產放進一個�
 
 ### macOS 安全驗證
 
-macOS 安裝包會使用 Developer ID 簽章並完成 Apple 公證。請優先從 GitHub Release 下載；如果系統仍提示無法驗證，請重新下載目前 Release 的 DMG 後再安裝。
+AgentsHub 是社群維護的 fork 建置，未配置 Apple Developer 簽章。請從 GitHub Release 下載；首次啟動時 macOS Gatekeeper 可能攔截。
 
 如果系統提示「已損壞」或「無法驗證開發者」，可以在終端機執行：
 
@@ -345,7 +345,7 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 - Skill 來源更新改為 SHA-256 package 指紋和三方對帳，並修復 registry 指紋、content-url 基線和 URL 脫敏問題
 - Plugin 來源更新和批次商店更新現在會先展示差異並要求確認，不再點擊後直接覆蓋本機 Plugin
 - Prompt 支援組合、排序、持久化與備份自訂輸出格式序列
-- macOS 發布鏈路加強 Developer ID 簽章、公證、DMG/ZIP 校驗和 Gatekeeper 驗證
+- macOS 發布鏈路明確未簽章 fork 的安裝說明、DMG/ZIP 校驗和 Gatekeeper 處理
 
 ### v0.5.9-beta.1（2026-06-14，預覽版）
 
@@ -423,7 +423,7 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 
 - Plugin / MCP 管理對齊 Skill 體驗，覆蓋商店、Agent 分發、詳情、標籤篩選、更新確認和安全檢查
 - Agent 資產同步、網路代理、CLI 專案安裝和 Skill 來源更新檢查進入穩定版
-- Prompt 關係樹、Windows Agent 路徑、Web 驗證碼開關、macOS 簽章公證和發布鏈路修復隨正式版提供給使用者
+- Prompt 關係樹、Windows Agent 路徑、Web 驗證碼開關、macOS 未簽章 fork 安裝說明和發布鏈路修復隨正式版提供給使用者
 
 ### v0.5.8
 

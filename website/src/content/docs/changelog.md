@@ -114,8 +114,8 @@
   - **MCP Uninstall Config Cleanup**: Codex TOML MCP removal now deletes server child sections and tool approval overrides together, avoiding invalid leftover MCP config after uninstall
 - 🌐 **自部署 Web 验证码开关**：自部署 Web 登录验证码支持通过环境变量关闭，方便内网个人部署
   - **Self-hosted Web Captcha Toggle**: Self-hosted Web login captcha can be disabled through an environment variable for private intranet deployments
-- 🚀 **发布链路加固**：发布 workflow 对可选镜像发布、macOS Developer ID 签名、公证和产物校验增加保护
-  - **Release Pipeline Hardening**: Release workflows now guard optional mirror publishing and strengthen macOS Developer ID signing, notarization, and artifact verification
+- 🚀 **发布链路加固**：发布 workflow 对可选镜像发布、macOS 未签名 fork 安装说明和产物校验增加保护
+  - **Release Pipeline Hardening**: Release workflows now guard optional mirror publishing, document the unsigned-fork install notice, and verify artifacts
 - 🍎 **macOS 应用内更新恢复**：通过官网或 GitHub 直接安装的签名、公证版本可在应用内下载 ZIP 更新并重启完成替换；Homebrew 安装仍由 Brew 管理升级
   - **macOS In-App Updates Restored**: Signed and notarized direct installs from the website or GitHub can download ZIP updates in-app and replace the app after restart, while Homebrew installations remain Brew-managed
 - 🗄️ **CLI 与桌面数据库并发写入修复**：共享 SQLite 数据库写入增加跨进程协调、语句释放和明确的争用错误，并在桌面端恢复可见后刷新数据
