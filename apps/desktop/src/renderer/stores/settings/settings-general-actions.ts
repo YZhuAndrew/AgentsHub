@@ -51,6 +51,7 @@ type GeneralActionKey =
   | "setShowLineNumbers"
   | "setLaunchAtStartup"
   | "setMinimizeOnLaunch"
+  | "setShowTrayIcon"
   | "setStartupModule"
   | "setCloseAction"
   | "setDebugMode"
@@ -312,6 +313,11 @@ function createDesktopIntegrationActions(context: SettingsActionContext) {
       }
       void syncSettingsToMain({ minimizeOnLaunch });
     },
+    setShowTrayIcon: (showTrayIcon) => {
+      setTouched({ showTrayIcon });
+      window.electron?.setShowTrayIcon?.(showTrayIcon);
+      void syncSettingsToMain({ showTrayIcon });
+    },
     setStartupModule: (startupModule) => {
       const normalized = normalizeStartupModule(startupModule);
       setTouched({ startupModule: normalized });
@@ -329,6 +335,7 @@ function createDesktopIntegrationActions(context: SettingsActionContext) {
   } satisfies SettingsActionGroup<
     | "setLaunchAtStartup"
     | "setMinimizeOnLaunch"
+    | "setShowTrayIcon"
     | "setStartupModule"
     | "setCloseAction"
     | "setDebugMode"

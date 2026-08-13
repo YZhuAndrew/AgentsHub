@@ -1360,6 +1360,8 @@
     "launchAtStartupDesc": "Automatically run AgentsHub when system starts",
     "minimizeOnLaunch": "Minimize on Launch",
     "minimizeOnLaunchDesc": "Minimize to tray on startup",
+    "showTrayIcon": "Persistent Status Bar Icon",
+    "showTrayIconDesc": "Keep the menu bar / tray icon visible even when the window is open",
     "startupModule": "Startup View",
     "startupModuleDesc": "Choose which view opens when the app starts",
     "startupModuleLast": "Last used",

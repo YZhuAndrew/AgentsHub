@@ -1360,6 +1360,8 @@
     "launchAtStartupDesc": "系统启动时自动运行 AgentsHub",
     "minimizeOnLaunch": "启动时最小化",
     "minimizeOnLaunchDesc": "启动后最小化到系统托盘",
+    "showTrayIcon": "常驻状态栏图标",
+    "showTrayIconDesc": "窗口打开时也在菜单栏/托盘显示图标",
     "startupModule": "启动界面",
     "startupModuleDesc": "选择应用启动时打开的界面",
     "startupModuleLast": "上次使用的界面",

@@ -22,6 +22,10 @@ export function getMinimizeOnLaunchSetting(db: Database.Database): boolean {
   return readBooleanSetting(db, "minimizeOnLaunch") ?? false;
 }
 
+export function getShowTrayIconSetting(db: Database.Database): boolean {
+  return readBooleanSetting(db, "showTrayIcon") ?? false;
+}
+
 export function readGithubTokenSetting(db: Database.Database): string | null {
   try {
     const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(

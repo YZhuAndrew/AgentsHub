@@ -187,6 +187,10 @@ export async function loadSettingsFromMainProcess(): Promise<void> {
     typeof settings.minimizeOnLaunch === "boolean"
       ? settings.minimizeOnLaunch
       : state.minimizeOnLaunch;
+  const showTrayIcon =
+    typeof settings.showTrayIcon === "boolean"
+      ? settings.showTrayIcon
+      : state.showTrayIcon;
   const githubToken = sanitizeGithubToken(settings.githubToken ?? "");
   const syncProvider = clampSyncProvider(
     normalizeSyncProvider(settings.sync?.provider),
@@ -256,6 +260,7 @@ export async function loadSettingsFromMainProcess(): Promise<void> {
     customSkillScanPaths: fallbackRootPaths,
     launchAtStartup,
     minimizeOnLaunch,
+    showTrayIcon,
     githubToken,
     syncProvider,
     aiProvider,
@@ -285,6 +290,8 @@ export async function loadSettingsFromMainProcess(): Promise<void> {
     void syncSettingsToMain({ launchAtStartup });
   if (typeof settings.minimizeOnLaunch !== "boolean")
     void syncSettingsToMain({ minimizeOnLaunch });
+  if (typeof settings.showTrayIcon !== "boolean")
+    void syncSettingsToMain({ showTrayIcon });
   if (settings.sync?.provider !== syncProvider)
     void syncSettingsToMain({
       sync: buildMainProcessSyncSettings(syncProvider),

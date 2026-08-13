@@ -1359,6 +1359,8 @@
     "launchAtStartupDesc": "Exécuter AgentsHub au démarrage du système",
     "minimizeOnLaunch": "Minimiser au lancement",
     "minimizeOnLaunchDesc": "Minimiser dans la barre des tâches au lancement",
+    "showTrayIcon": "Icône permanente de la barre d'état",
+    "showTrayIconDesc": "Conserver l'icône de la barre des menus / tray visible même lorsque la fenêtre est ouverte",
     "startupModule": "Vue de démarrage",
     "startupModuleDesc": "Choisissez la vue qui s'ouvre au démarrage de l'application",
     "startupModuleLast": "Dernière utilisée",

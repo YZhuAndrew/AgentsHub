@@ -1359,6 +1359,8 @@
     "launchAtStartupDesc": "Ejecutar AgentsHub al iniciar el sistema",
     "minimizeOnLaunch": "Minimizar al iniciar",
     "minimizeOnLaunchDesc": "Minimizar a la bandeja del sistema al iniciar",
+    "showTrayIcon": "Icono persistente en la barra de estado",
+    "showTrayIconDesc": "Mantener visible el icono de la barra de menús / bandeja incluso con la ventana abierta",
     "startupModule": "Vista de inicio",
     "startupModuleDesc": "Elige qué vista se abre al iniciar la aplicación",
     "startupModuleLast": "Última usada",

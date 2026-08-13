@@ -84,6 +84,9 @@ export interface Settings {
   // Startup behavior — main process reads these to honor "minimize on launch"
   launchAtStartup?: boolean;
   minimizeOnLaunch?: boolean;
+  // Keep a persistent status-bar (menu-bar / tray) icon even while the window
+  // is open. When false, the tray is created only on minimize-to-tray.
+  showTrayIcon?: boolean;
   // GitHub personal access token (optional). Used to authenticate GitHub
   // API calls in the skill store so the user isn't limited to 60 req/h.
   // Never sent to third-party hosts; only attached for api.github.com and

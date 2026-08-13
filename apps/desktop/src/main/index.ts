@@ -29,7 +29,10 @@ import {
   performDatabaseRecovery,
 } from "./database";
 import { registerAllIPC } from "./ipc";
-import { getMinimizeOnLaunchSetting } from "./settings/settings-readers";
+import {
+  getMinimizeOnLaunchSetting,
+  getShowTrayIconSetting,
+} from "./settings/settings-readers";
 import { readLanguageSetting } from "./settings/language-setting";
 import { createMenu } from "./menu";
 import {
@@ -109,6 +112,7 @@ import { startAgentDeepLinkRouting } from "./agent-deep-link-router";
 
 let mainWindow: BrowserWindow | null = null;
 let minimizeToTray = false;
+let showTrayIcon = false;
 // Database instance (module-level for access in createWindow)
 // 数据库实例（模块级变量，供 createWindow 访问）
 let appDb: Database.Database | null = null;
@@ -394,6 +398,14 @@ async function createWindow() {
     const shouldMinimize =
       osRequestedHidden || (appDb ? getMinimizeOnLaunchSetting(appDb) : false);
 
+    // Persistent status-bar icon: when enabled, create the tray on launch so
+    // the icon is present even while the window is shown normally.
+    const shouldShowTray = appDb ? getShowTrayIconSetting(appDb) : false;
+    showTrayIcon = shouldShowTray;
+    if (shouldShowTray) {
+      createTray();
+    }
+
     if (!appDb && !osRequestedHidden) {
       // No database available and OS didn't request hidden — show normally.
       mainWindow?.show();
@@ -610,7 +622,18 @@ ipcMain.on("app:setMinimizeToTray", (_event, enabled: boolean) => {
   minimizeToTray = enabled;
   if (enabled) {
     createTray();
-  } else {
+  } else if (!showTrayIcon) {
+    destroyTray();
+  }
+});
+
+// Configure persistent status-bar icon (shown even while window is open)
+// 配置常驻状态栏图标（窗口打开时也显示）
+ipcMain.on("app:setShowTrayIcon", (_event, enabled: boolean) => {
+  showTrayIcon = enabled;
+  if (enabled) {
+    createTray();
+  } else if (!minimizeToTray) {
     destroyTray();
   }
 });

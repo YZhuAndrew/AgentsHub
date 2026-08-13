@@ -1358,6 +1358,8 @@
     "launchAtStartupDesc": "系統啟動時自動執行 AgentsHub",
     "minimizeOnLaunch": "啟動時最小化",
     "minimizeOnLaunchDesc": "啟動後最小化到系統匣",
+    "showTrayIcon": "常駐狀態列圖示",
+    "showTrayIconDesc": "視窗開啟時也在選單列/系統匣顯示圖示",
     "startupModule": "啟動介面",
     "startupModuleDesc": "選擇應用啟動時開啟的介面",
     "startupModuleLast": "上次使用的介面",

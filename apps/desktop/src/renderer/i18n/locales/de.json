@@ -1359,6 +1359,8 @@
     "launchAtStartupDesc": "AgentsHub beim Systemstart ausführen",
     "minimizeOnLaunch": "Beim Start minimieren",
     "minimizeOnLaunchDesc": "Beim Start in die Taskleiste minimieren",
+    "showTrayIcon": "Dauerhaftes Statusleistensymbol",
+    "showTrayIconDesc": "Das Menüleisten-/Tray-Symbol auch bei geöffnetem Fenster sichtbar lassen",
     "startupModule": "Startansicht",
     "startupModuleDesc": "Wähle, welche Ansicht beim App-Start geöffnet wird",
     "startupModuleLast": "Zuletzt verwendet",

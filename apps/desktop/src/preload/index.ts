@@ -216,6 +216,8 @@ contextBridge.exposeInMainWorld("electron", {
   toggleDevTools: () => ipcRenderer.send("window:toggleDevTools"),
   setMinimizeToTray: (enabled: boolean) =>
     ipcRenderer.send("app:setMinimizeToTray", enabled),
+  setShowTrayIcon: (enabled: boolean) =>
+    ipcRenderer.send("app:setShowTrayIcon", enabled),
   setCloseAction: (action: "ask" | "minimize" | "exit") =>
     ipcRenderer.send("app:setCloseAction", action),
   // Close dialog callbacks
@@ -525,6 +527,7 @@ declare global {
       setDebugMode?: (enabled: boolean) => void;
       toggleDevTools?: () => void;
       setMinimizeToTray?: (enabled: boolean) => void;
+      setShowTrayIcon?: (enabled: boolean) => void;
       setCloseAction?: (action: "ask" | "minimize" | "exit") => void;
       onShowCloseDialog?: (callback: () => void) => void | (() => void);
       sendCloseDialogResult?: (

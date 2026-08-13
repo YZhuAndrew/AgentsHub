@@ -147,6 +147,7 @@ export interface SettingsState {
   showLineNumbers: boolean;
   launchAtStartup: boolean;
   minimizeOnLaunch: boolean;
+  showTrayIcon: boolean;
   startupModule: StartupModule;
   debugMode: boolean;
   closeAction: "ask" | "minimize" | "exit";
@@ -261,6 +262,7 @@ export interface SettingsState {
   setShowLineNumbers: (enabled: boolean) => void;
   setLaunchAtStartup: (enabled: boolean) => void;
   setMinimizeOnLaunch: (enabled: boolean) => void;
+  setShowTrayIcon: (enabled: boolean) => void;
   setStartupModule: (module: StartupModule) => void;
   setDebugMode: (enabled: boolean) => void;
   setEnableNotifications: (enabled: boolean) => void;

@@ -49,6 +49,16 @@ export function GeneralSettings() {
           />
         </SettingItem>
         <SettingItem
+          label={t("settings.showTrayIcon")}
+          description={t("settings.showTrayIconDesc")}
+        >
+          <ToggleSwitch
+            ariaLabel={t("settings.showTrayIcon")}
+            checked={settings.showTrayIcon}
+            onChange={settings.setShowTrayIcon}
+          />
+        </SettingItem>
+        <SettingItem
           label={t("settings.startupModule")}
           description={t("settings.startupModuleDesc")}
         >

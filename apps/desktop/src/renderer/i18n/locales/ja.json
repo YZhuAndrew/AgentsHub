@@ -1358,6 +1358,8 @@
     "launchAtStartupDesc": "システム起動時に AgentsHub を自動実行",
     "minimizeOnLaunch": "起動時に最小化",
     "minimizeOnLaunchDesc": "起動後にシステムトレイに最小化",
+    "showTrayIcon": "常駐ステータスバーアイコン",
+    "showTrayIconDesc": "ウィンドウを開いているときもメニューバー/トレイにアイコンを表示",
     "startupModule": "起動時のビュー",
     "startupModuleDesc": "アプリ起動時に開くビューを選択します",
     "startupModuleLast": "最後に使用したビュー",

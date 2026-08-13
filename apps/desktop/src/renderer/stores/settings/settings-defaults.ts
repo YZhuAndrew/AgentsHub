@@ -35,6 +35,7 @@ function createDefaultAppearanceValues() {
     showLineNumbers: false,
     launchAtStartup: false,
     minimizeOnLaunch: false,
+    showTrayIcon: false,
     startupModule: "last",
     debugMode: false,
     closeAction: "ask",

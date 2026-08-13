@@ -12,7 +12,10 @@ import {
   SCHEMA_INDEXES,
 } from "../../../src/main/database/schema";
 import DatabaseAdapter from "../../../src/main/database/sqlite";
-import { getMinimizeOnLaunchSetting } from "../../../src/main/settings/settings-readers";
+import {
+  getMinimizeOnLaunchSetting,
+  getShowTrayIconSetting,
+} from "../../../src/main/settings/settings-readers";
 
 describe("getMinimizeOnLaunchSetting (issue #115)", () => {
   let rawDb: DatabaseAdapter.Database;
@@ -68,5 +71,48 @@ describe("getMinimizeOnLaunchSetting (issue #115)", () => {
     writeSetting("minimizeOnLaunch", true);
     writeSetting("autoSave", false);
     expect(getMinimizeOnLaunchSetting(rawDb)).toBe(true);
+  });
+});
+
+describe("getShowTrayIconSetting", () => {
+  let rawDb: DatabaseAdapter.Database;
+
+  beforeEach(() => {
+    rawDb = new DatabaseAdapter(":memory:");
+    rawDb.pragma("journal_mode = WAL");
+    rawDb.pragma("foreign_keys = ON");
+    rawDb.exec(SCHEMA_TABLES);
+    rawDb.exec(SCHEMA_INDEXES);
+  });
+
+  afterEach(() => {
+    rawDb.close();
+  });
+
+  const writeSetting = (key: string, value: unknown) => {
+    rawDb
+      .prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)")
+      .run(key, JSON.stringify(value));
+  };
+
+  it("defaults to false (off; tray stays minimize-to-tray only)", () => {
+    expect(getShowTrayIconSetting(rawDb)).toBe(false);
+  });
+
+  it("returns true when the renderer has persisted true", () => {
+    writeSetting("showTrayIcon", true);
+    expect(getShowTrayIconSetting(rawDb)).toBe(true);
+  });
+
+  it("returns false for a non-boolean persisted value (defensive)", () => {
+    writeSetting("showTrayIcon", "yes");
+    expect(getShowTrayIconSetting(rawDb)).toBe(false);
+  });
+
+  it("is independent from minimizeOnLaunch", () => {
+    writeSetting("minimizeOnLaunch", true);
+    expect(getShowTrayIconSetting(rawDb)).toBe(false);
+    writeSetting("showTrayIcon", true);
+    expect(getShowTrayIconSetting(rawDb)).toBe(true);
   });
 });
