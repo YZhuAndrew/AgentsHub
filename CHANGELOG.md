@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+## [0.7.1] - 2026-08-13
+
+### 修复 / Fixes
+
+- 🐛 **升级备份不再因符号链接中止**：修复升级前的数据备份遇到符号链接（如 symlink 模式安装的 skill 文件 `data/skills/<skill>/CLAUDE.md`）时直接报错、阻塞整个升级的问题（`upgradeBackup:create ... Cannot copy upgrade backup path from symbolic link`）。现在备份会**保留**指向用户数据目录内部的符号链接、**跳过**指向外部的符号链接（保持备份可恢复），悬空链接按原样保留；并在 macOS 上正确处理 `/var` → `/private/var` 的路径归一化
+  - **Upgrade backup no longer aborts on symlinks**: fixes the pre-upgrade backup throwing on the first symbolic link (e.g. a symlink-mode Skill install `data/skills/<skill>/CLAUDE.md`), which blocked the entire upgrade. The backup now preserves symlinks resolving inside the user data directory, skips symlinks escaping it (keeping the snapshot restorable), and preserves dangling links; macOS `/var` → `/private/var` path normalization is handled correctly
+
 ## [0.7.0] - 2026-08-13
 
 ### 新功能 / Features
