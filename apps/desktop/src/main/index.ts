@@ -67,6 +67,7 @@ import { configureE2ESecretStorage } from "./testing/e2e-secret-storage";
 import {
   getHistoricalDefaultUserDataPath,
   getStorageOperationControlDirectory,
+  inspectDataPath,
   readConfiguredDataPath,
   resolveInitialUserDataPath,
   writeConfiguredDataPath,
@@ -1563,11 +1564,11 @@ async function applyDataPathChange(
 
   let databaseClosed = false;
   try {
-    if (action !== "switch") {
-      closeDatabase();
-      appDb = null;
-      databaseClosed = true;
-    }
+    // `action` is narrowed to "migrate" | "overwrite" here (the "switch" case
+    // returns above), so the database is always closed before the root change.
+    closeDatabase();
+    appDb = null;
+    databaseClosed = true;
     const result = await applyStorageRootChange({
       action,
       sourceRoot: currentPath,
@@ -1583,10 +1584,7 @@ async function applyDataPathChange(
     scheduleAppRelaunch(500);
     return {
       success: true,
-      message:
-        action === "switch"
-          ? "Data directory switched"
-          : `Successfully migrated ${result.copiedFiles} files`,
+      message: `Successfully migrated ${result.copiedFiles} files`,
       newPath: resolvedTargetPath,
       needsRestart: true,
       backupPath: result.recoveryArtifactPath,

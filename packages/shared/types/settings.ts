@@ -84,6 +84,10 @@ export interface Settings {
   // Startup behavior — main process reads these to honor "minimize on launch"
   launchAtStartup?: boolean;
   minimizeOnLaunch?: boolean;
+  // Which home module to open at launch ("last" or a module id). Typed loosely
+  // here because the canonical module union is desktop-specific; the desktop
+  // normalizes/validates it on read via normalizeStartupModule.
+  startupModule?: string;
   // Keep a persistent status-bar (menu-bar / tray) icon even while the window
   // is open. When false, the tray is created only on minimize-to-tray.
   showTrayIcon?: boolean;
