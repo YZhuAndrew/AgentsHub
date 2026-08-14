@@ -9,7 +9,7 @@ A local-first workspace for prompts, skills, and AI coding assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.7.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -327,6 +327,15 @@ Common global flags:
 ## Changelog
 
 Full changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.0 (2026-08-14, stable)
+
+- MCP project configs and Pi-compatible targets: My MCP merges global/project target projection; env vars and headers accept direct or referenced values with reference health warnings and literal-value redaction (#200 / #201 / #202)
+- Agent workbench completion: unified provider/model workbench; one-click import of PromptHub providers into Pi-native `models.json`/`auth.json`; Pi model catalog editing with quota-aware tests; quota popover with Kimi renewal and session pagination polish
+- Expanded verified targets: Pi-compatible MCP discovery, project-scoped Cursor/Qoder rules, and OpenClaw/Qoder/Grok/Antigravity/Reasonix MCP projections
+- Image-generation workbench redesign: single-artwork review, pinned settings/history panels, explicit reference-image selection
+- File-first local data authority and on-demand prompt list loading (performance)
+- Desktop experience: window geometry persistence; formatted Markdown preview for skill files; unsigned macOS direct installs route updates to manual DMG download
 
 ### v0.7.2 (2026-08-13, stable)
 

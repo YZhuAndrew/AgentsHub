@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.7.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,15 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 ## 更新日誌
 
 完整版本說明：**[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.0（2026-08-14，正式版）
+
+- MCP 專案設定與 Pi 相容目標：My MCP 合併全域/專案目標投影，環境變數與 Header 支援直填和引用兩種取值，附引用健康警告與明文脫敏保護（#200 / #201 / #202）
+- Agent 工作台收口：統一 Provider/模型工作台；PromptHub 供應商一鍵匯入 Pi 原生 `models.json`/`auth.json`；Pi 模型目錄編輯與配額感知測試；額度彈窗（含 Kimi 續費）與會話分頁打磨
+- 擴展已驗證目標：Pi 相容 MCP 發現、專案級 Cursor/Qoder 規則、OpenClaw/Qoder/Grok/Antigravity/Reasonix MCP 投影
+- 生圖工作台重塑：單作品審閱、固定設定與歷史面板、顯式參考圖選擇
+- 檔案優先本機資料權威；Prompt 列表按需載入（效能最佳化）
+- 桌面體驗：視窗大小/位置/最大化狀態持久化；技能 Markdown 檔案格式化預覽；macOS 未簽署直裝更新改為引導手動下載 DMG
 
 ### v0.7.2（2026-08-13，正式版）
 

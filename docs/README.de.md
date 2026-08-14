@@ -9,7 +9,7 @@ Ein Local-First-Arbeitsbereich für Prompts, Skills und KI-Coding-Assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.7.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,15 @@ Häufige globale Flags:
 ## Änderungsprotokoll
 
 Vollständiges Changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.0 (2026-08-14, Stable)
+
+- MCP-Projektkonfigurationen und Pi-kompatible Ziele: My MCP führt die globale/projektweite Zielprojektion zusammen; Umgebungsvariablen und Header unterstützen Direkt- und Referenzwerte mit Referenz-Gesundheitswarnungen und Maskierung von Klartextwerten (#200 / #201 / #202)
+- Agent-Workbench-Vervollständigung: einheitliche Provider/Modell-Workbench; PromptHub-Provider per Klick in die nativen Pi-`models.json`/`auth.json` importieren; Pi-Modellkatalog-Bearbeitung mit quota-bewussten Tests; Quota-Popover (mit Kimi-Verlängerung) und verbesserte Sitzungs-Paginierung
+- Erweiterte verifizierte Ziele: Pi-kompatible MCP-Erkennung, projektbezogene Cursor-/Qoder-Regeln sowie OpenClaw/Qoder/Grok/Antigravity/Reasonix-MCP-Projektionen
+- Redesign der Bildgenerierungs-Workbench: Fokus auf Einzelwerk-Review, angeheftete Einstellungs-/Verlaufspanels, explizite Referenzbildauswahl
+- Dateibasierte lokale Datenautorität und bedarfsgesteuertes Laden der Prompt-Liste (Performance)
+- Desktop-Erlebnis: Fenstergeometrie wird dauerhaft gespeichert; formatierte Markdown-Vorschau für Skill-Dateien; nicht signierte macOS-Direktinstallationen leiten Updates auf manuellen DMG-Download um
 
 ### v0.7.2 (2026-08-13, Stable)
 

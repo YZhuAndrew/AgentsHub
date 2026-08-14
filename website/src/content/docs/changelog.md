@@ -1,5 +1,67 @@
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-14
+
+### 新功能 / Features
+
+- 🔌 **MCP 项目配置与 Pi 兼容目标**：My MCP 合并展示全局与项目级目标投影（计数、详情、批量部署），可直接写入 Pi 兼容的 MCP 配置；环境变量与 Header 支持直填值和引用两种取值并按目标插值，引用缺失时给出健康警告，本地明文值在 IPC、备份、CLI 同步与目标结果边界全程脱敏保护（#200 / #201 / #202）
+  - **MCP project configs and Pi-compatible targets**: My MCP now merges global and project-level target projection (counts, detail, batch deploy) and writes Pi-compatible MCP configurations; environment variables and headers support direct values or references with target-aware interpolation, reference health warnings, and redaction protecting local literal values across IPC, backup, CLI sync, and target-result boundaries (#200 / #201 / #202)
+- 🤖 **统一 Provider 与模型工作台**：通用配置文件、原生配置与 Pi 共用同一套 Provider/模型外壳、工具栏、列表与详情视图；支持把 PromptHub 供应商配置一键导入 Pi 原生 `models.json`/`auth.json`（凭据仅主进程解析、摘要校验、原子写入、双文件回滚），Pi 当前配置也可作为保持行为的同 id 覆盖导入
+  - **Unified Provider and Model workbench**: generic profiles, native configuration, and Pi share one provider/model shell, toolbar, list, and detail treatment; PromptHub provider configurations import into Pi-native models.json/auth.json (main-only credential resolution, digest checks, atomic writes, two-file rollback), and the current Pi configuration imports as a behavior-preserving same-id override
+- 🧪 **Pi 模型目录与测试**：Pi 模型目录支持编辑与探测，可对单个模型发起配额感知的确认测试并内联展示脱敏的耗时与状态
+  - **Pi model catalog and tests**: the Pi model catalog supports editing and probes; individual models can be tested through a quota-aware confirmation flow with sanitized timing/status results shown inline
+- 📊 **额度与会话体验**：原生额度弹窗（含 Kimi 续费入口）、会话分页与续读打磨、Agent Pet 管理；按 Agent 的历史索引默认启用加速并以去重的后台预热复用
+  - **Quota and session surfaces**: a native quota popover (with Kimi renewal entry), conversation pagination and continuation polish, and Agent Pet management; per-agent history indexes accelerate transcripts by default with deduplicated background warmup
+- 🎯 **扩展已验证的 Rules 与 MCP 目标**：Pi 兼容 MCP 发现、项目级 Cursor 与 Qoder 规则，以及 OpenClaw、Qoder、Grok、Antigravity、Reasonix 的已验证 MCP 投影（不接管不支持的原生字段）
+  - **Expanded verified Rules and MCP targets**: Pi-compatible MCP discovery, project-scoped Cursor and Qoder rules, and verified OpenClaw, Qoder, Grok, Antigravity, and Reasonix MCP projections without owning unsupported native fields
+- 🗂 **统一 Agent 资产工具栏**：Skills、MCP 与 Plugin 的筛选、刷新和添加操作布局统一，隐藏原始资产路径
+  - **Unified Agent asset toolbar**: Skills, MCP, and Plugin filter/refresh/add actions share one layout, with raw asset paths hidden
+- 🎨 **生图工作台重塑**：聚焦单张作品审阅，加入固定设置与历史面板、显式参考图选择和大尺寸拖拽区，并修复本地生成图片的路径编码
+  - **Image-generation workbench redesign**: focused single-artwork review with pinned settings and history panels, explicit reference-image selection, a large drag area, and a fix for local generated-image path encoding
+- 🗄 **文件优先本地数据权威**：Prompt、Skill、Rule、MCP、Plugin、Agent 与 Generation 资源以版本化 canonical 文件为持久权威，SQLite 作为可重建目录；包含渲染端持久化迁移、日志化恢复、可移植快照与不可变 schema 转换
+  - **File-first local data authority**: versioned canonical files now own durable Prompt, Skill, Rule, MCP, Plugin, Agent, and Generation resources with rebuildable SQLite catalogs, renderer persistence migration, journaled recovery, portable snapshots, and immutable schema conversion
+- 🪟 **窗口几何持久化**：记住主窗口的大小、位置与最大化状态，重启后恢复（含显示器可见性校验与尺寸钳制）
+  - **Window geometry persistence**: the main window's size, position, and maximized state are remembered and restored across launches, with display-visibility validation and size clamping
+- 📄 **Markdown 技能文件预览**：技能详情「文件」标签中 `.md`/`.mdx` 默认渲染为格式化预览（自动剥离 frontmatter），可一键切换回代码编辑
+  - **Markdown skill file preview**: Markdown files in the Skill detail Files tab render as a formatted preview (frontmatter stripped) by default, with an Edit action switching back to the code editor
+
+### 性能 / Performance
+
+- ⚡ **Prompt 列表按需加载**：新增 PromptSummary 列表投影与 DB/IPC/存储层详情缓存，列表、关系、AI 与生图消费方仅在需要时拉取完整 Prompt 内容
+  - **On-demand Prompt details**: a PromptSummary list projection plus DB/IPC/store detail caches means list, relationship, AI, and image-generation consumers fetch full Prompt content only when needed
+
+### 修复 / Fixes
+
+- 🍎 **macOS 未签名直装更新路由**：直接安装的 macOS 应用保留更新检测，但安装改为引导手动下载 DMG（未签名 ZIP 无法通过 Squirrel.Mac 原生验证重启）；Windows/Linux 与 Homebrew 路径不变
+  - **Unsigned macOS direct-install update routing**: direct macOS installs keep update detection but route installation to a manual DMG download because unsigned zips cannot be verified by Squirrel.Mac; Windows/Linux and Homebrew paths are unchanged
+- ♻️ **MCP 目标投影原子写入**：外部配置投影改为同目录临时写入、原子替换与失败回滚，不再在 Agent 或项目目录留下持久备份文件
+  - **Atomic MCP target projection**: external configuration projections now use same-directory temp writes, atomic replace, and rollback on failure instead of leaving persistent backup files in Agent or project directories
+- 🔐 **配置文件编辑隔离**：配置读写限制在平台声明路径或有界发现清单内，按 Agent 来源隔离文件清单与内容缓存，切换 Agent 时未保存修改会请求确认
+  - **Config-file edit isolation**: configuration reads/writes are bounded to platform-declared paths or a bounded discovery manifest, file inventories and caches are isolated per Agent source, and unsaved edits prompt for confirmation when switching Agents
+- 📜 **规则冲突对比滚动**：长规则冲突收敛为单一可聚焦滚动区，明确区分 PromptHub 托管版本与外部文件版本
+  - **Rule-conflict scrolling**: long rule conflicts collapse into one focusable scroll region with explicit PromptHub-managed versus external-file labels
+- 🛡 **恢复发布加固**：恢复发布日志化、可回滚，保留 canonical 启动状态，自动备份校验与用户数据隔离
+  - **Hardened recovery publication**: recovery publication is journaled and rollback-safe, canonical startup state is preserved, and automatic backup verification is isolated from user data
+- 🌐 **启动语言持久化**：区分临时渲染端默认语言与显式保存偏好，启动时不再用默认值覆盖已选语言
+  - **Startup language persistence**: the temporary renderer default language is distinguished from the explicitly persisted preference so launches no longer overwrite the saved language
+- 🔧 **开发稳定性**：重叠的主进程重建被串行化并合并，不再连带终止 Vite dev server
+  - **Development stability**: overlapping main-process rebuilds are serialized and coalesced so they no longer terminate the owning Vite dev server
+
+### 维护 / Maintenance
+
+- 🏗 **发布与 CI 基础设施**：修复 Linux CI 验证与 E2E 密钥存储，验证资源受限化（I/O 串行化、桌面测试分片）；macOS 未签名 fork 政策成为唯一真相源（发布规则 §8 重写、公开文档更正签名声明）
+  - **Release and CI infrastructure**: repaired Linux CI verification and E2E secret storage, bounded verification resources (serialized I/O, sharded desktop tests), and made the unsigned-fork macOS policy the single source of truth (release-rules §8 rewritten, public docs corrected)
+- 🏷 **0.6.0-beta.1 预览线发布**：Agent 工作台预览线以历史 prerelease 形式发布（版本序低于 0.7.x 稳定线，作为手动下载测试用途，不改变稳定版升级路径）
+  - **0.6.0-beta.1 preview line**: the agent-workbench preview line was published as a historical prerelease below the 0.7.x stable line for manual testing, leaving the stable upgrade path unchanged
+
+> **macOS 安全说明**
+>
+> AgentsHub 是社区维护的 fork 构建，未配置 Apple Developer 签名。首次启动时 macOS Gatekeeper 可能拦截；如提示"已损坏"或"无法验证开发者"，请运行：
+>
+> ```bash
+> sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
+> ```
+
 ## [0.7.2] - 2026-08-13
 
 ### 新功能 / Features

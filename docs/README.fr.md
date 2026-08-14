@@ -9,7 +9,7 @@ Un espace de travail local-first pour les prompts, les skills et les assets de c
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.7.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,15 @@ Options globales courantes :
 ## Journal des modifications
 
 Journal complet : **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.0 (2026-08-14, stable)
+
+- Configs MCP projet et cibles compatibles Pi : My MCP fusionne la projection des cibles globales/projet ; variables d'environnement et en-têtes acceptent valeurs directes ou référencées, avec avertissements de santé des références et masquage des valeurs littérales (#200 / #201 / #202)
+- Achevement de l'atelier Agent : atelier fournisseur/modèle unifié ; import en un clic des fournisseurs PromptHub vers les `models.json`/`auth.json` natifs de Pi ; édition du catalogue de modèles Pi avec tests sensibles au quota ; popover de quota (renouvellement Kimi) et pagination des sessions améliorée
+- Cibles vérifiées étendues : découverte MCP compatible Pi, règles Cursor/Qoder au niveau projet, projections MCP OpenClaw/Qoder/Grok/Antigravity/Reasonix
+- Refonte de l'atelier de génération d'images : revue d'une seule œuvre, panneaux réglages/historique épinglés, sélection explicite des images de référence
+- Autorité locale des données « fichier d'abord » et chargement à la demande de la liste des prompts (performance)
+- Expérience bureau : persistance de la géométrie de la fenêtre ; aperçu formaté des fichiers Markdown des skills ; les mises à jour macOS non signées en installation directe orientent vers le téléchargement manuel du DMG
 
 ### v0.7.2 (2026-08-13, stable)
 

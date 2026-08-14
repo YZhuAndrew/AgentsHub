@@ -7,7 +7,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 
 | State | Count |
 | --- | ---: |
-| Active | 69 |
+| Active | 70 |
 | Archived | 189 |
 | Legacy | 1 |
 
@@ -64,6 +64,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `r2-direct-downloads` | active | `spec/changes/active/r2-direct-downloads/` |
 | `readme-screenshots-v0-5-6` | active | `spec/changes/active/readme-screenshots-v0-5-6/` |
 | `release-0-6-0-version-alignment` | active | `spec/changes/active/release-0-6-0-version-alignment/` |
+| `release-0-8-0-prep` | active | `spec/changes/active/release-0-8-0-prep/` |
 | `republish-0-5-9-20260714` | active | `spec/changes/active/republish-0-5-9-20260714/` |
 | `restore-window-state` | active | `spec/changes/active/restore-window-state/` |
 | `risk-aware-verification-harness` | active | `spec/changes/active/risk-aware-verification-harness/` |

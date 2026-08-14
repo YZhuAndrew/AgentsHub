@@ -9,7 +9,7 @@ Un espacio de trabajo local-first para prompts, skills y assets de codificación
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.7.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,15 @@ Flags globales habituales:
 ## Registro de cambios
 
 Changelog completo: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.0 (2026-08-14, estable)
+
+- Configuraciones MCP de proyecto y destinos compatibles con Pi: My MCP fusiona la proyección de destinos globales/proyecto; las variables de entorno y cabeceras aceptan valores directos o referenciados, con avisos de salud de referencias y enmascaramiento de valores literales (#200 / #201 / #202)
+- Cierre del banco de trabajo de Agent: banco de proveedor/modelo unificado; importación en un clic de proveedores de PromptHub a los `models.json`/`auth.json` nativos de Pi; edición del catálogo de modelos de Pi con pruebas conscientes de cuota; popover de cuota (con renovación Kimi) y paginación de sesiones mejorada
+- Destinos verificados ampliados: descubrimiento MCP compatible con Pi, reglas Cursor/Qoder por proyecto y proyecciones MCP de OpenClaw/Qoder/Grok/Antigravity/Reasonix
+- Rediseño del banco de generación de imágenes: revisión de una sola obra, paneles de ajustes/historio fijados, selección explícita de imágenes de referencia
+- Autoridad de datos local basada en archivos y carga bajo demanda de la lista de prompts (rendimiento)
+- Experiencia de escritorio: persistencia de la geometría de la ventana; vista previa con formato de archivos Markdown de skills; las actualizaciones macOS sin firmar en instalación directa dirigen a la descarga manual del DMG
 
 ### v0.7.2 (2026-08-13, estable)
 

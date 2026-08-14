@@ -16,6 +16,7 @@
 
 | Version        | Status         | Path                            | Updated    |
 | -------------- | -------------- | ------------------------------- | ---------- |
+| `0.8.0`        | stable record  | `spec/releases/0.8.0.md`        | 2026-08-14 |
 | `0.7.2`        | stable record  | `spec/releases/0.7.2.md`        | 2026-08-13 |
 | `0.7.1`        | stable record  | `spec/releases/0.7.1.md`        | 2026-08-13 |
 | `0.7.0`        | stable record  | `spec/releases/0.7.0.md`        | 2026-08-13 |

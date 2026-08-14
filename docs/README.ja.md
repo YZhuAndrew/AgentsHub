@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.7.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -311,6 +311,15 @@ Skill のインポート、バージョンスナップショット、配布で�
 ## 変更履歴
 
 完全な変更履歴: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.0（2026-08-14、正式版）
+
+- MCP プロジェクト設定と Pi 互換ターゲット：My MCP がグローバル/プロジェクトのターゲット投影を統合。環境変数とヘッダーは直接値と参照の両方に対応し、参照ヘルス警告と平文のマスキング保護を提供（#200 / #201 / #202）
+- Agent ワークベンチ完成：Provider/モデルワークベンチを統一。PromptHub の Provider を Pi ネイティブの `models.json`/`auth.json` にワンクリックインポート。Pi モデルカタログの編集とクォータ対応テスト、クォータポップオーバー（Kimi 更新付き）とセッションページングの改善
+- 検証済みターゲットの拡張：Pi 互換 MCP 検出、プロジェクトスコープの Cursor/Qoder ルール、OpenClaw/Qoder/Grok/Antigravity/Reasonix の MCP 投影
+- 画像生成ワークベンチの刷新：単一作品レビュー、固定の設定/履歴パネル、明示的な参照画像選択
+- ファイルファーストなローカルデータ権威とプロンプトリストのオンデマンド読み込み（パフォーマンス）
+- デスクトップ体験：ウィンドウのサイズ/位置/最大化状態の永続化。スキルの Markdown ファイルを整形プレビュー。未署名 macOS 直接インストールの更新は手動 DMG ダウンロードに案内
 
 ### v0.7.2（2026-08-13、正式版）
 
