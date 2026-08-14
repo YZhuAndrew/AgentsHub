@@ -215,7 +215,7 @@ function AgentMcpCardView({
               <CheckCircle2Icon aria-hidden="true" className="h-3 w-3" />
             ) : null}
             {isManaged
-              ? t("mcp.managedByPromptHub", "Managed in AgentsHub")
+              ? t("mcp.managedByAgentsHub", "Managed in AgentsHub")
               : t("mcp.notInLibrary", "Not in AgentsHub library")}
           </span>
         }

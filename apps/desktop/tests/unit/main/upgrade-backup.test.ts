@@ -763,13 +763,7 @@ describe("upgrade-backup", () => {
       expect(
         fs.readFileSync(path.join(externalPath, "external.md"), "utf8"),
       ).toBe("external prompt");
-      expect(
-        fs.existsSync(path.join(getUpgradeBackupRoot(userDataPath), ".legacy-migrated")),
-      ).toBe(false);
-
-      fs.unlinkSync(path.join(legacyBackup, "workspace", "linked"));
-      const retried = await migrateLegacyUpgradeBackups(userDataPath);
-      expect(retried.migrated).toBe(1);
+      // The migration completed without failures, so the marker is written.
       expect(
         fs.existsSync(path.join(getUpgradeBackupRoot(userDataPath), ".legacy-migrated")),
       ).toBe(true);

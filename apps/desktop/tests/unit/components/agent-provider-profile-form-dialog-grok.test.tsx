@@ -30,7 +30,7 @@ describe("Grok Build Provider Profile form", () => {
     const view = renderDialog();
     await view.render;
     const dialog = screen.getByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
 
     for (const [label, value] of [
@@ -47,7 +47,7 @@ describe("Grok Build Provider Profile form", () => {
       });
     }
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     expect(
@@ -62,7 +62,7 @@ describe("Grok Build Provider Profile form", () => {
     const view = renderDialog();
     await view.render;
     const dialog = screen.getByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
 
     expect(within(dialog).getByLabelText("Provider kind")).toHaveTextContent(
@@ -89,7 +89,7 @@ describe("Grok Build Provider Profile form", () => {
       });
     }
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -153,7 +153,7 @@ describe("Grok Build Provider Profile form", () => {
     const view = renderDialog(imported);
     await view.render;
     const dialog = screen.getByRole("region", {
-      name: "Edit provider",
+      name: "Edit provider profile",
     });
 
     expect(
@@ -162,7 +162,7 @@ describe("Grok Build Provider Profile form", () => {
     expect(within(dialog).getByLabelText("Provider kind")).toBeDisabled();
     expect(within(dialog).getByLabelText("Provider ID")).toBeDisabled();
     expect(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     ).toBeDisabled();
     expect(view.onUpdate).not.toHaveBeenCalled();
   });

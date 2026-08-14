@@ -305,7 +305,7 @@ describe("AgentSessionsPanel", () => {
       screen.getByRole("button", { name: "More conversation actions" }),
     );
     expect(
-      screen.getByRole("menuitem", { name: "Delete permanently" }),
+      screen.getByRole("menuitem", { name: "Remove from history" }),
     ).toBeVisible();
     expect(screen.queryByRole("menuitem", { name: "Restore" })).toBeNull();
     fireEvent.click(
@@ -915,7 +915,7 @@ describe("AgentSessionsPanel", () => {
       screen.getByRole("menuitem", { name: "Open project folder" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("menuitem", { name: "Delete permanently" }),
+      screen.getByRole("menuitem", { name: "Remove from history" }),
     ).toBeVisible();
     expect(screen.queryByRole("menuitem", { name: "Edit details" })).toBeNull();
 
@@ -956,7 +956,7 @@ describe("AgentSessionsPanel", () => {
 
     fireEvent.contextMenu(sessionRow, { clientX: 320, clientY: 240 });
     fireEvent.click(
-      screen.getByRole("menuitem", { name: "Delete permanently" }),
+      screen.getByRole("menuitem", { name: "Remove from history" }),
     );
     expect(deleteConversation).not.toHaveBeenCalled();
     expect(screen.getByRole("alertdialog")).toHaveTextContent(
@@ -967,9 +967,9 @@ describe("AgentSessionsPanel", () => {
 
     fireEvent.contextMenu(sessionRow, { clientX: 320, clientY: 240 });
     fireEvent.click(
-      screen.getByRole("menuitem", { name: "Delete permanently" }),
+      screen.getByRole("menuitem", { name: "Remove from history" }),
     );
-    fireEvent.click(screen.getByRole("button", { name: "Delete permanently" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove from history" }));
     await waitFor(() =>
       expect(deleteConversation).toHaveBeenCalledWith({
         agentId: "codex",
@@ -1034,7 +1034,7 @@ describe("AgentSessionsPanel", () => {
       screen.getByRole("menuitem", { name: "Open project folder" }),
     ).toBeEnabled();
     expect(
-      screen.queryByRole("menuitem", { name: "Delete permanently" }),
+      screen.queryByRole("menuitem", { name: "Remove from history" }),
     ).toBeNull();
     fireEvent.click(
       screen.getByRole("menuitem", { name: "Open project folder" }),
@@ -1061,7 +1061,7 @@ describe("AgentSessionsPanel", () => {
       screen.queryByRole("menuitem", { name: "Continue elsewhere" }),
     ).toBeNull();
     expect(
-      screen.queryByRole("menuitem", { name: "Delete permanently" }),
+      screen.queryByRole("menuitem", { name: "Remove from history" }),
     ).toBeNull();
 
     fireEvent.pointerDown(document.body);

@@ -93,7 +93,7 @@ export function AgentMcpPreviewSidebar({
 
           {isManaged ? (
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">
-              {t("mcp.managedByPromptHub", "Managed in AgentsHub")}
+              {t("mcp.managedByAgentsHub", "Managed in AgentsHub")}
             </div>
           ) : (
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
@@ -139,7 +139,7 @@ export function AgentMcpPreviewSidebar({
                   {t("mcp.openInMyMcp", "Open in My MCP")}
                 </div>
                 <div className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  {t("mcp.managedByPromptHub", "Managed in AgentsHub")}
+                  {t("mcp.managedByAgentsHub", "Managed in AgentsHub")}
                 </div>
               </div>
             </button>

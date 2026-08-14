@@ -314,7 +314,7 @@ function inferLayout(activeRoot: string): {
 
   if (hasCanonical && hasLegacy && !compatibleLegacyDatabaseResidual) {
     throw new Error(
-      `Detected mixed PromptHub storage layout under ${activeRoot}; repair or staged migration is required`,
+      `Detected mixed AgentsHub storage layout under ${activeRoot}; repair or staged migration is required`,
     );
   }
   if (canonicalDatabaseExists) {

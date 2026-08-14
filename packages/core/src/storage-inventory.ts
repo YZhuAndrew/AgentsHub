@@ -43,6 +43,14 @@ export interface StorageInventoryOptions extends StorageInventoryLimits {
   /** Used only for a manifest-validated detached snapshot, never root discovery. */
   detachedLayoutEpoch?: RuntimeLayoutEpoch;
   excludeRelativePaths?: readonly string[];
+  /**
+   * "refuse" (default) throws on the first symbolic link so strict inventory
+   * consumers never silently skip linked content. "record" classifies each
+   * link instead (internal / escaping / dangling relative to the inventory
+   * root) and collects it under `StorageInventory.symlinks` without walking
+   * through it; regular-file hashing and totals are unaffected.
+   */
+  symlinkPolicy?: "refuse" | "record";
 }
 
 export interface StorageInventoryEntry {
@@ -52,12 +60,23 @@ export interface StorageInventoryEntry {
   sha256: string;
 }
 
+export type StorageSymlinkKind = "internal" | "escaping" | "dangling";
+
+export interface StorageSymlinkEntry {
+  relativePath: string;
+  kind: StorageSymlinkKind;
+  /** Raw link target exactly as stored on disk. */
+  target: string;
+}
+
 export interface StorageInventory {
   rootPath: string;
   layoutEpoch: RuntimeLayoutEpoch;
   files: StorageInventoryEntry[];
   totalBytes: number;
   digest: string;
+  /** Classified symbolic links; empty unless `symlinkPolicy: "record"`. */
+  symlinks: StorageSymlinkEntry[];
 }
 
 export type StorageRootClassificationKind =
@@ -147,7 +166,7 @@ export function classifyStorageRoot(
     const message = error instanceof Error ? error.message : String(error);
     return {
       rootPath: root,
-      kind: /mixed PromptHub storage layout/i.test(message)
+      kind: /mixed (?:PromptHub|AgentsHub) storage layout/i.test(message)
         ? "mixed"
         : "invalid",
       unknownEntries: entries.map((entry) => entry.name).sort(),
@@ -208,6 +227,16 @@ function assertLimit(value: number, name: string): number {
   return value;
 }
 
+function resolvedPathIsWithin(root: string, target: string): boolean {
+  const relative = path.relative(root, target);
+  return (
+    relative === "" ||
+    (relative !== ".." &&
+      !relative.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relative))
+  );
+}
+
 export function createStorageInventory(
   rootPath: string,
   options: StorageInventoryOptions = {},
@@ -253,6 +282,18 @@ export function createStorageInventory(
           (entry) => entry !== "secrets" || options.includeSecrets,
         );
   const files: StorageInventoryEntry[] = [];
+  const symlinks: StorageSymlinkEntry[] = [];
+  const symlinkPolicy = options.symlinkPolicy ?? "refuse";
+  // Normalize the root with realpath so internal/escaping classification is
+  // consistent even when system directories are themselves symlinks (e.g.
+  // macOS /var -> /private/var); otherwise an internal link's realpath would
+  // compare against a non-normalized root and be misclassified as escaping.
+  let resolvedRoot: string;
+  try {
+    resolvedRoot = fs.realpathSync(root);
+  } catch {
+    resolvedRoot = root;
+  }
   const excludedPaths = new Set(
     (options.excludeRelativePaths ?? []).map((entry) =>
       entry.split(path.sep).join("/"),
@@ -269,9 +310,29 @@ export function createStorageInventory(
       throw new Error("Storage inventory exceeds maxEntries");
     const stats = fs.lstatSync(targetPath);
     if (stats.isSymbolicLink()) {
-      throw new Error(
-        `Refusing symbolic link in storage inventory: ${targetPath}`,
-      );
+      if (symlinkPolicy !== "record") {
+        throw new Error(
+          `Refusing symbolic link in storage inventory: ${targetPath}`,
+        );
+      }
+      const linkTarget = fs.readlinkSync(targetPath);
+      let kind: StorageSymlinkKind;
+      try {
+        const resolved = fs.realpathSync(targetPath);
+        kind = resolvedPathIsWithin(resolvedRoot, resolved)
+          ? "internal"
+          : "escaping";
+      } catch {
+        // Dangling link: realpath cannot resolve it, so it cannot escape the
+        // root either.
+        kind = "dangling";
+      }
+      symlinks.push({
+        relativePath: normalizeRelativePath(root, targetPath),
+        kind,
+        target: linkTarget,
+      });
+      return;
     }
     if (stats.isDirectory()) {
       for (const entry of fs.readdirSync(targetPath, { withFileTypes: true })) {
@@ -330,6 +391,7 @@ export function createStorageInventory(
     files,
     totalBytes,
     digest,
+    symlinks: symlinkPolicy === "record" ? symlinks : [],
   };
 }
 

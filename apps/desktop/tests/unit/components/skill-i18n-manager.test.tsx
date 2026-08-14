@@ -129,6 +129,9 @@ function createSkillStoreState(
 ) {
   return {
     skills: [baseSkill],
+    skillUpdateStatuses: {},
+    filterSourceKey: "all",
+    setFilterSourceKey: vi.fn(),
     loadSkills: vi.fn().mockResolvedValue(undefined),
     loadRegistry: vi.fn().mockResolvedValue(undefined),
     deleteSkill: vi.fn().mockResolvedValue(undefined),
@@ -754,13 +757,19 @@ describe("skill i18n smoke", () => {
           source_url: "/Users/demo/.claude/skills/agent-import-skill",
         },
       ],
+      setFilterSourceKey: (key: string) => {
+        skillStoreState.filterSourceKey = key;
+      },
     });
     const settingsState = createSettingsState();
 
     useSkillStoreMock.mockImplementation(bindStoreSelector(skillStoreState));
     useSettingsStoreMock.mockImplementation(bindStoreSelector(settingsState));
 
-    render(<SkillManager />);
+    // The real zustand store re-renders subscribers when the filter changes;
+    // the plain selector mock does not, so rerender explicitly after each
+    // filter selection.
+    const view = render(<SkillManager />);
 
     expect(screen.getByText("claude-store-skill")).toBeInTheDocument();
     expect(screen.getByText("github-import-skill")).toBeInTheDocument();
@@ -768,6 +777,7 @@ describe("skill i18n smoke", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Skill source" }));
     fireEvent.click(screen.getByRole("option", { name: "GitHub Import" }));
+    view.rerender(<SkillManager />);
 
     expect(screen.queryByText("claude-store-skill")).not.toBeInTheDocument();
     expect(screen.getByText("github-import-skill")).toBeInTheDocument();
@@ -775,6 +785,7 @@ describe("skill i18n smoke", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Skill source" }));
     fireEvent.click(screen.getByRole("option", { name: "Claude Code Store" }));
+    view.rerender(<SkillManager />);
 
     expect(screen.getByText("claude-store-skill")).toBeInTheDocument();
     expect(screen.queryByText("github-import-skill")).not.toBeInTheDocument();

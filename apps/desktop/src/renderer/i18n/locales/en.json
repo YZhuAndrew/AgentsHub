@@ -2682,7 +2682,7 @@
     "enable": "Enable",
     "disable": "Disable",
     "continueEditing": "Continue editing",
-    "reloadPromptHub": "Reload PromptHub"
+    "reloadPromptHub": "Reload AgentsHub"
   },
   "skill": {
     "title": "Skill",

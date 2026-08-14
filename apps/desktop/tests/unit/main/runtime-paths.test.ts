@@ -119,7 +119,7 @@ describe("runtime-paths database selection", () => {
     configureRuntimePaths({ userDataPath });
 
     expect(() => getRuntimeStorageContext()).toThrow(
-      "mixed PromptHub storage layout",
+      "mixed AgentsHub storage layout",
     );
   });
 
@@ -211,7 +211,7 @@ describe("runtime-paths database selection", () => {
     configureRuntimePaths({ userDataPath });
 
     expect(() => getRuntimeStorageContext()).toThrow(
-      "mixed PromptHub storage layout",
+      "mixed AgentsHub storage layout",
     );
   });
 

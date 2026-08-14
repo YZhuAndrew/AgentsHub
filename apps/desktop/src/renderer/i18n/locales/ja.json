@@ -2672,7 +2672,7 @@
     "enable": "有効にする",
     "disable": "無効にする",
     "continueEditing": "編集を続ける",
-    "reloadPromptHub": "PromptHub を再読み込み"
+    "reloadPromptHub": "AgentsHub を再読み込み"
   },
   "skill": {
     "title": "スキル",

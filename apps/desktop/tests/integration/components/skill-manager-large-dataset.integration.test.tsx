@@ -73,6 +73,9 @@ function createSkillStoreState(skills: Skill[]) {
   const neverSettled = new Promise<void>(() => {});
   return {
     skills,
+    skillUpdateStatuses: {},
+    filterSourceKey: "all",
+    setFilterSourceKey: vi.fn(),
     loadSkills: vi.fn().mockImplementation(() => neverSettled),
     deleteSkill: vi.fn().mockResolvedValue(undefined),
     toggleFavorite: vi.fn().mockResolvedValue(undefined),

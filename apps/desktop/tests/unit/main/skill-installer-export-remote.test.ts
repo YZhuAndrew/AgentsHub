@@ -1106,6 +1106,7 @@ describe("SkillInstaller.scanRemoteGithub", () => {
       "git@github.com:icelemon/skills.git",
       expect.stringContaining("icelemon-skills"),
       undefined,
+      undefined,
     );
     expect(branchSpy).toHaveBeenCalled();
     expect(fetchSpy).not.toHaveBeenCalled();

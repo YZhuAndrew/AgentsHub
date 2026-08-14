@@ -273,7 +273,7 @@ describe("RulesManager", () => {
     );
 
     expect(
-      screen.getByRole("button", { name: "Keep PromptHub version" }),
+      screen.getByRole("button", { name: "Keep AgentsHub" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Keep external file version" }),

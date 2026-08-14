@@ -231,7 +231,7 @@ export async function renderWorkbench(agent = createAgent()) {
     await finished;
     await Promise.resolve();
   });
-  await screen.findByRole("navigation", { name: "Providers" });
+  await screen.findByRole("navigation", { name: "Provider profiles" });
   await waitFor(() =>
     expect(useAgentProviderStore.getState().busyAction).toBeNull(),
   );

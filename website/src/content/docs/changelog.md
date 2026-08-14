@@ -34,6 +34,10 @@
 
 - 🍎 **macOS 未签名直装更新路由**：直接安装的 macOS 应用保留更新检测，但安装改为引导手动下载 DMG（未签名 ZIP 无法通过 Squirrel.Mac 原生验证重启）；Windows/Linux 与 Homebrew 路径不变
   - **Unsigned macOS direct-install update routing**: direct macOS installs keep update detection but route installation to a manual DMG download because unsigned zips cannot be verified by Squirrel.Mac; Windows/Linux and Homebrew paths are unchanged
+- ♻️ **升级备份符号链接行为恢复**：修复内测期间升级前备份对符号链接重新报错的问题，恢复既定行为——保留指向用户数据目录内部的符号链接、跳过转义链接、按原样保留悬空链接
+  - **Upgrade-backup symlink behavior restored**: the pre-upgrade backup no longer aborts on symbolic links; internal links are preserved, escaping links are skipped, and dangling links are kept as-is
+- 🔤 **界面文案修正**：崩溃恢复的「重新加载」按钮、MCP 来源标注「由 AgentsHub 管理」与中文界面里被误译的「Plugin」产品词在全部语言中对齐为 AgentsHub 品牌用语
+  - **UI copy corrections**: the crash-recovery reload action, the "Managed in AgentsHub" MCP source badge, and the Plugin product term in Chinese locales are aligned to AgentsHub branding across all languages
 - ♻️ **MCP 目标投影原子写入**：外部配置投影改为同目录临时写入、原子替换与失败回滚，不再在 Agent 或项目目录留下持久备份文件
   - **Atomic MCP target projection**: external configuration projections now use same-directory temp writes, atomic replace, and rollback on failure instead of leaving persistent backup files in Agent or project directories
 - 🔐 **配置文件编辑隔离**：配置读写限制在平台声明路径或有界发现清单内，按 Agent 来源隔离文件清单与内容缓存，切换 Agent 时未保存修改会请求确认

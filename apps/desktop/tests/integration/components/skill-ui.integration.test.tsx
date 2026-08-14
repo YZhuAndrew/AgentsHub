@@ -97,6 +97,9 @@ function createSkillStoreState(
 ) {
   return {
     skills: [baseSkill],
+    skillUpdateStatuses: {},
+    filterSourceKey: "all",
+    setFilterSourceKey: vi.fn(),
     loadSkills: vi.fn().mockResolvedValue(undefined),
     deleteSkill: vi.fn().mockResolvedValue(undefined),
     toggleFavorite: vi.fn().mockResolvedValue(undefined),

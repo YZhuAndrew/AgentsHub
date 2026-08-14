@@ -2672,7 +2672,7 @@
     "enable": "Activar",
     "disable": "Desactivar",
     "continueEditing": "Seguir editando",
-    "reloadPromptHub": "Recargar PromptHub"
+    "reloadPromptHub": "Recargar AgentsHub"
   },
   "skill": {
     "title": "Habilidad",

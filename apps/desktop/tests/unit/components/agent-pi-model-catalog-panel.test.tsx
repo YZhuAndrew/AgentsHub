@@ -154,15 +154,13 @@ describe("AgentPiModelCatalogPanel", () => {
   ] as const)(
     "uses provider terminology and omits native import actions in %s",
     (_locale, messages, legacyTerm) => {
-      const providerCopy = collectStrings(
-        messages.agents.providerProfiles,
-      ).join("\n");
+      // The Pi surface (agents.piModels) must speak provider terminology.
+      // agents.providerProfiles legitimately uses "provider profile" copy and
+      // hosts the shared import dialogs for the profile feature, so the
+      // guards are scoped to the Pi-facing namespace only.
+      const piCopy = collectStrings(messages.agents.piModels).join("\n");
 
-      expect(providerCopy).not.toMatch(legacyTerm);
-      expect(messages.agents.providerProfiles).not.toHaveProperty("import");
-      expect(messages.agents.providerProfiles.currentNative).not.toHaveProperty(
-        "manage",
-      );
+      expect(piCopy).not.toMatch(legacyTerm);
       expect(messages.agents.piModels).not.toHaveProperty("importCurrentTitle");
     },
   );
@@ -195,7 +193,7 @@ describe("AgentPiModelCatalogPanel", () => {
     expect(
       within(toolbar).queryByText("Import current configuration"),
     ).not.toBeInTheDocument();
-    expect(within(toolbar).getByText("Import from PromptHub")).toBeVisible();
+    expect(within(toolbar).getByText("Import from AgentsHub")).toBeVisible();
     expect(within(toolbar).getByText("Add custom provider")).toBeVisible();
     expect(toolbar.querySelectorAll("svg.lucide-plus")).toHaveLength(2);
     expect(screen.getByTestId("agent-provider-workbench-sidebar")).toHaveClass(
@@ -210,7 +208,7 @@ describe("AgentPiModelCatalogPanel", () => {
     expect(screen.getByLabelText("Credential configured")).toBeInTheDocument();
     expect(screen.getByLabelText("Missing credential")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Import from PromptHub" }),
+      screen.getByRole("button", { name: "Import from AgentsHub" }),
     ).toBeEnabled();
   });
 
@@ -323,11 +321,11 @@ describe("AgentPiModelCatalogPanel", () => {
 
     await renderPanel();
     fireEvent.click(
-      screen.getByRole("button", { name: "Import from PromptHub" }),
+      screen.getByRole("button", { name: "Import from AgentsHub" }),
     );
 
     const dialog = await screen.findByRole("dialog", {
-      name: "Import PromptHub provider",
+      name: "Import AgentsHub provider",
     });
     expect(listProviderSources).toHaveBeenCalledWith("pi");
     expect(within(dialog).getByText("Work Gateway")).toBeVisible();
@@ -383,10 +381,10 @@ describe("AgentPiModelCatalogPanel", () => {
 
     await renderPanel();
     fireEvent.click(
-      screen.getByRole("button", { name: "Import from PromptHub" }),
+      screen.getByRole("button", { name: "Import from AgentsHub" }),
     );
     const dialog = await screen.findByRole("dialog", {
-      name: "Import PromptHub provider",
+      name: "Import AgentsHub provider",
     });
     const importButton = within(dialog).getByRole("button", { name: "Import" });
     await waitFor(() => expect(importButton).toBeEnabled());
@@ -409,12 +407,12 @@ describe("AgentPiModelCatalogPanel", () => {
 
     await renderPanel();
     fireEvent.click(
-      screen.getByRole("button", { name: "Import from PromptHub" }),
+      screen.getByRole("button", { name: "Import from AgentsHub" }),
     );
 
     expect(
       await screen.findByRole("dialog", {
-        name: "Import PromptHub provider",
+        name: "Import AgentsHub provider",
       }),
     ).toBeVisible();
     expect(await screen.findByRole("alert")).toBeVisible();

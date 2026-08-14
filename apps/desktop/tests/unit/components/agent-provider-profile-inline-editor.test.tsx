@@ -26,7 +26,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const editor = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     const surface = within(editor).getByTestId("agent-provider-form-surface");
     const sections = within(surface).getAllByTestId(
@@ -75,7 +75,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
     );
     expect(
       within(editor).getByLabelText("Credential (write-only)"),
-    ).toHaveAttribute("placeholder", "Enter API key");
+    ).toHaveAttribute("placeholder", "Optional; never returned to the app UI");
 
     fireEvent.click(
       within(editor).getByRole("button", {
@@ -89,7 +89,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
     expect(listbox).not.toHaveClass("rounded-xl");
     expect(
       within(listbox).getByRole("option", {
-        name: "PromptHub-managed credential",
+        name: "AgentsHub-managed credential",
       }),
     ).toHaveClass("bg-muted", "text-foreground");
   });
@@ -126,10 +126,10 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const editor = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     expect(
-      screen.queryByRole("dialog", { name: "Add provider" }),
+      screen.queryByRole("dialog", { name: "Add provider profile" }),
     ).not.toBeInTheDocument();
     expect(within(editor).getByText("Identity")).toBeVisible();
     expect(within(editor).getByText("Connection & protocol")).toBeVisible();
@@ -163,7 +163,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       target: { value: "secret-token" },
     });
     fireEvent.click(
-      within(editor).getByRole("button", { name: "Save provider" }),
+      within(editor).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -192,7 +192,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
     );
     await waitFor(() =>
       expect(
-        screen.queryByRole("region", { name: "Add provider" }),
+        screen.queryByRole("region", { name: "Add provider profile" }),
       ).not.toBeInTheDocument(),
     );
     expect(screen.queryByDisplayValue("secret-token")).not.toBeInTheDocument();
@@ -214,7 +214,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const editor = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
 
     fireEvent.change(within(editor).getByLabelText("Name"), {
@@ -243,7 +243,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       { target: { value: "claude-haiku-4-5" } },
     );
     fireEvent.click(
-      within(editor).getByRole("button", { name: "Save provider" }),
+      within(editor).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -290,7 +290,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const editor = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     fireEvent.change(within(editor).getByLabelText("Name"), {
       target: { value: "Unsaved provider" },
@@ -299,7 +299,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
 
     expect(window.api.agent.createProviderProfile).not.toHaveBeenCalled();
     expect(
-      screen.queryByRole("region", { name: "Add provider" }),
+      screen.queryByRole("region", { name: "Add provider profile" }),
     ).not.toBeInTheDocument();
   });
 
@@ -328,7 +328,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const editor = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     fireEvent.change(within(editor).getByLabelText("Name"), {
       target: { value: "Environment gateway" },
@@ -360,7 +360,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       within(editor).queryByLabelText("Credential (write-only)"),
     ).not.toBeInTheDocument();
     fireEvent.click(
-      within(editor).getByRole("button", { name: "Save provider" }),
+      within(editor).getByRole("button", { name: "Save profile" }),
     );
     expect(
       within(editor).getByText("Use a valid environment variable name."),
@@ -370,7 +370,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
     chooseProviderFormOption(
       editor,
       "Authentication source",
-      "PromptHub-managed credential",
+      "AgentsHub-managed credential",
     );
     expect(
       within(editor).getByLabelText("Credential (write-only)"),
@@ -384,7 +384,7 @@ describe("AgentProviderProfileWorkbench inline editor", () => {
       target: { value: "OPENAI_API_KEY" },
     });
     fireEvent.click(
-      within(editor).getByRole("button", { name: "Save provider" }),
+      within(editor).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>

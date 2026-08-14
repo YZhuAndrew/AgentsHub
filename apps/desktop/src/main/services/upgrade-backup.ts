@@ -4,6 +4,7 @@ import crypto from "crypto";
 import {
   copyStorageInventory,
   createStorageInventory,
+  type StorageInventory,
 } from "@prompthub/core";
 import { createConsistentDatabaseImage } from "@prompthub/db";
 
@@ -344,6 +345,31 @@ function inferDetachedLayoutEpoch(rootPath: string): 0 | 1 {
   }
 }
 
+/**
+ * Recreate recorded internal and dangling symlinks after
+ * `copyStorageInventory` (which only copies hashed regular files). Escaping
+ * links are intentionally skipped: the restore path rejects links resolving
+ * outside userData, so carrying them would break restorability — the same
+ * policy as `createSnapshotCopyFilter`.
+ */
+function restoreInventorySymlinks(
+  inventory: StorageInventory,
+  stagingRoot: string,
+): void {
+  for (const link of inventory.symlinks) {
+    if (link.kind === "escaping") continue;
+    const destinationPath = path.join(
+      stagingRoot,
+      ...link.relativePath.split("/"),
+    );
+    fs.mkdirSync(path.dirname(destinationPath), {
+      recursive: true,
+      mode: 0o700,
+    });
+    fs.symlinkSync(link.target, destinationPath);
+  }
+}
+
 function parseManifest(raw: unknown): UpgradeBackupManifest | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;
@@ -491,8 +517,14 @@ export async function createUpgradeDataSnapshot(
       detachedLayoutEpoch,
       includeSecrets: true,
       excludeRelativePaths: databasePath ? [databaseRelativePath] : [],
+      symlinkPolicy: "record",
     });
-    if (inventory.files.length === 0 && !databasePath && !options.allowEmpty) {
+    if (
+      inventory.files.length === 0 &&
+      inventory.symlinks.length === 0 &&
+      !databasePath &&
+      !options.allowEmpty
+    ) {
       throw new Error(
         `Cannot create upgrade backup because the user data path is empty: ${resolvedUserDataPath}`,
       );
@@ -513,6 +545,7 @@ export async function createUpgradeDataSnapshot(
       );
     }
     copyStorageInventory(inventory, stagingPath);
+    restoreInventorySymlinks(inventory, stagingPath);
     let databaseCaptureMode:
       | "consistent-image"
       | "raw-recovery-evidence"

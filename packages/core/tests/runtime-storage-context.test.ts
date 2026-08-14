@@ -199,7 +199,7 @@ describe("runtime storage context", () => {
       fs.writeFileSync(path.join(activeRoot, "prompthub.db"), "legacy");
       if (marker !== undefined) writeRawStateMarker(activeRoot, marker);
       expect(() => resolveRuntimeStorageContext(activeRoot)).toThrow(
-        /mixed PromptHub storage layout/,
+        /mixed AgentsHub storage layout/,
       );
     }
   });

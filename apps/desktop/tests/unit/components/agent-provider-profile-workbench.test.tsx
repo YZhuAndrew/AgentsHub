@@ -41,7 +41,7 @@ describe("AgentProviderProfileWorkbench", () => {
     expect(screen.getByTestId("agent-provider-workbench-sidebar")).toHaveClass(
       "overflow-hidden",
     );
-    expect(screen.getByRole("navigation", { name: "Providers" })).toHaveClass(
+    expect(screen.getByRole("navigation", { name: "Provider profiles" })).toHaveClass(
       "h-full",
       "overflow-x-hidden",
       "overflow-y-auto",
@@ -60,7 +60,7 @@ describe("AgentProviderProfileWorkbench", () => {
   it("offers provider creation and AgentsHub import from the provider-list context menu", async () => {
     await renderWorkbench();
 
-    const providers = screen.getByRole("navigation", { name: "Providers" });
+    const providers = screen.getByRole("navigation", { name: "Provider profiles" });
     fireEvent.contextMenu(providers, { clientX: 80, clientY: 120 });
 
     const importFromMenu = screen.getAllByRole("button", {
@@ -83,7 +83,7 @@ describe("AgentProviderProfileWorkbench", () => {
     fireEvent.click(addCustom);
 
     expect(
-      await screen.findByRole("region", { name: "Add provider" }),
+      await screen.findByRole("region", { name: "Add provider profile" }),
     ).toBeVisible();
   });
 
@@ -96,11 +96,11 @@ describe("AgentProviderProfileWorkbench", () => {
       await renderWorkbench();
 
       expect(
-        screen.getByText("No providers yet. Add one to manage this Agent."),
+        screen.getByText("No profiles yet. Create one to manage this Agent."),
       ).toBeVisible();
       expect(
         screen.getByText(
-          "Add a provider to store model settings and write-only credentials on this server.",
+          "Create a provider profile to store model settings and write-only credentials on this server.",
         ),
       ).toBeVisible();
       expect(
@@ -110,7 +110,7 @@ describe("AgentProviderProfileWorkbench", () => {
         screen.queryByRole("button", { name: "Import from AgentsHub" }),
       ).not.toBeInTheDocument();
 
-      const providers = screen.getByRole("navigation", { name: "Providers" });
+      const providers = screen.getByRole("navigation", { name: "Provider profiles" });
       fireEvent.contextMenu(providers, { clientX: 80, clientY: 120 });
       expect(
         screen.queryByRole("button", { name: "Import from AgentsHub" }),
@@ -119,7 +119,7 @@ describe("AgentProviderProfileWorkbench", () => {
         screen.getAllByRole("button", { name: "Add custom provider" })[1],
       );
       expect(
-        await screen.findByRole("region", { name: "Add provider" }),
+        await screen.findByRole("region", { name: "Add provider profile" }),
       ).toBeVisible();
 
       expect(
@@ -672,7 +672,7 @@ describe("AgentProviderProfileWorkbench", () => {
       name: "Review provider activation",
     });
     const activate = within(dialog).getByRole("button", {
-      name: "Activate provider",
+      name: "Activate profile",
     });
     expect(activate).toBeDisabled();
     fireEvent.click(
@@ -680,7 +680,7 @@ describe("AgentProviderProfileWorkbench", () => {
     );
     expect(activate).toBeDisabled();
     fireEvent.click(
-      within(dialog).getByRole("radio", { name: "Use provider value" }),
+      within(dialog).getByRole("radio", { name: "Use profile value" }),
     );
     expect(activate).toBeEnabled();
     fireEvent.click(activate);
@@ -752,7 +752,7 @@ describe("AgentProviderProfileWorkbench", () => {
       name: "Review provider activation",
     });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Activate provider" }),
+      within(dialog).getByRole("button", { name: "Activate profile" }),
     );
 
     expect(
@@ -795,7 +795,7 @@ describe("AgentProviderProfileWorkbench", () => {
     expect(within(dialog).getByText("profile-secret-missing")).toBeVisible();
     expect(within(dialog).getByText("Provider operation failed")).toBeVisible();
     expect(
-      within(dialog).getByRole("button", { name: "Activate provider" }),
+      within(dialog).getByRole("button", { name: "Activate profile" }),
     ).toBeDisabled();
 
     act(() => {
@@ -842,7 +842,7 @@ describe("AgentProviderProfileWorkbench", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const dialog = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     expect(dialog.querySelector("select")).toBeNull();
     fireEvent.change(within(dialog).getByLabelText("Name"), {
@@ -858,7 +858,7 @@ describe("AgentProviderProfileWorkbench", () => {
       target: { value: "new-secret" },
     });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -905,13 +905,13 @@ describe("AgentProviderProfileWorkbench", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const dialog = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     expect(within(dialog).getByLabelText("Provider kind")).toHaveValue(
       "google-gemini",
     );
     expect(within(dialog).getByLabelText("Protocol")).toHaveTextContent(
-      "Google Generative AI",
+      "Google Gemini API",
     );
     fireEvent.change(within(dialog).getByLabelText("Name"), {
       target: { value: " Gemini work " },
@@ -928,7 +928,7 @@ describe("AgentProviderProfileWorkbench", () => {
       target: { value: "gemini-secret" },
     });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -976,7 +976,7 @@ describe("AgentProviderProfileWorkbench", () => {
     await renderWorkbench(createAgent("gemini"));
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     const dialog = await screen.findByRole("region", {
-      name: "Edit provider",
+      name: "Edit provider profile",
     });
     fireEvent.change(within(dialog).getByLabelText("Provider kind"), {
       target: { value: "vertex-ai" },
@@ -986,7 +986,7 @@ describe("AgentProviderProfileWorkbench", () => {
       within(dialog).queryByLabelText("Credential (write-only)"),
     ).not.toBeInTheDocument();
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -1021,7 +1021,7 @@ describe("AgentProviderProfileWorkbench", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const dialog = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     expect(within(dialog).getByLabelText("Provider kind")).toHaveTextContent(
       "Kimi",
@@ -1051,7 +1051,7 @@ describe("AgentProviderProfileWorkbench", () => {
       target: { value: "kimi-secret" },
     });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -1088,13 +1088,13 @@ describe("AgentProviderProfileWorkbench", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const dialog = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
 
     chooseProviderFormOption(dialog, "Provider kind", "Google Generative AI");
 
     const protocol = within(dialog).getByLabelText("Protocol");
-    expect(protocol).toHaveTextContent("Google Generative AI");
+    expect(protocol).toHaveTextContent("Google Gemini API");
     fireEvent.click(protocol);
     expect(
       screen.getAllByRole("option").map((option) => option.textContent),
@@ -1102,11 +1102,11 @@ describe("AgentProviderProfileWorkbench", () => {
       "Platform native",
       "OpenAI Chat",
       "OpenAI Responses",
-      "Anthropic Messages",
-      "Google Generative AI",
+      "Anthropic Messages API",
+      "Google Gemini API",
     ]);
     expect(
-      screen.getByRole("option", { name: "Google Generative AI" }),
+      screen.getByRole("option", { name: "Google Gemini API" }),
     ).toHaveAttribute("aria-selected", "true");
   });
 
@@ -1131,7 +1131,7 @@ describe("AgentProviderProfileWorkbench", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const dialog = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     expect(within(dialog).getByLabelText("Provider kind")).toHaveTextContent(
       "OpenAI",
@@ -1160,7 +1160,7 @@ describe("AgentProviderProfileWorkbench", () => {
       target: { value: "qwen-secret" },
     });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -1197,13 +1197,13 @@ describe("AgentProviderProfileWorkbench", () => {
       screen.getByRole("button", { name: "Add custom provider" }),
     );
     const dialog = await screen.findByRole("region", {
-      name: "Add provider",
+      name: "Add provider profile",
     });
     fireEvent.change(within(dialog).getByLabelText("Provider kind"), {
       target: { value: " " },
     });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     expect(within(dialog).getAllByText("This field is required.")).toHaveLength(
@@ -1249,7 +1249,7 @@ describe("AgentProviderProfileWorkbench", () => {
     await renderWorkbench();
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     const dialog = await screen.findByRole("region", {
-      name: "Edit provider",
+      name: "Edit provider profile",
     });
     expect(
       within(dialog).queryByLabelText("Secondary model (optional)"),
@@ -1270,7 +1270,7 @@ describe("AgentProviderProfileWorkbench", () => {
       target: { value: "replacement-secret" },
     });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -1321,14 +1321,14 @@ describe("AgentProviderProfileWorkbench", () => {
     await renderWorkbench();
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     const dialog = await screen.findByRole("region", {
-      name: "Edit provider",
+      name: "Edit provider profile",
     });
     chooseProviderFormOption(dialog, "Protocol", "Platform native");
     expect(
       within(dialog).queryByLabelText("Credential (write-only)"),
     ).not.toBeInTheDocument();
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -1363,7 +1363,7 @@ describe("AgentProviderProfileWorkbench", () => {
     await renderWorkbench();
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     const dialog = await screen.findByRole("region", {
-      name: "Edit provider",
+      name: "Edit provider profile",
     });
     fireEvent.click(
       within(dialog).getByRole("radio", { name: "Replace credential" }),
@@ -1377,7 +1377,7 @@ describe("AgentProviderProfileWorkbench", () => {
       within(dialog).queryByLabelText("Credential (write-only)"),
     ).not.toBeInTheDocument();
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -1407,13 +1407,13 @@ describe("AgentProviderProfileWorkbench", () => {
     await renderWorkbench();
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     const dialog = await screen.findByRole("region", {
-      name: "Edit provider",
+      name: "Edit provider profile",
     });
     expect(
       within(dialog).queryByLabelText("Credential (write-only)"),
     ).not.toBeInTheDocument();
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Save provider" }),
+      within(dialog).getByRole("button", { name: "Save profile" }),
     );
 
     await waitFor(() =>
@@ -1422,7 +1422,7 @@ describe("AgentProviderProfileWorkbench", () => {
       ),
     );
     expect(
-      await screen.findByRole("region", { name: "Edit provider" }),
+      await screen.findByRole("region", { name: "Edit provider profile" }),
     ).toBeVisible();
     expect(screen.getByText("Provider operation failed")).toBeVisible();
   });

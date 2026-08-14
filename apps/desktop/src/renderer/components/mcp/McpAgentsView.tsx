@@ -517,7 +517,7 @@ export function McpAgentsView({
                             >
                               {managedServer
                                 ? t(
-                                    "mcp.managedByPromptHub",
+                                    "mcp.managedByAgentsHub",
                                     "Managed in AgentsHub",
                                   )
                                 : t(

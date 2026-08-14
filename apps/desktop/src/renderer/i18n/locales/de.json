@@ -2672,7 +2672,7 @@
     "enable": "Aktivieren",
     "disable": "Deaktivieren",
     "continueEditing": "Weiter bearbeiten",
-    "reloadPromptHub": "PromptHub neu laden"
+    "reloadPromptHub": "AgentsHub neu laden"
   },
   "skill": {
     "title": "Skill",

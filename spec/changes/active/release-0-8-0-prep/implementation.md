@@ -103,8 +103,71 @@ release risk for the maintainer's go/no-go decision.
   recorded in earlier release runs). No failure is attributable to the
   release-prep diff; production artifacts build cleanly.
 
+## Release-Blocking Test Repairs (2026-08-14, after first CI verify failure)
+
+The first `v0.8.0` workflow run (`31795736547`) failed its verify job on the
+pre-existing desktop failures documented above (the workflow's verify job runs
+the same full harness, so `build` and `release` were skipped). All blocking
+failings were repaired in this change:
+
+1. **Upgrade-backup symlink regression** (real product regression from the
+   canonical storage rework): `createUpgradeDataSnapshot` now refuses nothing —
+   it passes `symlinkPolicy: "record"` to `createStorageInventory` (new opt-in
+   in `packages/core` classifying links as internal/escaping/dangling) and
+   recreates internal + dangling links after `copyStorageInventory`, restoring
+   the shipped 0.7.1 contract (preserve internal, skip escaping). The
+   empty-userData check now counts recorded symlinks as content so
+   `migrateLegacyDataLayout` reaches its per-entry rejection path
+   (`assertMigratablePathTree`), preserving the partial-failure contract.
+2. **Incoherent migration-marker test restored**: commit `40f10b0c` inserted
+   assertions contradicting their own test (expecting the legacy backup
+   removed, then unlinking inside it; expecting a failure-free migration to
+   skip the marker). Restored the coherent v0.7.2 form; the commit's own
+   verification admitted the desktop suite was not run.
+3. **Brand/terminology drift**: `mixed AgentsHub storage layout` producer
+   aligned with already-updated tests (consumer regex accepts both);
+   `common.reloadPromptHub` localized to AgentsHub in 7 locales; zh/zh-TW
+   Plugin product-term restored after `8b07c12f`'s brand sweep broke the
+   92139eeb contract; `mcp.managedByPromptHub` call sites switched to the
+   existing `mcp.managedByAgentsHub` key (7 locales).
+4. **Provider-workbench terminology drift**: tests updated to the shipped
+   provider-profile copy (Add/Edit provider profile, Save profile, Import
+   profile, Activate profile, Use profile value, Duplicate, Copy export,
+   Delete provider profile, Provider profiles navigation, Google Gemini API
+   protocol labels, AgentsHub-managed credential).
+5. **Pi terminology test scoped**: the never-passing locale guard now asserts
+   the Pi-facing `agents.piModels` namespace (provider terminology, no
+   profile words) instead of the whole `providerProfiles` namespace, which
+   legitimately uses provider-profile copy; structural assertions that
+   contradicted the current namespace layout were dropped. Pi import
+   branding updated to AgentsHub.
+6. **Stale store mocks**: skill-manager test factories completed with
+   `skillUpdateStatuses`, `filterSourceKey`, `setFilterSourceKey` (the real
+   modular store defines all three); the source-filter test now rerenders
+   explicitly because a plain selector mock cannot notify subscribers.
+7. **Misc**: updater-real-scenario URLs pointed at the nonexistent
+   `legeling/AgentsHub` repo (fixed to `YZhuAndrew/AgentsHub`);
+   `gitClone` scan expectation updated to the current 4-arg signature; the
+   transient "copied" button label assertion was over-specified UI timing and
+   was relaxed to the durable clipboard-content assertion.
+8. **File-size gate cleared**: the data-path change workflow (helpers,
+   guards, `data:*` IPC handlers) was extracted from `apps/desktop/src/main/
+   index.ts` into the new `data-path-change.ts` module with an injected
+   database lifecycle context, bringing `index.ts` from 2031 to 1698 lines
+   (under its 1974 legacy baseline). This also resolves the split that
+   commit `b8d23f94` deferred.
+
+Verification for this repair batch: full desktop unit suite green in all 8
+shards, desktop integration tests green, core suite 50 files / 495 tests
+green, desktop typecheck and lint clean, file-size gate passed, ci-config
+version guards passed.
+
 ## Notes
 
 - The historical `0.6.0-beta.1` prerelease tag (`2ed96c7f`) sits inside the
   `v0.7.2..HEAD` range; its content is folded into the `0.8.0` stable entry
   because the stable line jumps from `0.7.2` to `0.8.0`.
+- Local `desktop-e2e-smoke` has two environment-bound failures under this
+  sandbox (WebDAV hidden-launch timing and a live self-hosted sync round-trip
+  needing real network); the hosted CI runners executed e2e cleanly for the
+  0.6.0-beta.1 line after the Linux E2E repairs.

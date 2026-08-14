@@ -2672,7 +2672,7 @@
     "enable": "啟用",
     "disable": "停用",
     "continueEditing": "繼續編輯",
-    "reloadPromptHub": "重新載入 PromptHub"
+    "reloadPromptHub": "重新載入 AgentsHub"
   },
   "skill": {
     "title": "Skill",
@@ -4166,15 +4166,15 @@
     "agentPluginSidebarHint": "瀏覽支援 Plugin 的 Agent，並管理能力包適配目標。",
     "noAgentPluginTargets": "暫無 Agent Plugin 目標",
     "agentPluginTargetPending": "選擇一個 Agent 查看 Plugin 支援情況。",
-    "agentPluginFilterAll": "{{count}} 個插件",
-    "agentPluginFilterMyPlugins": "{{count}} 個我的插件",
+    "agentPluginFilterAll": "{{count}} 個 Plugin",
+    "agentPluginFilterMyPlugins": "{{count}} 個我的 Plugin",
     "agentPluginFilterAgentInstalled": "{{count}} 個已安裝在 Agent",
     "agentPluginFilterDistributed": "{{count}} 個已分發",
     "agentPluginFilterPending": "{{count}} 個待分發",
     "targetSupported": "已支援",
     "targetDisabled": "已置灰",
     "agentTargetsSupported": "{{count}}/{{total}} 已支援",
-    "agentPluginsAvailable": "{{count}} 個我的插件",
+    "agentPluginsAvailable": "{{count}} 個我的 Plugin",
     "agentPluginAssetsAvailable": "{{count}} 個資產",
     "targetDisabledTitle": "該目標暫未支援",
     "targetUnsupportedBundleTitle": "{{name}} 不支援 AgentsHub Plugin 能力包",
