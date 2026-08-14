@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 
+import fs from "fs";
+import path from "path";
+
 import {
   closePromptHub,
   launchPromptHub,
@@ -10,6 +13,15 @@ import {
   loginSelfHosted,
   startSelfHostedTestServer,
 } from "./helpers/self-hosted-web";
+
+// The self-hosted web rejects backup uploads whose clientVersion does not
+// match its own build (409 CONFLICT), so read the version from the root
+// manifest instead of hard-coding it.
+const rootPackageVersion = (
+  JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), "../../package.json"), "utf8"),
+  ) as { version: string }
+).version;
 
 interface DesktopBackupListResponse {
   data: Array<{
@@ -363,7 +375,7 @@ test.describe("E2E: desktop self-hosted sync", () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            clientVersion: "0.7.2",
+            clientVersion: rootPackageVersion,
             payload: {
               version: "desktop-backup-v1",
               exportedAt: "2026-04-16T00:00:00.000Z",
