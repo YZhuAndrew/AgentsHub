@@ -26,6 +26,8 @@ out/
 dist/
 build/
 dist-electron/
+# Root-anchored: ignore only a top-level build "release/" dir, never the
+# spec/changes/<key>/specs/release/ spec-document directories.
 /release/
 *.tgz
 

@@ -79,7 +79,7 @@ Desktop-Builds werden auf GitHub Releases für macOS / Windows / Linux veröffen
 
 ### macOS-Sicherheitsprüfung
 
-Die macOS-Pakete werden mit Developer ID signiert und von Apple notarisiert. Installiere AgentsHub bevorzugt über GitHub Releases. Wenn macOS die App weiterhin nicht verifizieren kann, lade die aktuelle Release-DMG erneut herunter und installiere sie neu.
+AgentsHub ist ein Community-gepflegter Fork-Build ohne Apple-Developer-Signierung. Lade ihn über GitHub Releases herunter; macOS Gatekeeper blockiert möglicherweise den ersten Start.
 
 Wenn macOS „AgentsHub ist beschädigt" oder „Entwickler kann nicht überprüft werden" meldet, führe aus:
 
@@ -346,7 +346,7 @@ Vollständiges Changelog: **[CHANGELOG.md](../CHANGELOG.md)**
 - Skill-Source-Updates nutzen SHA-256-Package-Fingerprints und Drei-Wege-Abgleich, inklusive Fixes für Registry-Fingerprints, content-url Baselines und URL-Credential-Redaction
 - Plugin-Source-Updates und Store-Batch-Updates zeigen nun Diffs und verlangen Bestätigung, bevor lokale Packages ersetzt werden
 - Prompts unterstützen benutzerdefinierte Ausgabeformat-Sequenzen mit Sortierung, Persistenz und Backup
-- macOS-Releases sind mit Developer-ID-Signatur, Notarisierung, DMG/ZIP-Verifikation und Gatekeeper-Prüfung gehärtet
+- macOS-Releases dokumentieren die Installation des unsignierten Forks, die DMG/ZIP-Verifikation und den Gatekeeper-Hinweis
 
 ### v0.5.9-beta.1 (2026-06-14, Preview)
 

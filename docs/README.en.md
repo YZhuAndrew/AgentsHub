@@ -79,9 +79,9 @@ Desktop builds are published on GitHub Releases for macOS / Windows / Linux.
 
 ### macOS security verification
 
-macOS packages are signed with Developer ID and notarized by Apple. Install from GitHub Releases. If macOS still cannot verify the app, download the current Release DMG again and reinstall.
+AgentsHub is a community-maintained fork build without Apple Developer signing. Download it from GitHub Releases; macOS Gatekeeper may block the first launch.
 
-Older historical preview builds may not be signed and notarized. If you intentionally downloaded one of those builds and macOS reports that AgentsHub is damaged or the developer cannot be verified, run:
+If macOS reports that AgentsHub is damaged or the developer cannot be verified, run:
 
 ```bash
 sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
@@ -363,7 +363,7 @@ Full changelog: **[CHANGELOG.md](../CHANGELOG.md)**
 - Skill source update checks now use SHA-256 package fingerprints and three-way reconciliation, with fixes for registry fingerprints, content-url baselines, and URL credential redaction
 - Plugin source updates and batch store updates now show diffs and require confirmation before replacing local packages
 - Prompts can compose, sort, persist, and back up custom output format sequences
-- macOS release flow is hardened with Developer ID signing, notarization, DMG/ZIP verification, and Gatekeeper checks
+- macOS release flow documents the unsigned-fork install notice, DMG/ZIP verification, and Gatekeeper handling
 
 ### v0.5.9-beta.1 (2026-06-14, preview)
 
@@ -458,7 +458,7 @@ Full changelog: **[CHANGELOG.md](../CHANGELOG.md)**
 
 - Plugin / MCP management now matches Skill-style flows across stores, Agent distribution, details, tag filters, update review, and safety checks
 - Agent asset sync, network proxy, CLI project installs, and Skill source update checks are stable
-- Prompt relationship trees, Windows Agent paths, Web captcha toggles, macOS signing/notarization, and release pipeline fixes ship to stable users
+- Prompt relationship trees, Windows Agent paths, Web captcha toggles, the macOS unsigned-fork install notice, and release pipeline fixes ship to stable users
 
 ### v0.5.8
 

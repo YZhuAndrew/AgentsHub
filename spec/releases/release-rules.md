@@ -43,15 +43,14 @@
 - GitHub 可发现的贡献入口文件必须存在，并指向当前有效的 canonical 贡献指南。
 - 贡献指南中的开发命令、monorepo 目录结构与 SSD 工作流说明必须与当前仓库实际状态一致。
 
-### 8. macOS Developer ID Signing
+### 8. macOS Unsigned Fork Distribution
 
-- macOS desktop release artifacts must be built with Hardened Runtime enabled and notarized by Apple before publication.
-- Direct-install macOS in-app updates must publish the signed and notarized ZIP
-  payload plus matching `latest-mac*.yml` metadata; the DMG remains the
-  first-install distribution artifact.
-- GitHub Actions macOS jobs must require Developer ID Application signing credentials and App Store Connect notarization credentials before packaging.
-- macOS signing credentials must be scoped to macOS jobs and must not be exported as generic signing variables for Windows or Linux builds.
-- Release verification must check the packaged macOS app with `codesign`, `xcrun stapler validate`, and `spctl`.
+- AgentsHub is a community-maintained fork build without Apple Developer signing. macOS desktop release artifacts are published unsigned and are not notarized.
+- Every macOS-bearing release MUST include the verbatim "macOS 安全说明" notice with the `sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app` workaround, emitted by the release workflow and enforced by the `.agents/skills/release-sync/SKILL.md` execution procedure.
+- Public install documentation (root `README.md` and localized `docs/README.*.md`) MUST describe the unsigned build plus the quarantine workaround as the normal install path and MUST NOT claim Developer ID signing or Apple notarization.
+- The release workflow may still carry optional signing/notarization code paths; signing is active only when every Apple credential is configured. The fork ships without those credentials, so published artifacts are unsigned.
+- macOS release verification confirms the unsigned notice is present in the generated release notes. It does not assert `codesign`, `xcrun stapler validate`, or `spctl` Developer ID authority, because the artifacts are not signed.
+- If a future release reintroduces Developer ID signing and notarization, update this section, the release-sync skill notice, and public install docs together before publishing.
 
 ### 9. Release Procedure Entry
 
@@ -119,7 +118,7 @@ When a contributor looks for contribution instructions via the repository UI:
 
 When a tag release builds macOS DMG and ZIP artifacts:
 
-- the workflow requires Developer ID and notarization secrets before packaging
-- the packaged app passes signature, stapling, and Gatekeeper assessment checks
-- the release includes matching ZIP metadata for direct-install in-app updates
-- public install notes present the notarized artifact as the normal install path
+- the artifacts are published unsigned (no Apple Developer credentials are configured for the fork)
+- the generated release notes include the verbatim "macOS 安全说明" notice with the quarantine workaround
+- public install notes present the unsigned artifact plus the quarantine workaround as the normal install path
+- release verification confirms the unsigned notice is present rather than asserting Developer ID signature, stapling, or Gatekeeper assessment

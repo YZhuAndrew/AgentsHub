@@ -70,11 +70,11 @@
 | Linux | 前往 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases) 查看可用构建 |
 
 > **macOS 选哪个？** 仅提供 Apple Silicon（M1/M2/M3/M4）`arm64` 构建。便携版 zip 解压即用，无需安装。
-> 历史版本、签名信息与完整 Release Notes 见 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases)。
+> 历史版本与完整 Release Notes 见 [Releases 页](https://github.com/YZhuAndrew/AgentsHub/releases)。
 
 ### macOS 安全验证
 
-macOS 安装包使用 Developer ID 签名并完成 Apple 公证。请优先从 GitHub Release 下载；如果系统仍提示无法验证，请重新下载当前 Release 的 DMG 后再安装。
+AgentsHub 是社区维护的 fork 构建，未配置 Apple Developer 签名。请从 GitHub Release 下载；首次启动时 macOS Gatekeeper 可能拦截。
 
 如果系统提示「已损坏」或「无法验证开发者」，可以在终端执行：
 
@@ -447,7 +447,7 @@ AgentsHub/
 - Skill 来源更新改为 SHA-256 包指纹和三方对账，修复 registry 指纹、content-url 基线和 URL 脱敏问题
 - Plugin 来源更新和批量商店更新先展示差异并要求确认，不再直接覆盖本地 Plugin
 - Prompt 支持组合、排序和持久化自定义输出格式序列，并随备份恢复
-- macOS 发布链路加强 Developer ID 签名、公证、DMG/ZIP 校验和 Gatekeeper 验证
+- macOS 发布链路明确未签名 fork 的安装说明、DMG/ZIP 校验和 Gatekeeper 处理
 
 更早版本更新内容见 [CHANGELOG.md](./CHANGELOG.md)。
 

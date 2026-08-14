@@ -352,13 +352,14 @@ describe("UpdateDialog", () => {
     expect(runPreUpgradeBackupMock).not.toHaveBeenCalled();
   });
 
-  it("offers a direct macOS installation as an in-app restart", async () => {
+  it("routes a downloaded direct macOS update to a manual Releases download", async () => {
     installWindowMocks({
       electron: {
         updater: {
           check: vi.fn().mockResolvedValue({ success: true }),
           download: vi.fn().mockResolvedValue(undefined),
           install: vi.fn().mockResolvedValue({ success: true }),
+          openReleases: vi.fn().mockResolvedValue(undefined),
           getVersion: vi.fn().mockResolvedValue("0.5.1"),
           getPlatform: vi.fn().mockResolvedValue("darwin"),
           getInstallSource: vi.fn().mockResolvedValue("direct"),
@@ -377,24 +378,64 @@ describe("UpdateDialog", () => {
       );
     });
 
+    // The unsigned fork cannot use the native restart, so it routes to Releases.
     expect(
-      screen.getByRole("button", { name: "Install Now" }),
-    ).toBeDisabled();
-    expect(screen.queryByText(/manually install the update/i)).toBeNull();
+      screen.queryByRole("button", { name: "Install Now" }),
+    ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Open Downloads" }),
-    ).toBeNull();
+      screen.getByRole("button", { name: "Open Releases" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/unsigned/i)).toBeInTheDocument();
 
-    fireEvent.click(
-      screen.getByLabelText(
-        "I have backed up the relevant data and understand the app will close during installation.",
-      ),
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Install Now" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Releases" }));
 
     await waitFor(() => {
-      expect(window.electron.updater.install).toHaveBeenCalledTimes(1);
+      expect(window.electron.updater.openReleases).toHaveBeenCalledTimes(1);
     });
+    expect(window.electron.updater.install).not.toHaveBeenCalled();
+  });
+
+  it("routes an available direct macOS update to a manual Releases download", async () => {
+    installWindowMocks({
+      electron: {
+        updater: {
+          check: vi.fn().mockResolvedValue({ success: true }),
+          download: vi.fn().mockResolvedValue(undefined),
+          install: vi.fn().mockResolvedValue({ success: true }),
+          openReleases: vi.fn().mockResolvedValue(undefined),
+          getVersion: vi.fn().mockResolvedValue("0.5.1"),
+          getPlatform: vi.fn().mockResolvedValue("darwin"),
+          getInstallSource: vi.fn().mockResolvedValue("direct"),
+          onStatus: vi.fn((callback: (status: UpdateStatus) => void) => {
+            callback(availableStatus);
+            return vi.fn();
+          }),
+        },
+      },
+    });
+
+    await act(async () => {
+      await renderWithI18n(
+        <UpdateDialog isOpen={true} onClose={vi.fn()} initialStatus={availableStatus} />,
+        { language: "en" },
+      );
+    });
+
+    // The unsigned fork must not offer the in-app download/install pipeline.
+    expect(
+      screen.queryByRole("button", { name: "Download Update" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Open Releases" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/unsigned/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Releases" }));
+
+    await waitFor(() => {
+      expect(window.electron.updater.openReleases).toHaveBeenCalledTimes(1);
+    });
+    expect(window.electron.updater.download).not.toHaveBeenCalled();
   });
 
   it("keeps a visible available state when a transient checking event arrives", async () => {

@@ -76,11 +76,11 @@ AgentsHub はあなたのプロンプト、SKILL.md、プロジェクトレベ�
 | Linux | [Releases ページ](https://github.com/YZhuAndrew/AgentsHub/releases) を参照 |
 
 > **macOS の arch?** Apple Silicon（M1/M2/M3/M4）の `arm64` ビルドのみ提供します。ポータブル版 zip は展開するだけでインストール不要です。
-> 履歴バージョン、署名情報、完全なリリースノートは [Releases ページ](https://github.com/YZhuAndrew/AgentsHub/releases) を参照してください。
+> 履歴バージョンと完全なリリースノートは [Releases ページ](https://github.com/YZhuAndrew/AgentsHub/releases) を参照してください。
 
 ### macOS セキュリティ検証
 
-macOS パッケージは Developer ID で署名され、Apple のノータリゼーションを通過します。GitHub Release から優先的にダウンロードしてください。システムが引き続き検証できない場合は、現在の Release の DMG を再ダウンロードしてからインストールしてください。
+AgentsHub はコミュニティメンテナンスの fork ビルドであり、Apple Developer 署名は設定されていません。GitHub Release からダウンロードしてください。初回起動時に macOS Gatekeeper がブロックする場合があります。
 
 システムが「壊れている」または「開発元を検証できません」と表示する場合は、ターミナルで次を実行してください:
 
@@ -347,7 +347,7 @@ Skill のインポート、バージョンスナップショット、配布で�
 - Skill ソース更新は SHA-256 package fingerprint と三者照合に移行し、registry fingerprint、content-url baseline、URL credential redaction を修正
 - Plugin ソース更新とストア一括更新は、ローカル package を置き換える前に差分表示と確認を要求します
 - Prompt はカスタム出力形式シーケンスの構成、並べ替え、永続化、バックアップに対応しました
-- macOS リリースフローは Developer ID 署名、公証、DMG/ZIP 検証、Gatekeeper チェックを強化しました
+- macOS リリースフローは未署名 fork のインストール手順、DMG/ZIP 検証、Gatekeeper 対応を整備しました
 
 ### v0.5.9-beta.1（2026-06-14、プレビュー）
 
@@ -425,7 +425,7 @@ Skill のインポート、バージョンスナップショット、配布で�
 
 - Plugin / MCP 管理はストア、Agent 配布、詳細、タグフィルタ、更新確認、安全チェックで Skill 体験に揃いました
 - Agent アセット同期、ネットワークプロキシ、CLI プロジェクトインストール、Skill ソース更新チェックが安定版になりました
-- Prompt 関係ツリー、Windows Agent パス、Web CAPTCHA 切替、macOS 署名/公証、リリースパイプライン修正を正式版ユーザーに提供します
+- Prompt 関係ツリー、Windows Agent パス、Web CAPTCHA 切替、macOS 未署名 fork のインストール手順、リリースパイプライン修正を正式版ユーザーに提供します
 
 ### v0.5.8
 

@@ -93,21 +93,30 @@
 
 ### `DES-UPDATER-005`: macOS Install Strategy
 
-The release workflow now proves that direct-install macOS ZIP artifacts are
-Developer ID signed, notarized, stapled, and Gatekeeper-accepted. Direct macOS
-installs can therefore use `electron-updater.downloadUpdate()` and
-`quitAndInstall(false, true)`, the same controlled restart path used by the
-other desktop targets. This keeps update metadata validation and downloaded
-artifact handling inside `electron-updater`; it removes the duplicate DMG
-runtime path and its manual Finder hand-off.
+AgentsHub is an unsigned community fork: no Apple Developer credentials are
+configured, so published macOS artifacts are not signed or notarized. The
+earlier design assumed signed/notarized ZIPs and used
+`electron-updater.downloadUpdate()` + `quitAndInstall(false, true)` for direct
+macOS installs. That native Squirrel.Mac swap cannot verify an unsigned update
+(the project's own `CHANGELOG` documents Squirrel failing without a signing
+certificate), so the in-app native path is unreliable for the fork.
+
+Direct macOS installs therefore route to a manual DMG download instead. The
+main-process `updater:download` and `updater:install` handlers short-circuit a
+`darwin && direct` install before touching `electron-updater`, still creating
+the pre-upgrade snapshot on the install path but returning a manual result that
+directs the user to the Releases page. The renderer renders an unsigned-fork
+notice and an "Open Releases" action (reusing `updater:openReleases`) for both
+the `available` and `downloaded` states, and never offers the in-app
+download/install buttons for a direct macOS install. Update detection still
+runs, so users are informed that a new version exists.
 
 Homebrew remains an ownership boundary: an executable resolved under a
 Homebrew Caskroom must continue to direct users to `brew upgrade --cask
 prompthub` and must never be replaced by the in-app updater.
 
-The renderer treats direct macOS updates as in-app installs. The manual DMG
-guidance and folder-opening primary action are removed; the existing backup
-acknowledgement and explicit install action remain in place.
+Win32/Linux direct installs are unchanged and keep the native
+`electron-updater` restart path.
 
 ## UI / UX State Model
 
