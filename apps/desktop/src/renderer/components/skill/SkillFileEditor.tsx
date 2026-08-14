@@ -39,6 +39,9 @@ import {
 } from "./SkillFileContextMenu";
 import { SkillFileMutationDialogs } from "./SkillFileMutationDialogs";
 import { SkillFileTree } from "./SkillFileTree";
+import { SkillMarkdown } from "./SkillMarkdown";
+import { SkillRenderBoundary } from "./SkillRenderBoundary";
+import { stripFrontmatter } from "./detail-utils";
 import {
   MAX_RESOURCE_ZOOM,
   MIN_RESOURCE_ZOOM,
@@ -1236,6 +1239,27 @@ export function SkillFileEditor({
                       "Binary file cannot be edited",
                     )}
                   />
+                ) : isMarkdownFile(selectedFile) && !isEditingFileContent ? (
+                  <SkillRenderBoundary
+                    compact
+                    resetKey={selectedFile}
+                    title={t(
+                      "skill.previewRenderError",
+                      "Skill 预览暂时无法渲染",
+                    )}
+                    description={t(
+                      "skill.previewRenderErrorHint",
+                      "这份 Skill 的内容或元数据格式存在兼容性问题，但不会再把整个详情页冲白。你可以稍后重试，或切回文件视图继续检查原始内容。",
+                    )}
+                    secondaryActionLabel={t("common.retry", "重试")}
+                  >
+                    <div className="skill-file-editor__markdown-preview skill-markdown-body">
+                      <SkillMarkdown
+                        content={stripFrontmatter(currentContent)}
+                        enableHighlight
+                      />
+                    </div>
+                  </SkillRenderBoundary>
                 ) : (
                   <SkillCodeEditor
                     path={selectedFile}

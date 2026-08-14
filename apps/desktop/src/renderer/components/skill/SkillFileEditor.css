@@ -345,6 +345,15 @@
   min-height: 0;
 }
 
+/* ── Markdown preview ── */
+.skill-file-editor__markdown-preview {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.5rem;
+}
+
 .skill-code-editor {
   flex: 1;
   min-height: 0;
@@ -537,6 +546,7 @@
 .skill-file-editor__tree-list,
 .skill-file-editor__resource-preview,
 .skill-file-editor__resource-image-viewport,
+.skill-file-editor__markdown-preview,
 .skill-file-editor__preview,
 .skill-code-editor .cm-scroller {
   scrollbar-width: thin;
@@ -546,6 +556,7 @@
 .skill-file-editor__tree-list::-webkit-scrollbar,
 .skill-file-editor__resource-preview::-webkit-scrollbar,
 .skill-file-editor__resource-image-viewport::-webkit-scrollbar,
+.skill-file-editor__markdown-preview::-webkit-scrollbar,
 .skill-file-editor__preview::-webkit-scrollbar,
 .skill-code-editor .cm-scroller::-webkit-scrollbar {
   width: 10px;
@@ -555,6 +566,7 @@
 .skill-file-editor__tree-list::-webkit-scrollbar-thumb,
 .skill-file-editor__resource-preview::-webkit-scrollbar-thumb,
 .skill-file-editor__resource-image-viewport::-webkit-scrollbar-thumb,
+.skill-file-editor__markdown-preview::-webkit-scrollbar-thumb,
 .skill-file-editor__preview::-webkit-scrollbar-thumb,
 .skill-code-editor .cm-scroller::-webkit-scrollbar-thumb {
   background: hsl(var(--border));

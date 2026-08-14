@@ -1095,7 +1095,9 @@ describe("SkillFileEditor", () => {
       { language: "en" },
     );
 
-    await screen.findByTestId("skill-code-editor");
+    // Read-only Markdown files render as a rendered preview, not a code editor.
+    await screen.findByRole("heading", { name: "Package" });
+    expect(screen.queryByTestId("skill-code-editor")).not.toBeInTheDocument();
 
     expect(screen.getByText("Read only")).toBeInTheDocument();
     expect(
@@ -1361,5 +1363,117 @@ describe("SkillFileEditor", () => {
     expect(
       container.querySelector(".skill-file-editor__textarea--highlighted"),
     ).toBeNull();
+  });
+
+  it("renders markdown files as rendered preview by default instead of raw source", async () => {
+    await renderWithI18n(
+      <SkillFileEditor
+        skillId="skill-1"
+        skillName="writer"
+        isOpen={true}
+        mode="inline"
+      />,
+      { language: "en" },
+    );
+
+    // SKILL.md (# Skill) renders as a formatted heading, not raw source.
+    const heading = await screen.findByRole("heading", { name: "Skill" });
+    expect(heading.tagName).toBe("H1");
+    expect(screen.queryByTestId("skill-code-editor")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it("switches a markdown file to a code editor when entering edit mode", async () => {
+    await renderWithI18n(
+      <SkillFileEditor
+        skillId="skill-1"
+        skillName="writer"
+        isOpen={true}
+        mode="inline"
+      />,
+      { language: "en" },
+    );
+
+    await screen.findByRole("heading", { name: "Skill" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+
+    const editor = await screen.findByRole("textbox", { name: "Code editor" });
+    expect(editor).toHaveValue("# Skill\n\nBody");
+    // The rendered heading is gone once we drop into source editing.
+    expect(
+      screen.queryByRole("heading", { name: "Skill" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("strips frontmatter in markdown preview but keeps it editable in source mode", async () => {
+    installWindowMocks({
+      api: {
+        skill: {
+          listLocalFiles: vi.fn().mockResolvedValue([
+            { path: "SKILL.md", isDirectory: false, size: 96 },
+          ]),
+          readLocalFile: vi.fn().mockResolvedValue({
+            path: "SKILL.md",
+            isDirectory: false,
+            content:
+              "---\nname: writer\ndescription: a test skill\n---\n# Writer Skill\n\nInstructions here",
+          }),
+        },
+      },
+    });
+
+    await renderWithI18n(
+      <SkillFileEditor
+        skillId="skill-1"
+        skillName="writer"
+        isOpen={true}
+        mode="inline"
+      />,
+      { language: "en" },
+    );
+
+    // Frontmatter is stripped: the heading renders, the raw metadata does not.
+    await screen.findByRole("heading", { name: "Writer Skill" });
+    expect(screen.queryByText("name: writer")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("description: a test skill"),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+
+    // Source mode shows the complete file, including frontmatter.
+    const editor = await screen.findByRole("textbox", { name: "Code editor" });
+    expect(editor).toHaveValue(
+      "---\nname: writer\ndescription: a test skill\n---\n# Writer Skill\n\nInstructions here",
+    );
+  });
+
+  it("returns to rendered preview after canceling markdown edits", async () => {
+    await renderWithI18n(
+      <SkillFileEditor
+        skillId="skill-1"
+        skillName="writer"
+        isOpen={true}
+        mode="inline"
+      />,
+      { language: "en" },
+    );
+
+    await screen.findByRole("heading", { name: "Skill" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Code editor" }), {
+      target: { value: "# Changed title" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    // Cancel exits source mode and discards the edit, restoring the preview.
+    await screen.findByRole("heading", { name: "Skill" });
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Changed title" }),
+    ).not.toBeInTheDocument();
   });
 });
