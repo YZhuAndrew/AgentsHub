@@ -48,7 +48,7 @@
 - 🚀 **启动行为设置**：新增三项启动控制——① 应用启动后默认打开主界面（`minimizeOnLaunch` 默认值由开启改为关闭，用户仍可手动开启"启动时最小化到托盘"）；② 新增"启动界面"设置（默认恢复上次界面，可固定为提示词 / Agents / 技能 / MCP / 插件 / 规则）；③ 开机自启动（`launchAtStartup`，默认关闭，复用既有实现）
   - **Startup Behavior Settings**: Three startup controls — ① the main window now opens by default on launch (`minimizeOnLaunch` default flipped to off; users can still enable "minimize on launch"); ② new "Startup View" setting (defaults to last-used; can be pinned to Prompts / Agents / Skills / MCP / Plugins / Rules); ③ launch at system startup (`launchAtStartup`, default off, reusing the existing implementation)
 
-## [0.6.0-beta.1] - Unreleased
+## [0.6.0-beta.1] - 2026-08-13
 
 ### 新功能 / Features
 
