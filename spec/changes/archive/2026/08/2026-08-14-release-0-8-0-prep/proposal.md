@@ -2,8 +2,8 @@
 
 ## Phase And Status
 
-- Phase: implement
-- Status: in-progress
+- Phase: converge
+- Status: published (v0.8.0 released 2026-08-14, run `31835755727`)
 - Primary requirement: `FR-REL080-001`
 - Exit condition: all product distributions report `0.8.0`, the changelog and
   release record document the changes shipped since `v0.7.2`, generated website

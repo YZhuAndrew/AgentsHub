@@ -54,3 +54,13 @@ stable metadata. No database, filesystem, or user-data migration is involved.
 - Previous stable record: `spec/releases/0.5.9.md`
 - Website boundary:
   `spec/changes/archive/2026/07/2026-07-30-website-release-metadata-stable-boundary/`
+
+## Archive Note (2026-08-14)
+
+Archived as superseded. The fork stable line moved to 0.7.x and then 0.8.0;
+`0.6.0` itself never published as a stable release. Only the historical
+`0.6.0-beta.1` prerelease was published (2026-08-13) as a manual-testing
+artifact below the stable line. The exit condition "0.6.0 promoted to a
+stable release record" is no longer reachable; version alignment is owned by
+the fork release line through `spec/releases/0.7.*.md` and
+`spec/releases/0.8.0.md`.

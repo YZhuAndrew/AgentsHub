@@ -19,9 +19,13 @@
 - [x] `T-REL080-005` Run `pnpm verify:release:quick` and the full
       `pnpm verify:release` gate; record results and residual risks
       (`NFR-REL080-001`, `TEST-REL080-005`).
-- [ ] `T-REL080-006` Pause for maintainer confirmation; then commit, tag
+- [x] `T-REL080-006` Pause for maintainer confirmation; then commit, tag
       `v0.8.0`, trigger the release workflow, promote the draft to latest,
       and update the release record to `Published`.
-- [ ] `T-REL080-007` Post-publish convergence: close #200/#201/#202, refresh
+- [x] `T-REL080-007` Post-publish convergence: close #200/#201/#202, refresh
       issue snapshots and the local delivery overlay, then archive completed
       active changes and regenerate `spec/changes/index.md`.
+  - Publication: run `31835755727` green, release promoted to latest
+    2026-08-14. #200/#201/#202 live on upstream `legeling/PromptHub` where
+    the fork credentials are read-only, so the GitHub issues stay open and
+    the local overlay records `released` (fork 0.8.0) instead.

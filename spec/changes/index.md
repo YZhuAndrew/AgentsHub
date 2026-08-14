@@ -7,8 +7,8 @@ file manually. Run the generator after adding, moving, or archiving a change.
 
 | State | Count |
 | --- | ---: |
-| Active | 70 |
-| Archived | 189 |
+| Active | 50 |
+| Archived | 209 |
 | Legacy | 1 |
 
 ## Active
@@ -19,18 +19,13 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `agent-provider-protocol-bridge` | active | `spec/changes/active/agent-provider-protocol-bridge/` |
 | `app-shell-left-rail` | in progress | `spec/changes/active/app-shell-left-rail/` |
 | `brand-agentshub-prompthub-replacement` | active | `spec/changes/active/brand-agentshub-prompthub-replacement/` |
-| `cli-agent-management` | implemented | `spec/changes/active/cli-agent-management/` |
-| `cli-feature-completeness` | active | `spec/changes/active/cli-feature-completeness/` |
-| `cli-install-manual-fallback` | active | `spec/changes/active/cli-install-manual-fallback/` |
 | `cloud-account-store-client` | active | `spec/changes/active/cloud-account-store-client/` |
 | `cloud-collaborative-prompt-sharing` | active | `spec/changes/active/cloud-collaborative-prompt-sharing/` |
 | `desktop-arch-trim-mac-arm64-win-x64` | active | `spec/changes/active/desktop-arch-trim-mac-arm64-win-x64/` |
-| `desktop-dev-server-loopback-isolation` | active | `spec/changes/active/desktop-dev-server-loopback-isolation/` |
 | `desktop-frontend-animation-system` | active | `spec/changes/active/desktop-frontend-animation-system/` |
 | `desktop-frontend-perf-tuneup` | active | `spec/changes/active/desktop-frontend-perf-tuneup/` |
 | `desktop-home-layout-controls` | active | `spec/changes/active/desktop-home-layout-controls/` |
 | `desktop-image-generation-workbench` | active | `spec/changes/active/desktop-image-generation-workbench/` |
-| `desktop-issue-179-configured-skill-targets` | active | `spec/changes/active/desktop-issue-179-configured-skill-targets/` |
 | `desktop-issue-192-copy-action-parity` | active | `spec/changes/active/desktop-issue-192-copy-action-parity/` |
 | `desktop-prompt-context-move` | active | `spec/changes/active/desktop-prompt-context-move/` |
 | `desktop-prompt-list-projection` | active | `spec/changes/active/desktop-prompt-list-projection/` |
@@ -38,49 +33,34 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `desktop-skill-ui-size-performance` | active | `spec/changes/active/desktop-skill-ui-size-performance/` |
 | `desktop-update-dialog-polish` | active | `spec/changes/active/desktop-update-dialog-polish/` |
 | `desktop-workspace-live-refresh` | active | `spec/changes/active/desktop-workspace-live-refresh/` |
-| `fix-trae-work-cn-root-dir` | active | `spec/changes/active/fix-trae-work-cn-root-dir/` |
-| `fix-upgrade-backup-symlinks` | active | `spec/changes/active/fix-upgrade-backup-symlinks/` |
 | `git-backup-transports` | active | `spec/changes/active/git-backup-transports/` |
 | `grok-build-platform-support` | active | `spec/changes/active/grok-build-platform-support/` |
 | `homepage-changelog-route-retirement` | active | `spec/changes/active/homepage-changelog-route-retirement/` |
 | `legacy-upgrade-recovery-audit` | active | `spec/changes/active/legacy-upgrade-recovery-audit/` |
 | `macos-developer-id-signing` | active | `spec/changes/active/macos-developer-id-signing/` |
-| `macos-unsigned-fork-notice` | active | `spec/changes/active/macos-unsigned-fork-notice/` |
 | `marketplace-expansion` | active | `spec/changes/active/marketplace-expansion/` |
 | `mcp-version-history-and-projection-safety` | active | `spec/changes/active/mcp-version-history-and-projection-safety/` |
 | `mobile-app-shell` | active | `spec/changes/active/mobile-app-shell/` |
 | `mobile-prompt-persistence-hardening` | release-pending | `spec/changes/active/mobile-prompt-persistence-hardening/` |
 | `mobile-webdav-distribution` | active | `spec/changes/active/mobile-webdav-distribution/` |
 | `official-cloud-backup-and-saas-platform` | implemented | `spec/changes/active/official-cloud-backup-and-saas-platform/` |
-| `persistent-tray-icon` | active | `spec/changes/active/persistent-tray-icon/` |
-| `pi-agent-separation` | active | `spec/changes/active/pi-agent-separation/` |
 | `platform-workbench-prototype` | in progress | `spec/changes/active/platform-workbench-prototype/` |
 | `plugin-issue-190-multi-native-manifests` | active | `spec/changes/active/plugin-issue-190-multi-native-manifests/` |
 | `plugin-management` | active | `spec/changes/active/plugin-management/` |
 | `project-skill-management` | in progress | `spec/changes/active/project-skill-management/` |
-| `prompt-output-format-contribution` | active | `spec/changes/active/prompt-output-format-contribution/` |
 | `prompt-workspace-completion` | active | `spec/changes/active/prompt-workspace-completion/` |
-| `qwenwork-agent-platform-support` | active | `spec/changes/active/qwenwork-agent-platform-support/` |
 | `r2-direct-downloads` | active | `spec/changes/active/r2-direct-downloads/` |
 | `readme-screenshots-v0-5-6` | active | `spec/changes/active/readme-screenshots-v0-5-6/` |
-| `release-0-6-0-version-alignment` | active | `spec/changes/active/release-0-6-0-version-alignment/` |
 | `release-0-8-0-prep` | active | `spec/changes/active/release-0-8-0-prep/` |
 | `republish-0-5-9-20260714` | active | `spec/changes/active/republish-0-5-9-20260714/` |
-| `restore-window-state` | active | `spec/changes/active/restore-window-state/` |
 | `risk-aware-verification-harness` | active | `spec/changes/active/risk-aware-verification-harness/` |
 | `rules-agent-source-matrix` | active | `spec/changes/active/rules-agent-source-matrix/` |
 | `rules-issue-193-missing-project-reconciliation` | active | `spec/changes/active/rules-issue-193-missing-project-reconciliation/` |
-| `rules-managed-copies` | in progress | `spec/changes/active/rules-managed-copies/` |
 | `self-hosted-skill-sync-reliability` | active | `spec/changes/active/self-hosted-skill-sync-reliability/` |
 | `skill-batch-import-zip-and-multi-url` | active | `spec/changes/active/skill-batch-import-zip-and-multi-url/` |
-| `skill-file-markdown-preview` | shipped | `spec/changes/active/skill-file-markdown-preview/` |
-| `skill-git-import-progress` | active | `spec/changes/active/skill-git-import-progress/` |
-| `skill-list-enhance` | active | `spec/changes/active/skill-list-enhance/` |
 | `skill-uninstall-lifecycle` | active | `spec/changes/active/skill-uninstall-lifecycle/` |
 | `skills-issue-194-shared-global-target` | active | `spec/changes/active/skills-issue-194-shared-global-target/` |
-| `startup-behavior-settings` | active | `spec/changes/active/startup-behavior-settings/` |
 | `sync-issue-191-safety-report-contract` | active | `spec/changes/active/sync-issue-191-safety-report-contract/` |
-| `unify-skill-platform-visibility` | active | `spec/changes/active/unify-skill-platform-visibility/` |
 | `update-channel-hardening` | active | `spec/changes/active/update-channel-hardening/` |
 | `web-agent-service-parity` | active | `spec/changes/active/web-agent-service-parity/` |
 | `web-sync-contract-completion` | active | `spec/changes/active/web-sync-contract-completion/` |
@@ -279,6 +259,26 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `2026-08-12-database-migration-safety` | archived | `spec/changes/archive/2026/08/2026-08-12-database-migration-safety/` |
 | `2026-08-12-storage-recovery-review-fixes` | archived | `spec/changes/archive/2026/08/2026-08-12-storage-recovery-review-fixes/` |
 | `2026-08-13-release-0-6-0-beta-1-readiness` | archived | `spec/changes/archive/2026/08/2026-08-13-release-0-6-0-beta-1-readiness/` |
+| `2026-08-14-cli-agent-management` | archived | `spec/changes/archive/2026/08/2026-08-14-cli-agent-management/` |
+| `2026-08-14-cli-feature-completeness` | archived | `spec/changes/archive/2026/08/2026-08-14-cli-feature-completeness/` |
+| `2026-08-14-cli-install-manual-fallback` | archived | `spec/changes/archive/2026/08/2026-08-14-cli-install-manual-fallback/` |
+| `2026-08-14-desktop-dev-server-loopback-isolation` | archived | `spec/changes/archive/2026/08/2026-08-14-desktop-dev-server-loopback-isolation/` |
+| `2026-08-14-desktop-issue-179-configured-skill-targets` | archived | `spec/changes/archive/2026/08/2026-08-14-desktop-issue-179-configured-skill-targets/` |
+| `2026-08-14-fix-trae-work-cn-root-dir` | archived | `spec/changes/archive/2026/08/2026-08-14-fix-trae-work-cn-root-dir/` |
+| `2026-08-14-fix-upgrade-backup-symlinks` | archived | `spec/changes/archive/2026/08/2026-08-14-fix-upgrade-backup-symlinks/` |
+| `2026-08-14-macos-unsigned-fork-notice` | archived | `spec/changes/archive/2026/08/2026-08-14-macos-unsigned-fork-notice/` |
+| `2026-08-14-persistent-tray-icon` | archived | `spec/changes/archive/2026/08/2026-08-14-persistent-tray-icon/` |
+| `2026-08-14-pi-agent-separation` | archived | `spec/changes/archive/2026/08/2026-08-14-pi-agent-separation/` |
+| `2026-08-14-prompt-output-format-contribution` | archived | `spec/changes/archive/2026/08/2026-08-14-prompt-output-format-contribution/` |
+| `2026-08-14-qwenwork-agent-platform-support` | archived | `spec/changes/archive/2026/08/2026-08-14-qwenwork-agent-platform-support/` |
+| `2026-08-14-release-0-6-0-version-alignment` | archived | `spec/changes/archive/2026/08/2026-08-14-release-0-6-0-version-alignment/` |
+| `2026-08-14-restore-window-state` | archived | `spec/changes/archive/2026/08/2026-08-14-restore-window-state/` |
+| `2026-08-14-rules-managed-copies` | archived | `spec/changes/archive/2026/08/2026-08-14-rules-managed-copies/` |
+| `2026-08-14-skill-file-markdown-preview` | archived | `spec/changes/archive/2026/08/2026-08-14-skill-file-markdown-preview/` |
+| `2026-08-14-skill-git-import-progress` | archived | `spec/changes/archive/2026/08/2026-08-14-skill-git-import-progress/` |
+| `2026-08-14-skill-list-enhance` | archived | `spec/changes/archive/2026/08/2026-08-14-skill-list-enhance/` |
+| `2026-08-14-startup-behavior-settings` | archived | `spec/changes/archive/2026/08/2026-08-14-startup-behavior-settings/` |
+| `2026-08-14-unify-skill-platform-visibility` | archived | `spec/changes/archive/2026/08/2026-08-14-unify-skill-platform-visibility/` |
 
 ## Legacy
 

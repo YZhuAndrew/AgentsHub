@@ -2,9 +2,19 @@
 
 ## Status
 
-- State: open
+- State: open (partially reduced 2026-08-14)
 - Created: 2026-07-10
 - Owner surface: internal documentation governance
+- 2026-08-14 progress: 20 all-tasks-complete changes moved to
+  `spec/changes/archive/2026/08/2026-08-14-*` during the 0.8.0 release
+  convergence, including lifecycle-review candidates
+  `cli-install-manual-fallback`, `desktop-issue-179-configured-skill-targets`,
+  `rules-managed-copies`, and `release-0-6-0-version-alignment` (archived as
+  superseded with an archive note). Remaining zero-unchecked-task changes
+  left active pending evidence: `desktop-arch-trim-mac-arm64-win-x64`
+  (status in-progress), `mobile-app-shell` (no release-record evidence),
+  `self-hosted-skill-sync-reliability` (tied to open #185), and
+  `update-channel-hardening` (one open prerelease-policy decision task).
 - Related changes:
   `spec/changes/archive/2026/07/2026-07-10-spec-init-upstream-alignment/`
   and
