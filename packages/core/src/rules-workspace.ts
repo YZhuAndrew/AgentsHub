@@ -7,7 +7,10 @@ import {
   getPlatformById,
   type SkillPlatform,
 } from "@prompthub/shared/constants/platforms";
-import { KNOWN_RULE_FILE_TEMPLATES } from "@prompthub/shared/constants/rules";
+import {
+  KNOWN_RULE_FILE_TEMPLATES,
+  PROJECT_RULE_FILE_TEMPLATES,
+} from "@prompthub/shared/constants/rules";
 import type {
   CustomRuleFileId,
   CreateRuleProjectInput,
@@ -25,16 +28,15 @@ import type {
   RuleVersionSnapshot,
 } from "@prompthub/shared/types";
 
-import { initDatabase, RuleDB } from "./database";
-import {
-  getDefaultPlatformGlobalRulePath,
-  getDefaultPlatformRootDir,
-} from "./platform-paths";
-import { getRulesDir } from "./runtime-paths";
+import { RuleDB } from "./database";
 export type {
   ExtraGlobalRuleTemplate,
   RulesWorkspaceService,
   RulesWorkspaceServiceDeps,
+} from "./rules-workspace-support";
+export {
+  resolveDisplayedRuleFileName,
+  ruleGroupForKnownId,
 } from "./rules-workspace-support";
 import {
   LEGACY_RULE_HISTORY_DIR_NAME,
@@ -44,6 +46,7 @@ import {
   RULE_VERSION_STAGING_PREFIX,
   SAFE_PROJECT_ID_PATTERN,
   assertSafeProjectId,
+  coalesceInFlight,
   createSiblingTempDirectory,
   encodeRuleId,
   ensureDir,
@@ -83,7 +86,6 @@ interface ReadRuleVersionsResult {
   versions: RuleVersionSnapshot[];
   repaired: boolean;
 }
-
 export function createRulesWorkspaceService(
   deps: RulesWorkspaceServiceDeps,
 ): RulesWorkspaceService {
@@ -91,6 +93,13 @@ export function createRulesWorkspaceService(
     RuleFileId,
     Promise<AppendRuleVersionResult>
   >();
+  const pendingGlobalRuleMaterializations = new Map<
+    KnownRuleFileId | CustomRuleFileId, Promise<StoredRuleMeta>
+  >();
+
+  function assertStorageAvailable(): void {
+    deps.assertStorageAvailable?.();
+  }
 
   function getAllGlobalRuleTemplates(): Array<
     | (typeof KNOWN_RULE_FILE_TEMPLATES)[KnownRuleFileId]
@@ -245,6 +254,7 @@ export function createRulesWorkspaceService(
     ruleId: RuleFileId,
     index: StoredRuleVersionIndexEntry[],
   ): Promise<void> {
+    assertStorageAvailable();
     await writeJsonFile(getRuleVersionIndexPath(ruleId), index);
   }
 
@@ -482,6 +492,7 @@ export function createRulesWorkspaceService(
     ruleId: RuleFileId,
     versions: RuleVersionSnapshot[],
   ): Promise<StoredRuleVersionIndexEntry[]> {
+    assertStorageAvailable();
     const versionDir = getRuleVersionsDir(ruleId);
     const stagingDir = await createSiblingTempDirectory(
       versionDir,
@@ -566,6 +577,7 @@ export function createRulesWorkspaceService(
     content: string,
     source: RuleVersionSnapshot["source"],
   ): Promise<AppendRuleVersionResult> {
+    assertStorageAvailable();
     const previousWrite =
       pendingRuleVersionWrites.get(ruleId) ??
       Promise.resolve<AppendRuleVersionResult>({
@@ -642,6 +654,7 @@ export function createRulesWorkspaceService(
     meta: StoredRuleMeta,
     content: string,
   ): Promise<void> {
+    assertStorageAvailable();
     await writeTextFileAtomic(meta.managedPath, content);
   }
 
@@ -649,6 +662,7 @@ export function createRulesWorkspaceService(
     meta: StoredRuleMeta,
     content: string,
   ): Promise<RuleSyncStatus> {
+    assertStorageAvailable();
     try {
       await fsp.mkdir(path.dirname(meta.targetPath), { recursive: true });
       await fsp.writeFile(meta.targetPath, content, "utf-8");
@@ -665,6 +679,7 @@ export function createRulesWorkspaceService(
   }
 
   async function writeMeta(meta: StoredRuleMeta): Promise<void> {
+    assertStorageAvailable();
     await writeJsonFile(getRuleMetaPath(meta.managedPath), meta);
   }
 
@@ -832,6 +847,7 @@ export function createRulesWorkspaceService(
   }
 
   async function syncRuleIndex(meta: StoredRuleMeta): Promise<void> {
+    assertStorageAvailable();
     const db = getRuleDb();
     const content = (await fileExists(meta.managedPath))
       ? await fsp.readFile(meta.managedPath, "utf-8")
@@ -851,12 +867,13 @@ export function createRulesWorkspaceService(
     content: string,
     versionIndex: StoredRuleVersionIndexEntry[],
   ): Promise<void> {
+    assertStorageAvailable();
     const db = getRuleDb();
     db.upsert(toRuleRecord(meta, versionIndex.length, hashContent(content)));
     db.replaceVersions(meta.id, toRuleVersionRecords(meta.id, versionIndex));
   }
 
-  async function ensureGlobalRuleMaterialized(
+  async function materializeGlobalRule(
     ruleId: KnownRuleFileId | CustomRuleFileId,
   ): Promise<StoredRuleMeta> {
     const customTemplate = deps
@@ -912,6 +929,16 @@ export function createRulesWorkspaceService(
     await writeMeta(meta);
     await syncRuleIndex(meta);
     return meta;
+  }
+
+  async function ensureGlobalRuleMaterialized(
+    ruleId: KnownRuleFileId | CustomRuleFileId,
+  ): Promise<StoredRuleMeta> {
+    return coalesceInFlight(
+      pendingGlobalRuleMaterializations,
+      ruleId,
+      () => materializeGlobalRule(ruleId),
+    );
   }
 
   async function listProjectMetaPaths(): Promise<string[]> {
@@ -1236,34 +1263,39 @@ export function createRulesWorkspaceService(
       throw new Error("Rule project name and rootPath are required");
     }
 
+    const template = PROJECT_RULE_FILE_TEMPLATES[input.kind ?? "workspace"];
+    const targetPath = path.join(rootPath, ...template.relativePath.split("/"));
     const existingProjectMeta = await Promise.all(
       (await listProjectMetaPaths()).map((metaPath) =>
         readStoredMeta(metaPath),
       ),
     );
     const duplicate = existingProjectMeta.find(
-      (meta) => meta?.projectRootPath?.toLowerCase() === rootPath.toLowerCase(),
+      (meta) => meta && pathsEqual(meta.targetPath, targetPath),
     );
     if (duplicate) {
-      throw new Error("Rule project root path already exists");
+      throw new Error("Rule project target path already exists");
     }
 
     const projectId = input.id ?? crypto.randomUUID();
     assertSafeProjectId(projectId);
     const ruleId = `project:${projectId}` as RuleFileId;
     const dirName = `${slugify(name)}__${projectId}`;
-    const managedPath = path.join(getRuleProjectsRoot(), dirName, "AGENTS.md");
-    const targetPath = path.join(rootPath, "AGENTS.md");
+    const managedPath = path.join(
+      getRuleProjectsRoot(),
+      dirName,
+      template.canonicalFileName,
+    );
     const now = new Date().toISOString();
     const meta: StoredRuleMeta = {
       id: ruleId,
       scope: "project",
-      platformId: "workspace",
-      platformName: name,
-      platformIcon: "FolderRoot",
+      platformId: template.platformId,
+      platformName: input.kind === "cursor" ? `${name} / Cursor` : name,
+      platformIcon: template.platformIcon,
       platformDescription: `Project rules from ${rootPath}`,
-      canonicalFileName: "AGENTS.md",
-      description: "Project rule file loaded from a user-managed directory.",
+      canonicalFileName: template.canonicalFileName,
+      description: template.description,
       managedPath,
       targetPath,
       projectRootPath: rootPath,
@@ -1310,12 +1342,14 @@ export function createRulesWorkspaceService(
   }
 
   async function bootstrapRuleWorkspace(): Promise<void> {
+    assertStorageAvailable();
     await fsp.mkdir(deps.getRulesDir(), { recursive: true });
     await fsp.mkdir(getRuleProjectsRoot(), { recursive: true });
     await fsp.mkdir(getRuleVersionsRoot(), { recursive: true });
   }
 
   async function removeProjectRule(projectId: string): Promise<void> {
+    assertStorageAvailable();
     const ruleId: ProjectRuleId = `project:${projectId}`;
     const records = await Promise.all(
       (await listProjectMetaPaths()).map(async (metaPath) => ({
@@ -1420,7 +1454,11 @@ export function createRulesWorkspaceService(
         if (!existing) {
           await createProjectRule({
             id: projectId,
-            name: record.platformName,
+            kind: record.platformId === "cursor" ? "cursor" : "workspace",
+            name:
+              record.platformId === "cursor"
+                ? record.platformName.replace(/ \/ Cursor$/u, "")
+                : record.platformName,
             rootPath:
               record.projectRootPath ??
               path.dirname(record.targetPath ?? record.path),
@@ -1460,27 +1498,3 @@ export function createRulesWorkspaceService(
     importRuleBackupRecords,
   };
 }
-
-export const coreRulesWorkspaceService = createRulesWorkspaceService({
-  getRulesDir,
-  createRuleDb: () => new RuleDB(initDatabase()),
-  getPlatformGlobalRulePath: getDefaultPlatformGlobalRulePath,
-  getPlatformRootDir: getDefaultPlatformRootDir,
-});
-
-export const {
-  listRuleDescriptors,
-  listCachedRuleDescriptors,
-  scanRuleDescriptors,
-  getProjectMetaById,
-  resolveRuleMeta,
-  readRuleContent,
-  saveRuleContent,
-  deleteRuleVersion,
-  createProjectRule,
-  bootstrapRuleWorkspace,
-  removeProjectRule,
-  removeMissingProjectRules,
-  exportRuleBackupRecords,
-  importRuleBackupRecords,
-} = coreRulesWorkspaceService;

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { PromptDB } from "../../../src/main/database/prompt";
 import {
   SCHEMA_TABLES,
@@ -260,9 +260,7 @@ describe("PromptDB (in-memory SQLite)", () => {
         second.id,
       ]);
       expect(db.getChildren(parent.id).map((prompt) => prompt.order)).toEqual([
-        0,
-        1,
-        2,
+        0, 1, 2,
       ]);
     });
 
@@ -533,6 +531,37 @@ describe("PromptDB (in-memory SQLite)", () => {
       expect(versions[2]?.version).toBe(1);
     });
 
+    it("preserves ownership and visibility during direct restore", () => {
+      rawDb
+        .prepare(
+          "INSERT INTO users (id, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+        )
+        .run("user-1", "owner", "hash", 1, 1);
+      db.insertPromptDirect({
+        id: "shared-import",
+        ownerUserId: "user-1",
+        visibility: "shared",
+        title: "Shared import",
+        userPrompt: "content",
+        variables: [],
+        tags: [],
+        images: [],
+        videos: [],
+        isFavorite: false,
+        isPinned: false,
+        version: 1,
+        currentVersion: 1,
+        usageCount: 0,
+        createdAt: "2026-08-11T00:00:00.000Z",
+        updatedAt: "2026-08-11T00:00:00.000Z",
+      });
+
+      expect(db.getById("shared-import")).toMatchObject({
+        ownerUserId: "user-1",
+        visibility: "shared",
+      });
+    });
+
     it("does not delete the initial v1 snapshot", () => {
       const p = db.create({ title: "Protected baseline", userPrompt: "v1" });
       db.update(p.id, { userPrompt: "v2" });
@@ -541,9 +570,9 @@ describe("PromptDB (in-memory SQLite)", () => {
       const second = versions.find((version) => version.version === 2)!;
 
       expect(db.deleteVersion(initial.id)).toBe(false);
-      expect(db.getVersions(p.id).some((version) => version.version === 1)).toBe(
-        true,
-      );
+      expect(
+        db.getVersions(p.id).some((version) => version.version === 1),
+      ).toBe(true);
 
       expect(db.deleteVersion(second.id)).toBe(true);
       expect(db.getVersions(p.id).map((version) => version.version)).toEqual([
@@ -907,6 +936,114 @@ describe("PromptDB (in-memory SQLite)", () => {
       });
       const fetched = db.getById(p.id)!;
       expect(fetched.variables).toEqual(tricky);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // getAllMeta (list projection)
+  // ─────────────────────────────────────────────
+  describe("getAllMeta", () => {
+    it("returns the same prompt set as getAll, ordered by updated_at DESC", () => {
+      // Use explicit timestamps so ordering does not depend on wall-clock
+      // resolution (two creates in the same ms would tie on updated_at).
+      vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+      const first = db.create({ title: "Meta A", userPrompt: "a" });
+      vi.setSystemTime(new Date("2026-01-01T00:00:01.000Z"));
+      const second = db.create({ title: "Meta B", userPrompt: "b" });
+      vi.useRealTimers();
+
+      const meta = db.getAllMeta();
+      const all = db.getAll();
+
+      expect(meta.map((m) => m.id).sort()).toEqual(all.map((p) => p.id).sort());
+      expect(meta.map((m) => m.id)).toEqual([
+        second.id,
+        first.id, // updated_at DESC
+      ]);
+    });
+
+    it("projects list fields onto the summary", () => {
+      // f1 must exist as a folder because prompts.folder_id has an FK.
+      rawDb
+        .prepare(
+          `INSERT INTO folders (id, name, sort_order, created_at, updated_at)
+           VALUES (?, ?, 0, ?, ?)`,
+        )
+        .run("f1", "Folder", 1700000000000, 1700000000000);
+
+      const p = db.create({
+        title: "Projected",
+        userPrompt: "user body",
+        systemPrompt: "system body",
+        description: "desc text",
+        promptType: "image",
+        tags: ["t1", "t2"],
+        folderId: "f1",
+        images: ["img.png"],
+        videos: ["vid.mp4"],
+        source: "https://example.com",
+      });
+      // isFavorite is only mutable via update (create always seeds 0).
+      db.update(p.id, { isFavorite: true });
+
+      const meta = db.getAllMeta();
+      expect(meta).toHaveLength(1);
+      const m = meta[0];
+      expect(m.id).toBe(p.id);
+      expect(m.title).toBe("Projected");
+      expect(m.description).toBe("desc text");
+      expect(m.promptType).toBe("image");
+      expect(m.tags).toEqual(["t1", "t2"]);
+      expect(m.folderId).toBe("f1");
+      expect(m.images).toEqual(["img.png"]);
+      expect(m.videos).toEqual(["vid.mp4"]);
+      expect(m.isFavorite).toBe(true);
+      expect(m.isPinned).toBe(false);
+      expect(m.source).toBe("https://example.com");
+      expect(m.usageCount).toBe(0);
+      expect(m.currentVersion).toBe(1);
+      expect(m.createdAt).toBeDefined();
+      expect(m.updatedAt).toBeDefined();
+    });
+
+    it("does NOT leak large text fields into the summary", () => {
+      db.create({
+        title: "Secret",
+        userPrompt: "A very long user prompt body ".repeat(200),
+        systemPrompt: "system body".repeat(100),
+        notes: "private notes".repeat(50),
+        lastAiResponse: "ai output".repeat(80),
+        variables: [{ name: "v", type: "text", required: true }],
+      });
+
+      const meta = db.getAllMeta()[0];
+      const serialized = JSON.stringify(meta);
+
+      expect(meta).not.toHaveProperty("userPrompt");
+      expect(meta).not.toHaveProperty("userPromptEn");
+      expect(meta).not.toHaveProperty("systemPrompt");
+      expect(meta).not.toHaveProperty("systemPromptEn");
+      expect(meta).not.toHaveProperty("notes");
+      expect(meta).not.toHaveProperty("lastAiResponse");
+      expect(meta).not.toHaveProperty("variables");
+      // The repeated bodies must not appear anywhere in the projection
+      expect(serialized).not.toContain("user prompt body");
+      expect(serialized).not.toContain("system body");
+      expect(serialized).not.toContain("private notes");
+      expect(serialized).not.toContain("ai output");
+    });
+
+    it("handles null-byte-laden titles without silent data loss", () => {
+      const title = "Null\u0000byte title";
+      const p = db.create({ title, userPrompt: "p" });
+      const meta = db.getAllMeta();
+      const m = meta.find((x) => x.id === p.id);
+      expect(m).toBeDefined();
+      expect(m!.title).toBeDefined();
+    });
+
+    it("returns an empty array when there are no prompts", () => {
+      expect(db.getAllMeta()).toEqual([]);
     });
   });
 });

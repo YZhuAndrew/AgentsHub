@@ -6,7 +6,6 @@ import {
   DownloadIcon,
   FileJsonIcon,
   Loader2Icon,
-  PlusIcon,
   ServerIcon,
   TrashIcon,
 } from "lucide-react";
@@ -18,6 +17,7 @@ import type {
 } from "@prompthub/shared/types/mcp";
 import type { ManagedAgentSummary } from "@prompthub/shared/types";
 import { AgentMcpEntryDetail } from "../mcp/AgentMcpEntryDetail";
+import { McpLibraryDeployDialog } from "../mcp/McpLibraryDeployDialog";
 import {
   buildAgentMcpImportDraft,
   findAgentMcpServer,
@@ -32,6 +32,7 @@ import {
   AgentAssetCard,
   AgentAssetCardContent,
   AgentAssetManagementSurface,
+  AgentAssetPrimaryAction,
 } from "./AgentAssetManagementSurface";
 import { useBoundedPage } from "./BoundedListPager";
 
@@ -269,16 +270,17 @@ export function AgentMcpAssetPanel({
   const load = useMcpStore((state) => state.load);
   const refreshTargetStatus = useMcpStore((state) => state.refreshTargetStatus);
   const createServer = useMcpStore((state) => state.createServer);
+  const applyTarget = useMcpStore((state) => state.applyTarget);
   const removeTargetNames = useMcpStore((state) => state.removeTargetNames);
   const selectServer = useMcpStore((state) => state.selectServer);
   const setSelectedTab = useMcpStore((state) => state.setSelectedTab);
-  const setSelectedTargetId = useMcpStore((state) => state.setSelectedTargetId);
   const setAppModule = useUIStore((state) => state.setAppModule);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<AgentMcpFilter>("all");
   const [selectedCardKey, setSelectedCardKey] = useState<string | null>(null);
   const [busyServerKey, setBusyServerKey] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [pendingRemoval, setPendingRemoval] = useState<AgentMcpCard | null>(
     null,
   );
@@ -392,6 +394,43 @@ export function AgentMcpAssetPanel({
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const deployFromLibrary = async (serverIds: string[]): Promise<void> => {
+    const preset = scopedPresets[0];
+    if (!preset) {
+      throw new Error(
+        t("mcp.noAgentTargets", "No enabled MCP target is available."),
+      );
+    }
+    const target = {
+      target: preset.target,
+      scope: preset.scope,
+      path: preset.path,
+      serverIds,
+    } as const;
+    try {
+      await applyTarget(target);
+    } catch (actionError) {
+      const message = getErrorMessage(actionError);
+      const isConflict =
+        message.includes("TARGET_CONFLICT") ||
+        message.includes("同名 MCP 服务");
+      if (
+        !isConflict ||
+        !window.confirm(
+          t("mcp.confirmTargetOverwrite", {
+            message,
+            defaultValue: `${message}\n\nOverwrite the existing target MCP entry?`,
+          }),
+        )
+      ) {
+        throw actionError;
+      }
+      await applyTarget({ ...target, force: true });
+    }
+    await refreshTargetStatus();
+    showToast(t("mcp.applied", "MCP applied"), "success");
   };
 
   const openManaged = (server: McpServerConfig): void => {
@@ -541,7 +580,6 @@ export function AgentMcpAssetPanel({
         }))}
         activeFilter={filter}
         onFilterChange={(filterKey) => setFilter(filterKey as AgentMcpFilter)}
-        path={agent.paths.mcp}
         refreshLabel={t("agents.refreshCurrentAsset", "Refresh current view")}
         onRefresh={() => void refresh()}
         isRefreshing={isLoading || isRefreshing}
@@ -556,19 +594,19 @@ export function AgentMcpAssetPanel({
           ) : null
         }
         primaryAction={
-          <button
-            type="button"
+          <AgentAssetPrimaryAction
             onClick={() => {
-              setAppModule("mcp");
-              setSelectedTab("targets");
-              setSelectedTargetId(scopedPresets[0]?.id ?? null);
+              if (scopedPresets[0]) {
+                setIsAddDialogOpen(true);
+                return;
+              }
+              showToast(
+                t("mcp.noAgentTargets", "No enabled MCP target is available."),
+                "error",
+              );
             }}
-            disabled={scopedPresets.length === 0}
-            className="inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-3 text-xs font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-60"
-          >
-            <PlusIcon aria-hidden="true" className="h-3.5 w-3.5" />
-            {t("mcp.addMcp", "Add MCP")}
-          </button>
+            label={t("mcp.addMcp", "Add MCP")}
+          />
         }
         listTestId="mcp-agent-server-list"
         gridTestId="mcp-agent-grid"
@@ -623,6 +661,15 @@ export function AgentMcpAssetPanel({
         variant="destructive"
         isLoading={isRemoving}
       />
+      {isAddDialogOpen && scopedPresets[0] ? (
+        <McpLibraryDeployDialog
+          preset={scopedPresets[0]}
+          servers={library?.servers ?? []}
+          targetStatus={scopedStatus}
+          onClose={() => setIsAddDialogOpen(false)}
+          onApply={deployFromLibrary}
+        />
+      ) : null}
     </>
   );
 }

@@ -48,12 +48,13 @@ describe("rules workspace storage", () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  function createGlobalRulesTestService() {
+  function createGlobalRulesTestService(assertStorageAvailable?: () => void) {
     const homeDir = path.join(tempDir, "home");
     fs.mkdirSync(homeDir, { recursive: true });
 
     return createRulesWorkspaceService({
       getRulesDir,
+      assertStorageAvailable,
       createRuleDb: () => new RuleDB(initDatabase()),
       getPlatformGlobalRulePath: (platform) => {
         if (platform.id === "claude") {
@@ -71,6 +72,16 @@ describe("rules workspace storage", () => {
       },
     });
   }
+
+  it("blocks rule mutations while structural storage maintenance is active", async () => {
+    const service = createGlobalRulesTestService(() => {
+      throw new Error("storage maintenance active");
+    });
+
+    await expect(service.bootstrapRuleWorkspace()).rejects.toThrow(
+      "storage maintenance active",
+    );
+  });
 
   it("creates a managed project rule and indexes it in SQLite", async () => {
     const projectRoot = path.join(tempDir, "docs-site");
@@ -106,6 +117,59 @@ describe("rules workspace storage", () => {
         currentVersion: 1,
       }),
     );
+  });
+
+  it("manages Cursor project MDC rules beside an independent AGENTS.md rule", async () => {
+    const projectRoot = path.join(tempDir, "cursor-project");
+    const cursorTarget = path.join(
+      projectRoot,
+      ".cursor",
+      "rules",
+      "prompthub.mdc",
+    );
+    fs.mkdirSync(path.dirname(cursorTarget), { recursive: true });
+    fs.writeFileSync(
+      cursorTarget,
+      "---\ndescription: Existing Cursor rule\nalwaysApply: true\n---\n\n# Existing\n",
+      "utf8",
+    );
+
+    await createProjectRule({
+      id: "cursor-project",
+      name: "Cursor Project",
+      rootPath: projectRoot,
+    });
+    const cursor = await createProjectRule({
+      id: "cursor-project.cursor",
+      kind: "cursor",
+      name: "Cursor Project",
+      rootPath: projectRoot,
+    });
+
+    expect(cursor).toMatchObject({
+      id: "project:cursor-project.cursor",
+      platformId: "cursor",
+      name: "prompthub.mdc",
+      path: cursorTarget,
+      projectRootPath: projectRoot,
+      exists: true,
+    });
+    expect((await readRuleContent(cursor.id)).content).toContain("# Existing");
+
+    await saveRuleContent(cursor.id, "# Updated Cursor rule\n");
+    expect(fs.readFileSync(cursorTarget, "utf8")).toBe(
+      "# Updated Cursor rule\n",
+    );
+    expect(fs.existsSync(path.join(projectRoot, "AGENTS.md"))).toBe(false);
+
+    await expect(
+      createProjectRule({
+        id: "cursor-project.cursor-copy",
+        kind: "cursor",
+        name: "Cursor Project Copy",
+        rootPath: projectRoot,
+      }),
+    ).rejects.toThrow("Rule project target path already exists");
   });
 
   it("persists a missing project target across a rescan and fresh cached read", async () => {
@@ -785,12 +849,29 @@ describe("rules workspace storage", () => {
       "utf8",
     );
 
+    const originalWriteFile = fsp.writeFile.bind(fsp);
+    let claudeMetaWrites = 0;
+    vi.spyOn(fsp, "writeFile").mockImplementation(
+      async (file, data, options) => {
+        if (
+          path.basename(String(file)).startsWith("._rule.json.") &&
+          String(file).includes(`${path.sep}global${path.sep}claude${path.sep}`)
+        ) {
+          claudeMetaWrites += 1;
+        }
+
+        return originalWriteFile(file, data, options);
+      },
+    );
+
     await Promise.all([
       service.listRuleDescriptors(),
+      service.readRuleContent("claude-global"),
       service.readRuleContent("claude-global"),
     ]);
 
     const content = await service.readRuleContent("claude-global");
+    expect(claudeMetaWrites).toBe(2);
     expect(content.versions).toHaveLength(1);
     expect(content.versions[0]).toEqual(
       expect.objectContaining({

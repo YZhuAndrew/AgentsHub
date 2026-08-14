@@ -2,6 +2,12 @@
 
 ## Design Summary
 
+本轮确认的 Provider & Model 设计边界：系统级模型服务配置是跨 Agent 复用的统一 Provider Profile 层，Agent 原生配置是可验证的投影，不是第二个长期事实源。官方供应商/模型目录只读；系统级调用配置可编辑；Agent 自定义 provider/model 可完整编辑、复制和删除；内置模型仅允许官方支持的 override。系统级 Provider 引入 Agent 默认采用绑定继承，也可复制为独立配置。凭据通过安全引用跨 Agent 复用，由各 adapter 投影，明文不进入 SQLite、备份、导出或 renderer。统一模型允许按 Agent 做 model ID 映射；外部文件变更进入 drift/conflict 流程，不静默覆盖。
+
+Provider & Model 页面的左右分栏布局和 CC Switch 风格预制供应商数据/协议映射的细化设计见
+`provider-preset-catalog-design.md`。该设计保留现有激活安全管线,只借鉴 CC Switch 的预设
+组织与交互契约(MIT v3.18.0,选择性参考,不复制组件或数据模型)。
+
 The Agents workspace manages existing platform identities rather than creating a parallel Agent Profile catalog. It adds a capability-oriented adapter layer around each platform and composes existing asset services into an Agent-centered view.
 
 ```text
@@ -141,9 +147,19 @@ Current Kimi Code files are managed as separate capabilities: `config.toml` for 
 
 Model inspection reads `default_model`, the selected `[models.*]` entry, and its `[providers.*]` non-secret fields. Literal `api_key`, custom authorization headers, and credential documents never enter renderer payloads. Writes preserve semantic TOML fields, create a backup, replace atomically, re-read, and use `kimi doctor config` when the executable is available.
 
-Session listing performs one bounded linear index pass, retains at most a bounded candidate window, and reads at most `O(page size)` state files with capped concurrency. Selected transcript reads are capped by bytes and line count. No recursive traversal of `sessions/` is used, so a 10,000-session inventory has `O(index bytes)` scan cost and bounded memory.
+Session listing performs one bounded linear index pass, retains at most a bounded candidate window, and reads at most `O(page size)` state files with capped concurrency. Default `New Session` shells without `lastPrompt` are not conversations and are omitted. A listed row must resolve its contained `agents/main/wire.jsonl`; that exact file remains the transcript source path. The lifecycle projection reports the bounded footprint of the containing native session directory because permanent delete removes that directory. Selected transcript reads are capped by bytes and line count. Inventory discovery never recursively traverses all of `sessions/`; only the returned page's session directories are measured with the shared 50,000-entry per-session bound, so discovery stays `O(index bytes + page size)` with bounded concurrency and memory.
 
 ## `DES-AGENT-004`: Provider Profile Storage
+
+### System Provider Profile and Agent Binding Boundary
+
+`agent_provider_profiles` 是系统级可复用 Provider Profile 的持久化层，不应再按每个 Agent 复制一份同义配置。Provider Profile 保存规范化的非敏感 endpoint/protocol/model metadata 和 secure `secret_ref`；`agent_provider_bindings`（后续迁移）保存 Agent 绑定、目标 provider id、模型映射、继承/独立模式和 projection digest。
+
+官方 catalog 是只读的 reference source。内置 provider/model 的官方字段不能被 CRUD 修改；用户修改 endpoint、凭据、默认模型或上下文/思考参数时，必须写入 adapter 支持的 override/config 层，并在 UI 标记 `Built-in · Override`。自定义 provider/model 允许完整 CRUD 和 duplicate；详情操作栏固定为 rename、create copy、copy text 和 confirmed delete，不暴露 archive。现有 `archived` 存储字段和主进程能力暂留作兼容结构，不再作为当前 workbench 的产品操作。
+
+系统级 provider 引入 Agent 有两种明确操作：`bind`（继承系统配置）和 `clone`（复制为 Agent 独立配置）。解除绑定不删除系统 profile；删除系统 profile 前必须列出受影响的 bindings。模型身份由统一 model id 加每个 Agent 的 target model id 组成，不能假设不同 Agent 的 provider/model id 相同。
+
+Native reconciliation MUST record `baselineDigest`, `currentDigest` and `desiredDigest`. Current differs from baseline while desired also differs时返回 `drifted/conflict`，提供导入外部修改、重新投影和查看差异，不得静默覆盖。
 
 ### `agent_provider_profiles`
 
@@ -316,6 +332,9 @@ Adapters return executable plus argument arrays, never a renderer-built shell st
 - Search, metadata browse, bounded detail view, source diagnostics, and resume
   are the common baseline.
 - Transcript contents are never edited by PromptHub.
+- Archive is a PromptHub-owned metadata projection: it removes a session from
+  the Active filter and keeps it available through Archived, without modifying
+  or moving the Agent-owned transcript.
 - Platform-native delete/retention/cleanup commands may be exposed as typed
   adapter actions with preview and confirmation.
 - Raw transcript files are never permanently deleted through a generic file
@@ -723,89 +742,93 @@ inputs only and are not generic asset distribution targets.
 
 ## `DES-AGENT-018`: Traceability
 
-| Requirements                                                                                                          | Design                                                                                                                                                 | Verification                                                                                                                                                                                         | Tasks                                                                                                                                                                                                                                                                                       |
-| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `FR-AGENT-001`, `FR-AGENT-002`, `FR-AGENT-018`, `FR-AGENT-019`                                                        | `DES-AGENT-001`, `DES-AGENT-002`, `DES-AGENT-003`, `DES-AGENT-010`, `DES-AGENT-014`, `DES-AGENT-016`, `DES-AGENT-032`                                  | `TEST-AGENT-001`, `TEST-AGENT-002`, `TEST-AGENT-016`, `TEST-AGENT-019`, `TEST-AGENT-021`, `TEST-AGENT-045`                                                                                           | `T-AGENT-001`, `T-AGENT-002`, `T-AGENT-003`, `T-AGENT-004`, `T-AGENT-006`, `T-AGENT-009`, `T-AGENT-010`, `T-AGENT-011`, `T-AGENT-013`, `T-AGENT-014`, `T-AGENT-020`, `T-AGENT-021B`, `T-AGENT-026`, `T-AGENT-026A`, `T-AGENT-034`, `T-AGENT-073`, `T-AGENT-076`                             |
-| `FR-AGENT-003`, `FR-AGENT-004`, `FR-AGENT-005`, `FR-AGENT-006`, `FR-AGENT-007`                                        | `DES-AGENT-004`, `DES-AGENT-005`, `DES-AGENT-006`, `DES-AGENT-012`, `DES-AGENT-033`, `DES-AGENT-034`, `DES-AGENT-035`                                  | `TEST-AGENT-003`, `TEST-AGENT-004`, `TEST-AGENT-005`, `TEST-AGENT-006`, `TEST-AGENT-007`, `TEST-AGENT-015`, `TEST-AGENT-051`, `TEST-AGENT-052`, `TEST-AGENT-053`                                     | `T-AGENT-005`, `T-AGENT-007`, `T-AGENT-012`, `T-AGENT-015`, `T-AGENT-016`, `T-AGENT-017`, `T-AGENT-018`, `T-AGENT-019`, `T-AGENT-020`, `T-AGENT-027`, `T-AGENT-074`, `T-AGENT-075`, `T-AGENT-077`, `T-AGENT-078`, `T-AGENT-079`, `T-AGENT-086`, `T-AGENT-087`, `T-AGENT-088`, `T-AGENT-100` |
-| `FR-AGENT-008`                                                                                                        | `DES-AGENT-002`, `DES-AGENT-007`                                                                                                                       | `TEST-AGENT-008`, `TEST-AGENT-017`                                                                                                                                                                   | `T-AGENT-013`, `T-AGENT-021`, `T-AGENT-060`, `T-AGENT-076`                                                                                                                                                                                                                                  |
-| `FR-AGENT-009`                                                                                                        | `DES-AGENT-006`, `DES-AGENT-010`, `DES-AGENT-015`                                                                                                      | `TEST-AGENT-006`, `TEST-AGENT-009`, `TEST-AGENT-107`                                                                                                                                                 | `T-AGENT-015`, `T-AGENT-021`, `T-AGENT-021A`, `T-AGENT-144`                                                                                                                                                                                                                                 |
-| `FR-AGENT-010`, `FR-AGENT-015`                                                                                        | `DES-AGENT-008`, `DES-AGENT-045`, `DES-AGENT-046`, `DES-AGENT-047`, `DES-AGENT-053`, `DES-AGENT-064` in `session-index-designs.md`                     | `TEST-AGENT-010`, `TEST-AGENT-011`, `TEST-AGENT-040`, `TEST-AGENT-063`, `TEST-AGENT-064`, `TEST-AGENT-065`, `TEST-AGENT-072`, `TEST-AGENT-082`                                                       | `T-AGENT-008`, `T-AGENT-016`, `T-AGENT-022`, `T-AGENT-028`, `T-AGENT-030`, `T-AGENT-067`, `T-AGENT-069`, `T-AGENT-098`, `T-AGENT-099`, `T-AGENT-101`, `T-AGENT-108`, `T-AGENT-119`                                                                                                          |
-| `FR-AGENT-011`                                                                                                        | `DES-AGENT-009`, `DES-AGENT-015`, `DES-AGENT-033`, `DES-AGENT-034`, `DES-AGENT-035`                                                                    | `TEST-AGENT-012`, `TEST-AGENT-050`, `TEST-AGENT-051`, `TEST-AGENT-052`, `TEST-AGENT-053`                                                                                                             | `T-AGENT-017`, `T-AGENT-018`, `T-AGENT-019`, `T-AGENT-085`, `T-AGENT-086`, `T-AGENT-087`, `T-AGENT-088`                                                                                                                                                                                     |
-| `FR-AGENT-012`                                                                                                        | `DES-AGENT-011`, `DES-AGENT-048`, `DES-AGENT-050` in `tray-provider-designs.md`                                                                        | `TEST-AGENT-013`, `TEST-AGENT-066`, `TEST-AGENT-069`                                                                                                                                                 | `T-AGENT-024`, `T-AGENT-102`, `T-AGENT-105`                                                                                                                                                                                                                                                 |
-| `FR-AGENT-013`, `FR-AGENT-016`                                                                                        | `DES-AGENT-012`; `DES-AGENT-061` in `deep-link-designs.md`                                                                                             | `TEST-AGENT-014`, `TEST-AGENT-015`, `TEST-AGENT-079`                                                                                                                                                 | `T-AGENT-023`, `T-AGENT-031`, `T-AGENT-116`                                                                                                                                                                                                                                                 |
-| `FR-AGENT-014`                                                                                                        | `DES-AGENT-003`, `DES-AGENT-010`, `DES-AGENT-014`, `DES-AGENT-049`, `DES-AGENT-059`, `DES-AGENT-063`, `DES-AGENT-065` in `maintenance-cli-designs.md`  | `TEST-AGENT-016`, `TEST-AGENT-067`, `TEST-AGENT-068`, `TEST-AGENT-078`, `TEST-AGENT-081`, `TEST-AGENT-083`                                                                                           | `T-AGENT-029`, `T-AGENT-103`, `T-AGENT-104`, `T-AGENT-114`, `T-AGENT-118`, `T-AGENT-120`                                                                                                                                                                                                    |
-| `FR-AGENT-017`                                                                                                        | `DES-AGENT-013`, `DES-AGENT-016`                                                                                                                       | separate change                                                                                                                                                                                      | `T-AGENT-032`, `T-AGENT-033`                                                                                                                                                                                                                                                                |
-| `FR-AGENT-020`                                                                                                        | `DES-AGENT-003`, `DES-AGENT-010`, `DES-AGENT-014`, `DES-AGENT-015`                                                                                     | `TEST-AGENT-020`                                                                                                                                                                                     | `T-AGENT-026B`                                                                                                                                                                                                                                                                              |
-| `FR-AGENT-021`                                                                                                        | `DES-AGENT-001`, `DES-AGENT-002`, `DES-AGENT-003`, `DES-AGENT-017`                                                                                     | `TEST-AGENT-022`                                                                                                                                                                                     | `T-AGENT-026C`                                                                                                                                                                                                                                                                              |
-| `FR-AGENT-022`, `FR-AGENT-023`                                                                                        | `DES-AGENT-019`                                                                                                                                        | `TEST-AGENT-023`, `TEST-AGENT-024`                                                                                                                                                                   | `T-AGENT-040`, `T-AGENT-041`, `T-AGENT-042`, `T-AGENT-043`, `T-AGENT-044`                                                                                                                                                                                                                   |
-| `FR-AGENT-024`                                                                                                        | `DES-AGENT-020`                                                                                                                                        | `TEST-AGENT-004`, `TEST-AGENT-005`, `TEST-AGENT-007`, `TEST-AGENT-013`, `TEST-AGENT-025`, `TEST-AGENT-026`, `TEST-AGENT-027`, `TEST-AGENT-049`                                                       | `T-AGENT-045`, `T-AGENT-046`, `T-AGENT-047`, `T-AGENT-048`, `T-AGENT-049`, `T-AGENT-079`, `T-AGENT-084`                                                                                                                                                                                     |
-| `FR-AGENT-025`                                                                                                        | `DES-AGENT-021`                                                                                                                                        | `TEST-AGENT-028`                                                                                                                                                                                     | `T-AGENT-050`, `T-AGENT-051`, `T-AGENT-052`                                                                                                                                                                                                                                                 |
-| `FR-AGENT-026`                                                                                                        | `DES-AGENT-022`                                                                                                                                        | `TEST-AGENT-029`, `TEST-AGENT-030`, `TEST-AGENT-031`                                                                                                                                                 | `T-AGENT-053`, `T-AGENT-054`, `T-AGENT-055`, `T-AGENT-056`                                                                                                                                                                                                                                  |
-| `FR-AGENT-027`                                                                                                        | `DES-AGENT-023`                                                                                                                                        | `TEST-AGENT-032`, `TEST-AGENT-033`, `TEST-AGENT-035`, `TEST-AGENT-037`, `TEST-AGENT-041`                                                                                                             | `T-AGENT-057`, `T-AGENT-058`, `T-AGENT-059`, `T-AGENT-061`, `T-AGENT-065`, `T-AGENT-070`                                                                                                                                                                                                    |
-| `FR-AGENT-028`                                                                                                        | `DES-AGENT-024`                                                                                                                                        | `TEST-AGENT-034`                                                                                                                                                                                     | `T-AGENT-060`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-029`                                                                                                        | `DES-AGENT-003`, `DES-AGENT-007`, `DES-AGENT-008`, `DES-AGENT-014`, `DES-AGENT-015`, `DES-AGENT-025`; `DES-AGENT-062` in `platform-adapter-designs.md` | `TEST-AGENT-036`, `TEST-AGENT-080`                                                                                                                                                                   | `T-AGENT-062`, `T-AGENT-063`, `T-AGENT-064`, `T-AGENT-117`                                                                                                                                                                                                                                  |
-| `FR-AGENT-030`                                                                                                        | `DES-AGENT-026`                                                                                                                                        | `TEST-AGENT-038`                                                                                                                                                                                     | `T-AGENT-067`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-031`                                                                                                        | `DES-AGENT-027`                                                                                                                                        | `TEST-AGENT-039`                                                                                                                                                                                     | `T-AGENT-068`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-032`                                                                                                        | `DES-AGENT-028`                                                                                                                                        | `TEST-AGENT-040`                                                                                                                                                                                     | `T-AGENT-069`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-033`                                                                                                        | `DES-AGENT-029`                                                                                                                                        | `TEST-AGENT-042`                                                                                                                                                                                     | `T-AGENT-071`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-034`                                                                                                        | `DES-AGENT-030`                                                                                                                                        | `TEST-AGENT-043`                                                                                                                                                                                     | `T-AGENT-072`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-035`                                                                                                        | `DES-AGENT-031`                                                                                                                                        | `TEST-AGENT-044`                                                                                                                                                                                     | `T-AGENT-026D`                                                                                                                                                                                                                                                                              |
-| `FR-AGENT-036`                                                                                                        | `DES-AGENT-036`                                                                                                                                        | `TEST-AGENT-054`                                                                                                                                                                                     | `T-AGENT-089`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-037`                                                                                                        | `DES-AGENT-037`                                                                                                                                        | `TEST-AGENT-055`                                                                                                                                                                                     | `T-AGENT-090`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-038`                                                                                                        | `DES-AGENT-038` in `platform-adapter-designs.md`                                                                                                       | `TEST-AGENT-056`                                                                                                                                                                                     | `T-AGENT-091`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-039`                                                                                                        | `DES-AGENT-039` in `platform-adapter-designs.md`                                                                                                       | `TEST-AGENT-057`                                                                                                                                                                                     | `T-AGENT-092`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-040`                                                                                                        | `DES-AGENT-040` in `platform-adapter-designs.md`                                                                                                       | `TEST-AGENT-058`                                                                                                                                                                                     | `T-AGENT-093`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-041`                                                                                                        | `DES-AGENT-041` in `platform-adapter-designs.md`                                                                                                       | `TEST-AGENT-059`                                                                                                                                                                                     | `T-AGENT-094`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-042`                                                                                                        | `DES-AGENT-042` in `platform-adapter-designs.md`                                                                                                       | `TEST-AGENT-060`                                                                                                                                                                                     | `T-AGENT-095`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-043`                                                                                                        | `DES-AGENT-043` in `platform-adapter-designs.md`                                                                                                       | `TEST-AGENT-061`                                                                                                                                                                                     | `T-AGENT-096`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-044`                                                                                                        | `DES-AGENT-044` in `provider-credential-designs.md`                                                                                                    | `TEST-AGENT-062`                                                                                                                                                                                     | `T-AGENT-097`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-045`                                                                                                        | `DES-AGENT-051` in `provider-credential-designs.md`                                                                                                    | `TEST-AGENT-070`                                                                                                                                                                                     | `T-AGENT-106`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-046`                                                                                                        | `DES-AGENT-052` in `provider-credential-designs.md`                                                                                                    | `TEST-AGENT-071`                                                                                                                                                                                     | `T-AGENT-107`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-047`                                                                                                        | `DES-AGENT-053` in `session-index-designs.md`                                                                                                          | `TEST-AGENT-072`                                                                                                                                                                                     | `T-AGENT-108`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-048`                                                                                                        | `DES-AGENT-054` in `backup-portability-designs.md`                                                                                                     | `TEST-AGENT-073`                                                                                                                                                                                     | `T-AGENT-109`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-049`                                                                                                        | `DES-AGENT-055` in `backup-portability-designs.md`                                                                                                     | `TEST-AGENT-074`                                                                                                                                                                                     | `T-AGENT-110`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-050`                                                                                                        | `DES-AGENT-056` in `backup-portability-designs.md`                                                                                                     | `TEST-AGENT-075`                                                                                                                                                                                     | `T-AGENT-111`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-051`                                                                                                        | `DES-AGENT-066` in `ui-design.md`                                                                                                                      | `TEST-AGENT-084`                                                                                                                                                                                     | `T-AGENT-121`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-052`                                                                                                        | `DES-AGENT-067` in `ui-design.md`                                                                                                                      | `TEST-AGENT-085`                                                                                                                                                                                     | `T-AGENT-122`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-053`                                                                                                        | `DES-AGENT-068` in `ui-design.md`                                                                                                                      | `TEST-AGENT-086`                                                                                                                                                                                     | `T-AGENT-123`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-054`                                                                                                        | `DES-AGENT-069` in `ui-design.md`                                                                                                                      | `TEST-AGENT-087`                                                                                                                                                                                     | `T-AGENT-124`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-055`                                                                                                        | `DES-AGENT-070` in `ui-design.md`                                                                                                                      | `TEST-AGENT-088`                                                                                                                                                                                     | `T-AGENT-125`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-056`                                                                                                        | `DES-AGENT-071` in `ui-design.md`                                                                                                                      | `TEST-AGENT-089`                                                                                                                                                                                     | `T-AGENT-126`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-057`                                                                                                        | `DES-AGENT-072` in `ui-design.md`                                                                                                                      | `TEST-AGENT-090`                                                                                                                                                                                     | `T-AGENT-127`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-058`                                                                                                        | `DES-AGENT-073` in `ui-design.md`                                                                                                                      | `TEST-AGENT-091`                                                                                                                                                                                     | `T-AGENT-128`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-059`                                                                                                        | `DES-AGENT-074` in `ui-design.md`                                                                                                                      | `TEST-AGENT-092`                                                                                                                                                                                     | `T-AGENT-129`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-060`                                                                                                        | `DES-AGENT-075` in `ui-design.md`                                                                                                                      | `TEST-AGENT-093`                                                                                                                                                                                     | `T-AGENT-130`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-061`                                                                                                        | `DES-AGENT-076` in `ui-design.md`                                                                                                                      | `TEST-AGENT-094`                                                                                                                                                                                     | `T-AGENT-131`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-062`                                                                                                        | `DES-AGENT-077`                                                                                                                                        | `TEST-AGENT-095`                                                                                                                                                                                     | `T-AGENT-132`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-063`                                                                                                        | `DES-AGENT-078`                                                                                                                                        | `TEST-AGENT-096`                                                                                                                                                                                     | `T-AGENT-133`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-064`                                                                                                        | `DES-AGENT-079`                                                                                                                                        | `TEST-AGENT-097`                                                                                                                                                                                     | `T-AGENT-134`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-065`                                                                                                        | `DES-AGENT-080`                                                                                                                                        | `TEST-AGENT-098`                                                                                                                                                                                     | `T-AGENT-135`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-066`                                                                                                        | `DES-AGENT-081` in `conversation-continuation-designs.md`                                                                                              | `TEST-AGENT-099`                                                                                                                                                                                     | `T-AGENT-136`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-067`                                                                                                        | `DES-AGENT-082` in `conversation-continuation-designs.md`                                                                                              | `TEST-AGENT-100`                                                                                                                                                                                     | `T-AGENT-137`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-068`                                                                                                        | `DES-AGENT-083` in `conversation-continuation-designs.md`                                                                                              | `TEST-AGENT-101`                                                                                                                                                                                     | `T-AGENT-138`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-069`, `FR-AGENT-070`                                                                                        | `DES-AGENT-084` in `conversation-continuation-designs.md`                                                                                              | `TEST-AGENT-102`, `TEST-AGENT-103`                                                                                                                                                                   | `T-AGENT-139`, `T-AGENT-140`                                                                                                                                                                                                                                                                |
-| `FR-AGENT-071`                                                                                                        | `DES-AGENT-086` in `conversation-continuation-designs.md`                                                                                              | `TEST-AGENT-105`                                                                                                                                                                                     | `T-AGENT-142`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-072`                                                                                                        | `DES-AGENT-085`, `DES-AGENT-087` in `conversation-continuation-designs.md`                                                                             | `TEST-AGENT-104`, `TEST-AGENT-106`                                                                                                                                                                   | `T-AGENT-141`, `T-AGENT-143`                                                                                                                                                                                                                                                                |
-| `FR-AGENT-073`                                                                                                        | `DES-AGENT-088`                                                                                                                                        | `TEST-AGENT-108`                                                                                                                                                                                     | `T-AGENT-145`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-074`                                                                                                        | `DES-AGENT-089`                                                                                                                                        | `TEST-AGENT-109`                                                                                                                                                                                     | `T-AGENT-146`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-075`                                                                                                        | `DES-AGENT-090`                                                                                                                                        | `TEST-AGENT-110`                                                                                                                                                                                     | `T-AGENT-147`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-076`                                                                                                        | `DES-AGENT-091`                                                                                                                                        | `TEST-AGENT-111`                                                                                                                                                                                     | `T-AGENT-148`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-077`                                                                                                        | `DES-AGENT-092`                                                                                                                                        | `TEST-AGENT-112`                                                                                                                                                                                     | `T-AGENT-149`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-078`                                                                                                        | `DES-AGENT-093`                                                                                                                                        | `TEST-AGENT-113`                                                                                                                                                                                     | `T-AGENT-150`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-079`                                                                                                        | `DES-AGENT-094`                                                                                                                                        | `TEST-AGENT-114`                                                                                                                                                                                     | `T-AGENT-151`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-080`                                                                                                        | `DES-AGENT-095`                                                                                                                                        | `TEST-AGENT-115`                                                                                                                                                                                     | `T-AGENT-152`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-081`                                                                                                        | `DES-AGENT-096`                                                                                                                                        | `TEST-AGENT-116`                                                                                                                                                                                     | `T-AGENT-153`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-082`                                                                                                        | `DES-AGENT-097`                                                                                                                                        | `TEST-AGENT-117`                                                                                                                                                                                     | `T-AGENT-154`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-083`                                                                                                        | `DES-AGENT-098`                                                                                                                                        | `TEST-AGENT-118`                                                                                                                                                                                     | `T-AGENT-155`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-084`                                                                                                        | `DES-AGENT-099`                                                                                                                                        | `TEST-AGENT-119`                                                                                                                                                                                     | `T-AGENT-156`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-085`                                                                                                        | `DES-AGENT-100`                                                                                                                                        | `TEST-AGENT-120`                                                                                                                                                                                     | `T-AGENT-157`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-086`                                                                                                        | `DES-AGENT-101`                                                                                                                                        | `TEST-AGENT-121`                                                                                                                                                                                     | `T-AGENT-158`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-087`                                                                                                        | `DES-AGENT-102`                                                                                                                                        | `TEST-AGENT-122`                                                                                                                                                                                     | `T-AGENT-159`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-088`                                                                                                        | `DES-AGENT-103`                                                                                                                                        | `TEST-AGENT-123`                                                                                                                                                                                     | `T-AGENT-160`                                                                                                                                                                                                                                                                               |
-| `FR-AGENT-089`                                                                                                        | `DES-AGENT-104`                                                                                                                                        | `TEST-AGENT-124`                                                                                                                                                                                     | `T-AGENT-161`                                                                                                                                                                                                                                                                               |
-| `NFR-AGENT-001`, `NFR-AGENT-002`, `NFR-AGENT-003`, `NFR-AGENT-004`, `NFR-AGENT-005`, `NFR-AGENT-006`, `NFR-AGENT-007` | `DES-AGENT-005`, `DES-AGENT-008`, `DES-AGENT-009`, `DES-AGENT-014`, `DES-AGENT-015`, `DES-AGENT-060` in `ui-resilience-designs.md`                     | `TEST-AGENT-004`, `TEST-AGENT-007`, `TEST-AGENT-009`, `TEST-AGENT-011`, `TEST-AGENT-012`, `TEST-AGENT-015`, `TEST-AGENT-016`, `TEST-AGENT-017`, `TEST-AGENT-018`, `TEST-AGENT-047`, `TEST-AGENT-048` | `T-AGENT-025`, `T-AGENT-035`, `T-AGENT-036`, `T-AGENT-037`, `T-AGENT-038`, `T-AGENT-039`, `T-AGENT-082`, `T-AGENT-083`, `T-AGENT-115`                                                                                                                                                       |
-| `NFR-AGENT-004`, `NFR-AGENT-006`                                                                                      | `DES-AGENT-057` in `ui-resilience-designs.md`                                                                                                          | `TEST-AGENT-076`                                                                                                                                                                                     | `T-AGENT-025`, `T-AGENT-112`                                                                                                                                                                                                                                                                |
-| `NFR-AGENT-004`, `NFR-AGENT-006`                                                                                      | `DES-AGENT-058` in `ui-resilience-designs.md`                                                                                                          | `TEST-AGENT-077`                                                                                                                                                                                     | `T-AGENT-025`, `T-AGENT-113`                                                                                                                                                                                                                                                                |
+| Requirements                                                                                                          | Design                                                                                                                                                                 | Verification                                                                                                                                                                                         | Tasks                                                                                                                                                                                                                                                                                       |
+| --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FR-AGENT-001`, `FR-AGENT-002`, `FR-AGENT-018`, `FR-AGENT-019`                                                        | `DES-AGENT-001`, `DES-AGENT-002`, `DES-AGENT-003`, `DES-AGENT-010`, `DES-AGENT-014`, `DES-AGENT-016`, `DES-AGENT-032`                                                  | `TEST-AGENT-001`, `TEST-AGENT-002`, `TEST-AGENT-016`, `TEST-AGENT-019`, `TEST-AGENT-021`, `TEST-AGENT-045`                                                                                           | `T-AGENT-001`, `T-AGENT-002`, `T-AGENT-003`, `T-AGENT-004`, `T-AGENT-006`, `T-AGENT-009`, `T-AGENT-010`, `T-AGENT-011`, `T-AGENT-013`, `T-AGENT-014`, `T-AGENT-020`, `T-AGENT-021B`, `T-AGENT-026`, `T-AGENT-026A`, `T-AGENT-034`, `T-AGENT-073`, `T-AGENT-076`                             |
+| `FR-AGENT-003`, `FR-AGENT-004`, `FR-AGENT-005`, `FR-AGENT-006`, `FR-AGENT-007`                                        | `DES-AGENT-004`, `DES-AGENT-005`, `DES-AGENT-006`, `DES-AGENT-012`, `DES-AGENT-033`, `DES-AGENT-034`, `DES-AGENT-035`                                                  | `TEST-AGENT-003`, `TEST-AGENT-004`, `TEST-AGENT-005`, `TEST-AGENT-006`, `TEST-AGENT-007`, `TEST-AGENT-015`, `TEST-AGENT-051`, `TEST-AGENT-052`, `TEST-AGENT-053`                                     | `T-AGENT-005`, `T-AGENT-007`, `T-AGENT-012`, `T-AGENT-015`, `T-AGENT-016`, `T-AGENT-017`, `T-AGENT-018`, `T-AGENT-019`, `T-AGENT-020`, `T-AGENT-027`, `T-AGENT-074`, `T-AGENT-075`, `T-AGENT-077`, `T-AGENT-078`, `T-AGENT-079`, `T-AGENT-086`, `T-AGENT-087`, `T-AGENT-088`, `T-AGENT-100` |
+| `FR-AGENT-008`                                                                                                        | `DES-AGENT-002`, `DES-AGENT-007`                                                                                                                                       | `TEST-AGENT-008`, `TEST-AGENT-017`                                                                                                                                                                   | `T-AGENT-013`, `T-AGENT-021`, `T-AGENT-060`, `T-AGENT-076`                                                                                                                                                                                                                                  |
+| `FR-AGENT-009`                                                                                                        | `DES-AGENT-006`, `DES-AGENT-010`, `DES-AGENT-015`                                                                                                                      | `TEST-AGENT-006`, `TEST-AGENT-009`, `TEST-AGENT-107`                                                                                                                                                 | `T-AGENT-015`, `T-AGENT-021`, `T-AGENT-021A`, `T-AGENT-144`                                                                                                                                                                                                                                 |
+| `FR-AGENT-010`, `FR-AGENT-015`                                                                                        | `DES-AGENT-008`, `DES-AGENT-045`, `DES-AGENT-046`, `DES-AGENT-047`, `DES-AGENT-053`, `DES-AGENT-064` in `session-index-designs.md`                                     | `TEST-AGENT-010`, `TEST-AGENT-011`, `TEST-AGENT-040`, `TEST-AGENT-063`, `TEST-AGENT-064`, `TEST-AGENT-065`, `TEST-AGENT-072`, `TEST-AGENT-082`                                                       | `T-AGENT-008`, `T-AGENT-016`, `T-AGENT-022`, `T-AGENT-028`, `T-AGENT-030`, `T-AGENT-067`, `T-AGENT-069`, `T-AGENT-098`, `T-AGENT-099`, `T-AGENT-101`, `T-AGENT-108`, `T-AGENT-119`                                                                                                          |
+| `FR-AGENT-011`                                                                                                        | `DES-AGENT-009`, `DES-AGENT-015`, `DES-AGENT-033`, `DES-AGENT-034`, `DES-AGENT-035`                                                                                    | `TEST-AGENT-012`, `TEST-AGENT-050`, `TEST-AGENT-051`, `TEST-AGENT-052`, `TEST-AGENT-053`                                                                                                             | `T-AGENT-017`, `T-AGENT-018`, `T-AGENT-019`, `T-AGENT-085`, `T-AGENT-086`, `T-AGENT-087`, `T-AGENT-088`                                                                                                                                                                                     |
+| `FR-AGENT-012`                                                                                                        | `DES-AGENT-011`, `DES-AGENT-048`, `DES-AGENT-050` in `tray-provider-designs.md`                                                                                        | `TEST-AGENT-013`, `TEST-AGENT-066`, `TEST-AGENT-069`                                                                                                                                                 | `T-AGENT-024`, `T-AGENT-102`, `T-AGENT-105`                                                                                                                                                                                                                                                 |
+| `FR-AGENT-013`, `FR-AGENT-016`                                                                                        | `DES-AGENT-012`; `DES-AGENT-061` in `deep-link-designs.md`                                                                                                             | `TEST-AGENT-014`, `TEST-AGENT-015`, `TEST-AGENT-079`                                                                                                                                                 | `T-AGENT-023`, `T-AGENT-031`, `T-AGENT-116`                                                                                                                                                                                                                                                 |
+| `FR-AGENT-014`, `FR-AGENT-120`                                                                                        | `DES-AGENT-003`, `DES-AGENT-010`, `DES-AGENT-014`, `DES-AGENT-049`, `DES-AGENT-059`, `DES-AGENT-063`, `DES-AGENT-065`, `DES-AGENT-138` in `maintenance-cli-designs.md` | `TEST-AGENT-016`, `TEST-AGENT-067`, `TEST-AGENT-068`, `TEST-AGENT-078`, `TEST-AGENT-081`, `TEST-AGENT-083`, `TEST-AGENT-198`                                                                         | `T-AGENT-029`, `T-AGENT-103`, `T-AGENT-104`, `T-AGENT-114`, `T-AGENT-118`, `T-AGENT-120`, `T-AGENT-207`                                                                                                                                                                                     |
+| `FR-AGENT-017`                                                                                                        | `DES-AGENT-013`, `DES-AGENT-016`                                                                                                                                       | separate change                                                                                                                                                                                      | `T-AGENT-032`, `T-AGENT-033`                                                                                                                                                                                                                                                                |
+| `FR-AGENT-020`                                                                                                        | `DES-AGENT-003`, `DES-AGENT-010`, `DES-AGENT-014`, `DES-AGENT-015`                                                                                                     | `TEST-AGENT-020`                                                                                                                                                                                     | `T-AGENT-026B`                                                                                                                                                                                                                                                                              |
+| `FR-AGENT-021`                                                                                                        | `DES-AGENT-001`, `DES-AGENT-002`, `DES-AGENT-003`, `DES-AGENT-017`                                                                                                     | `TEST-AGENT-022`                                                                                                                                                                                     | `T-AGENT-026C`                                                                                                                                                                                                                                                                              |
+| `FR-AGENT-022`, `FR-AGENT-023`                                                                                        | `DES-AGENT-019`                                                                                                                                                        | `TEST-AGENT-023`, `TEST-AGENT-024`                                                                                                                                                                   | `T-AGENT-040`, `T-AGENT-041`, `T-AGENT-042`, `T-AGENT-043`, `T-AGENT-044`                                                                                                                                                                                                                   |
+| `FR-AGENT-024`                                                                                                        | `DES-AGENT-020`                                                                                                                                                        | `TEST-AGENT-004`, `TEST-AGENT-005`, `TEST-AGENT-007`, `TEST-AGENT-013`, `TEST-AGENT-025`, `TEST-AGENT-026`, `TEST-AGENT-027`, `TEST-AGENT-049`                                                       | `T-AGENT-045`, `T-AGENT-046`, `T-AGENT-047`, `T-AGENT-048`, `T-AGENT-049`, `T-AGENT-079`, `T-AGENT-084`                                                                                                                                                                                     |
+| `FR-AGENT-025`                                                                                                        | `DES-AGENT-021`                                                                                                                                                        | `TEST-AGENT-028`                                                                                                                                                                                     | `T-AGENT-050`, `T-AGENT-051`, `T-AGENT-052`                                                                                                                                                                                                                                                 |
+| `FR-AGENT-026`                                                                                                        | `DES-AGENT-022`                                                                                                                                                        | `TEST-AGENT-029`, `TEST-AGENT-030`, `TEST-AGENT-031`                                                                                                                                                 | `T-AGENT-053`, `T-AGENT-054`, `T-AGENT-055`, `T-AGENT-056`                                                                                                                                                                                                                                  |
+| `FR-AGENT-027`                                                                                                        | `DES-AGENT-023`, `DES-AGENT-109`                                                                                                                                       | `TEST-AGENT-032`, `TEST-AGENT-033`, `TEST-AGENT-035`, `TEST-AGENT-037`, `TEST-AGENT-041`, `TEST-AGENT-130`                                                                                           | `T-AGENT-057`, `T-AGENT-058`, `T-AGENT-059`, `T-AGENT-061`, `T-AGENT-065`, `T-AGENT-070`, `T-AGENT-167`                                                                                                                                                                                     |
+| `FR-AGENT-028`                                                                                                        | `DES-AGENT-024`                                                                                                                                                        | `TEST-AGENT-034`                                                                                                                                                                                     | `T-AGENT-060`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-029`                                                                                                        | `DES-AGENT-003`, `DES-AGENT-007`, `DES-AGENT-008`, `DES-AGENT-014`, `DES-AGENT-015`, `DES-AGENT-025`; `DES-AGENT-062` in `platform-adapter-designs.md`                 | `TEST-AGENT-036`, `TEST-AGENT-080`                                                                                                                                                                   | `T-AGENT-062`, `T-AGENT-063`, `T-AGENT-064`, `T-AGENT-117`                                                                                                                                                                                                                                  |
+| `FR-AGENT-030`                                                                                                        | `DES-AGENT-026`                                                                                                                                                        | `TEST-AGENT-038`                                                                                                                                                                                     | `T-AGENT-067`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-031`                                                                                                        | `DES-AGENT-027`                                                                                                                                                        | `TEST-AGENT-039`                                                                                                                                                                                     | `T-AGENT-068`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-032`                                                                                                        | `DES-AGENT-028`                                                                                                                                                        | `TEST-AGENT-040`                                                                                                                                                                                     | `T-AGENT-069`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-033`                                                                                                        | `DES-AGENT-029`                                                                                                                                                        | `TEST-AGENT-042`, `TEST-AGENT-202`                                                                                                                                                                   | `T-AGENT-071`, `T-AGENT-211`                                                                                                                                                                                                                                                                |
+| `FR-AGENT-034`                                                                                                        | `DES-AGENT-030`                                                                                                                                                        | `TEST-AGENT-043`                                                                                                                                                                                     | `T-AGENT-072`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-035`                                                                                                        | `DES-AGENT-031`                                                                                                                                                        | `TEST-AGENT-044`                                                                                                                                                                                     | `T-AGENT-026D`                                                                                                                                                                                                                                                                              |
+| `FR-AGENT-036`                                                                                                        | `DES-AGENT-036`                                                                                                                                                        | `TEST-AGENT-054`                                                                                                                                                                                     | `T-AGENT-089`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-037`                                                                                                        | `DES-AGENT-037`                                                                                                                                                        | `TEST-AGENT-055`                                                                                                                                                                                     | `T-AGENT-090`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-038`                                                                                                        | `DES-AGENT-038` in `platform-adapter-designs.md`                                                                                                                       | `TEST-AGENT-056`                                                                                                                                                                                     | `T-AGENT-091`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-039`                                                                                                        | `DES-AGENT-039` in `platform-adapter-designs.md`                                                                                                                       | `TEST-AGENT-057`                                                                                                                                                                                     | `T-AGENT-092`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-040`                                                                                                        | `DES-AGENT-040` in `platform-adapter-designs.md`                                                                                                                       | `TEST-AGENT-058`                                                                                                                                                                                     | `T-AGENT-093`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-041`                                                                                                        | `DES-AGENT-041` in `platform-adapter-designs.md`                                                                                                                       | `TEST-AGENT-059`                                                                                                                                                                                     | `T-AGENT-094`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-042`                                                                                                        | `DES-AGENT-042` in `platform-adapter-designs.md`                                                                                                                       | `TEST-AGENT-060`                                                                                                                                                                                     | `T-AGENT-095`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-043`                                                                                                        | `DES-AGENT-043` in `platform-adapter-designs.md`                                                                                                                       | `TEST-AGENT-061`                                                                                                                                                                                     | `T-AGENT-096`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-044`                                                                                                        | `DES-AGENT-044` in `provider-credential-designs.md`                                                                                                                    | `TEST-AGENT-062`                                                                                                                                                                                     | `T-AGENT-097`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-045`                                                                                                        | `DES-AGENT-051` in `provider-credential-designs.md`                                                                                                                    | `TEST-AGENT-070`                                                                                                                                                                                     | `T-AGENT-106`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-046`                                                                                                        | `DES-AGENT-052` in `provider-credential-designs.md`                                                                                                                    | `TEST-AGENT-071`                                                                                                                                                                                     | `T-AGENT-107`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-047`                                                                                                        | `DES-AGENT-053` in `session-index-designs.md`                                                                                                                          | `TEST-AGENT-072`                                                                                                                                                                                     | `T-AGENT-108`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-048`                                                                                                        | `DES-AGENT-054` in `backup-portability-designs.md`                                                                                                                     | `TEST-AGENT-073`                                                                                                                                                                                     | `T-AGENT-109`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-049`                                                                                                        | `DES-AGENT-055` in `backup-portability-designs.md`                                                                                                                     | `TEST-AGENT-074`                                                                                                                                                                                     | `T-AGENT-110`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-050`                                                                                                        | `DES-AGENT-056` in `backup-portability-designs.md`                                                                                                                     | `TEST-AGENT-075`                                                                                                                                                                                     | `T-AGENT-111`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-051`                                                                                                        | `DES-AGENT-066` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-084`                                                                                                                                                                                     | `T-AGENT-121`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-052`                                                                                                        | `DES-AGENT-067` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-085`                                                                                                                                                                                     | `T-AGENT-122`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-053`                                                                                                        | `DES-AGENT-068` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-086`                                                                                                                                                                                     | `T-AGENT-123`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-054`                                                                                                        | `DES-AGENT-069` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-087`                                                                                                                                                                                     | `T-AGENT-124`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-055`                                                                                                        | `DES-AGENT-070` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-088`                                                                                                                                                                                     | `T-AGENT-125`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-056`                                                                                                        | `DES-AGENT-071` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-089`                                                                                                                                                                                     | `T-AGENT-126`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-057`                                                                                                        | `DES-AGENT-072` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-090`                                                                                                                                                                                     | `T-AGENT-127`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-058`                                                                                                        | `DES-AGENT-073` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-091`                                                                                                                                                                                     | `T-AGENT-128`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-059`                                                                                                        | `DES-AGENT-074` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-092`                                                                                                                                                                                     | `T-AGENT-129`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-060`                                                                                                        | `DES-AGENT-075` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-093`                                                                                                                                                                                     | `T-AGENT-130`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-061`                                                                                                        | `DES-AGENT-076` in `ui-design.md`                                                                                                                                      | `TEST-AGENT-094`                                                                                                                                                                                     | `T-AGENT-131`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-062`                                                                                                        | `DES-AGENT-077`                                                                                                                                                        | `TEST-AGENT-095`                                                                                                                                                                                     | `T-AGENT-132`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-063`                                                                                                        | `DES-AGENT-078`                                                                                                                                                        | `TEST-AGENT-096`                                                                                                                                                                                     | `T-AGENT-133`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-064`                                                                                                        | `DES-AGENT-079`                                                                                                                                                        | `TEST-AGENT-097`                                                                                                                                                                                     | `T-AGENT-134`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-065`                                                                                                        | `DES-AGENT-080`                                                                                                                                                        | `TEST-AGENT-098`                                                                                                                                                                                     | `T-AGENT-135`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-066`                                                                                                        | `DES-AGENT-081` in `conversation-continuation-designs.md`                                                                                                              | `TEST-AGENT-099`                                                                                                                                                                                     | `T-AGENT-136`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-067`                                                                                                        | `DES-AGENT-082` in `conversation-continuation-designs.md`                                                                                                              | `TEST-AGENT-100`                                                                                                                                                                                     | `T-AGENT-137`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-068`                                                                                                        | `DES-AGENT-083` in `conversation-continuation-designs.md`                                                                                                              | `TEST-AGENT-101`                                                                                                                                                                                     | `T-AGENT-138`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-069`, `FR-AGENT-070`                                                                                        | `DES-AGENT-084` in `conversation-continuation-designs.md`                                                                                                              | `TEST-AGENT-102`, `TEST-AGENT-103`                                                                                                                                                                   | `T-AGENT-139`, `T-AGENT-140`                                                                                                                                                                                                                                                                |
+| `FR-AGENT-071`                                                                                                        | `DES-AGENT-086` in `conversation-continuation-designs.md`                                                                                                              | `TEST-AGENT-105`                                                                                                                                                                                     | `T-AGENT-142`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-072`                                                                                                        | `DES-AGENT-085`, `DES-AGENT-087` in `conversation-continuation-designs.md`                                                                                             | `TEST-AGENT-104`, `TEST-AGENT-106`                                                                                                                                                                   | `T-AGENT-141`, `T-AGENT-143`                                                                                                                                                                                                                                                                |
+| `FR-AGENT-073`                                                                                                        | `DES-AGENT-088`                                                                                                                                                        | `TEST-AGENT-108`                                                                                                                                                                                     | `T-AGENT-145`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-074`                                                                                                        | `DES-AGENT-089`                                                                                                                                                        | `TEST-AGENT-109`                                                                                                                                                                                     | `T-AGENT-146`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-075`                                                                                                        | `DES-AGENT-090`                                                                                                                                                        | `TEST-AGENT-110`                                                                                                                                                                                     | `T-AGENT-147`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-076`                                                                                                        | `DES-AGENT-091`                                                                                                                                                        | `TEST-AGENT-111`                                                                                                                                                                                     | `T-AGENT-148`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-077`                                                                                                        | `DES-AGENT-092`                                                                                                                                                        | `TEST-AGENT-112`                                                                                                                                                                                     | `T-AGENT-149`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-078`                                                                                                        | `DES-AGENT-093`                                                                                                                                                        | `TEST-AGENT-113`                                                                                                                                                                                     | `T-AGENT-150`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-079`                                                                                                        | `DES-AGENT-094`                                                                                                                                                        | `TEST-AGENT-114`                                                                                                                                                                                     | `T-AGENT-151`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-080`                                                                                                        | `DES-AGENT-095`                                                                                                                                                        | `TEST-AGENT-115`                                                                                                                                                                                     | `T-AGENT-152`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-081`                                                                                                        | `DES-AGENT-096`                                                                                                                                                        | `TEST-AGENT-116`                                                                                                                                                                                     | `T-AGENT-153`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-082`                                                                                                        | `DES-AGENT-097`                                                                                                                                                        | `TEST-AGENT-117`                                                                                                                                                                                     | `T-AGENT-154`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-083`                                                                                                        | `DES-AGENT-098`                                                                                                                                                        | `TEST-AGENT-118`                                                                                                                                                                                     | `T-AGENT-155`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-084`                                                                                                        | `DES-AGENT-099`                                                                                                                                                        | `TEST-AGENT-119`                                                                                                                                                                                     | `T-AGENT-156`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-085`                                                                                                        | `DES-AGENT-100`                                                                                                                                                        | `TEST-AGENT-120`                                                                                                                                                                                     | `T-AGENT-157`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-086`                                                                                                        | `DES-AGENT-101`                                                                                                                                                        | `TEST-AGENT-121`                                                                                                                                                                                     | `T-AGENT-158`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-087`                                                                                                        | `DES-AGENT-102`                                                                                                                                                        | `TEST-AGENT-122`                                                                                                                                                                                     | `T-AGENT-159`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-088`                                                                                                        | `DES-AGENT-103`                                                                                                                                                        | `TEST-AGENT-123`                                                                                                                                                                                     | `T-AGENT-160`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-089`                                                                                                        | `DES-AGENT-104`                                                                                                                                                        | `TEST-AGENT-124`                                                                                                                                                                                     | `T-AGENT-161`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-090`                                                                                                        | `DES-AGENT-105`                                                                                                                                                        | `TEST-AGENT-125`                                                                                                                                                                                     | `T-AGENT-162`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-091`                                                                                                        | `DES-AGENT-106`                                                                                                                                                        | `TEST-AGENT-126`                                                                                                                                                                                     | `T-AGENT-163`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-092`                                                                                                        | `DES-AGENT-107`                                                                                                                                                        | `TEST-AGENT-127`                                                                                                                                                                                     | `T-AGENT-164`                                                                                                                                                                                                                                                                               |
+| `FR-AGENT-093`                                                                                                        | `DES-AGENT-108`, `DES-AGENT-109`, `DES-AGENT-110`                                                                                                                      | `TEST-AGENT-128`, `TEST-AGENT-129`, `TEST-AGENT-131`, `TEST-AGENT-132`                                                                                                                               | `T-AGENT-165`, `T-AGENT-166`, `T-AGENT-168`, `T-AGENT-169`                                                                                                                                                                                                                                  |
+| `NFR-AGENT-001`, `NFR-AGENT-002`, `NFR-AGENT-003`, `NFR-AGENT-004`, `NFR-AGENT-005`, `NFR-AGENT-006`, `NFR-AGENT-007` | `DES-AGENT-005`, `DES-AGENT-008`, `DES-AGENT-009`, `DES-AGENT-014`, `DES-AGENT-015`, `DES-AGENT-060` in `ui-resilience-designs.md`                                     | `TEST-AGENT-004`, `TEST-AGENT-007`, `TEST-AGENT-009`, `TEST-AGENT-011`, `TEST-AGENT-012`, `TEST-AGENT-015`, `TEST-AGENT-016`, `TEST-AGENT-017`, `TEST-AGENT-018`, `TEST-AGENT-047`, `TEST-AGENT-048` | `T-AGENT-025`, `T-AGENT-035`, `T-AGENT-036`, `T-AGENT-037`, `T-AGENT-038`, `T-AGENT-039`, `T-AGENT-082`, `T-AGENT-083`, `T-AGENT-115`                                                                                                                                                       |
+| `NFR-AGENT-004`, `NFR-AGENT-006`                                                                                      | `DES-AGENT-057` in `ui-resilience-designs.md`                                                                                                                          | `TEST-AGENT-076`                                                                                                                                                                                     | `T-AGENT-025`, `T-AGENT-112`                                                                                                                                                                                                                                                                |
+| `NFR-AGENT-004`, `NFR-AGENT-006`                                                                                      | `DES-AGENT-058` in `ui-resilience-designs.md`                                                                                                                          | `TEST-AGENT-077`                                                                                                                                                                                     | `T-AGENT-025`, `T-AGENT-113`                                                                                                                                                                                                                                                                |
 
 `T-AGENT-081` is the program-level delivery gate for the in-scope rows above.
 It introduces no parallel requirement or design source and cannot substitute
@@ -920,7 +943,7 @@ Batch confirmed on 2026-07-20; implements `FR-AGENT-022` and `FR-AGENT-023`.
 - Skills/MCP/Rules/Plugins counts reuse the existing domain stores via `use-agent-asset-domain.ts` (skill scan cache, MCP target status, rules files, plugin target matrix).
 - Sessions total comes from `agent:sessions:list`; provider/model summary from `agent:modelConfig:get`; appearance state from `agent:appearance:get`; usage from the new `agent:usage:get`.
 - The Overview tab receives an `onNavigate(tab)` callback from `AgentsWorkspace`; there is no second navigation state store. Cells whose capability is `planned`/`unsupported` render disabled and never invoke IPC.
-- The flat paths panel is collapsed into a secondary region inside the Paths & capabilities card; raw paths remain visible in each tab header.
+- The flat paths panel is collapsed into a secondary region inside the Paths & capabilities card. Shared Skills/MCP/Plugins inventory toolbars omit raw paths so search, filters, refresh and the primary action remain compact; actionable paths stay on the relevant card, detail view and explicit open-folder control.
 
 ### Quota adapter contract
 
@@ -1074,10 +1097,15 @@ Batch confirmed on 2026-07-20; implements `FR-AGENT-025`.
 
 - Provider & Model: master-detail. Left list = built-in OpenAI subscription entry + third-party providers + add action; right detail = selected provider's config, model selection, key state, test, set-default/restore, edit/delete for third-party entries. Other agents get the same shell with only the built-in entry.
 - Config Files: toolbar (file count + open folder) with the editor filling the remaining height edge-to-edge.
-- Appearance: toolbar (import theme/pet + refresh), native status compressed into a single row, theme/pet grids filling the width.
+- Appearance: compact left icon rail switches between focused desktop-skin and
+  Pet workspaces. Each workspace owns one contextual import action, scoped
+  invalid count, inventory, folder action and shared refresh; native status and
+  restore exist only in the desktop-skin workspace.
 - Usage: the 5h / 7d / Opus window cards render side by side in one row instead of stacking vertically.
 - Sessions: keeps its existing two-pane layout, re-based onto the edge-to-edge shell.
 - Overview: dashboard content keeps internal section padding (that is content spacing, not a page margin); status strip and grid touch the pane edges.
+- Overview path details use native disclosure semantics but start open so raw
+  resolved paths and open-folder actions are visible by default.
 
 ## `DES-AGENT-022`: Codex Quota Adapter And Provider-Aware Overview
 
@@ -1102,13 +1130,14 @@ Batch confirmed on 2026-07-21; implements `FR-AGENT-027`.
 ### Contract
 
 - `AgentUsageQuota` replaces `fiveHour`/`sevenDay`/`sevenDayOpus` with `metrics: AgentUsageMetric[]`. A metric is `{ id, label, kind: "window" | "quota", utilization, resetsAt, usedAmount?, totalAmount?, unit? }`; amounts are present only for `quota` kind. All existing status/errorCode semantics stay.
-- Metric id registry for i18n: `fiveHour`, `sevenDay`, `sevenDayOpus` (Claude/Codex), `weekly`, `rolling` (Kimi), `premium`, `chat` (Copilot), and `promptCredits` (Antigravity); any other id (e.g. Antigravity/Gemini model quotas) renders its provider label.
+- Metric id registry for i18n: `fiveHour`, `sevenDay`, `sevenDayOpus` (Claude/Codex), `weekly`, `rolling` (Kimi), `premium`, and `chat` (Copilot); any other id (e.g. Antigravity/Gemini model quotas) renders its provider label.
 
 ### Adapters
 
 - Claude/Codex adapters keep their query logic and re-map results into `metrics` (ids above).
 - Kimi: read `~/.kimi-code/credentials/kimi-code.json` (fallback `~/.kimi-code/oauth/kimi-code*`) for `access_token`/`expires_at`; `GET https://api.kimi.com/coding/v1/usages`. Map `usage` -> `weekly` (limit/used/resetTime), `limits[]` entries -> `rolling` with duration-derived label, `membership.level` -> plan. Verified live 2026-07-21.
-- Antigravity: first discover the running Antigravity `language_server` process with bounded `ps` output, require both an Antigravity process marker and a valid CSRF argument, enumerate only loopback listening ports, and use fixed allowlisted RPC paths with a 4s timeout and 1 MiB response limit. `GetUserStatus` supplies the plan and monthly prompt-credit total; `RetrieveUserQuotaSummary` supplies grouped weekly and five-hour buckets for Gemini models and third-party Claude/GPT models. Group buckets map to `window` metrics, while monthly credits remain the only total `quota` metric. The CSRF value never leaves main-process memory or enters logs/errors. If no trusted desktop process exists on macOS, PromptHub may start the native `language_server` only from the verified `/Applications/Antigravity.app` or `~/Applications/Antigravity.app` resource path, with fixed arguments, telemetry and the built-in Chrome DevTools MCP disabled, a reserved loopback port, a random in-memory CSRF token, bounded startup/output/request limits, and no shell. The helper's IDE version is read through bounded `plutil` access to the verified app's `Info.plist`, with a sanitized compatibility fallback; PromptHub binds and waits for the explicitly announced HTTP listener rather than sending JSON RPC to the HTTPS gRPC port. Startup-only connection, timeout, and HTTP readiness failures retry with a bounded delay and overall deadline. The helper is terminated after every success or failure and escalates from `SIGTERM` to `SIGKILL` when necessary. The quota-summary request runs first so grouped quota remains available even when the optional account-status request fails. macOS Keychain (`service=gemini`, `account=antigravity`), legacy Antigravity CLI token, and shared Gemini credential reads remain compatibility fallbacks when the helper is absent or unavailable. PromptHub does not copy Antigravity OAuth client credentials or refresh its tokens itself; `antigravity-not-running` remains only a recovery state when neither a running service nor the bounded helper can provide current quota.
+- Kimi membership presentation maps current provider enums to public tempo plan names (`LEVEL_STANDARD` -> `Moderato`, `LEVEL_INTERMEDIATE` -> `Allegretto`, `LEVEL_ADVANCED` -> `Allegro`, `LEVEL_PREMIUM` -> `Vivace`) and keeps a readable fallback for unknown future values.
+- Antigravity: first discover the running Antigravity `language_server` process with bounded `ps` output, require both an Antigravity process marker and a valid CSRF argument, enumerate only loopback listening ports, and use fixed allowlisted RPC paths with a 4s timeout and 1 MiB response limit. `GetUserStatus` supplies plan identity only; `RetrieveUserQuotaSummary` supplies the authoritative grouped weekly and five-hour baseline buckets for Gemini models and third-party Claude/GPT models. Legacy `monthlyPromptCredits` and `availablePromptCredits` fields are not a baseline total and are ignored. AI credits are an overage mechanism and require a separately verified balance source before PromptHub may expose them. The CSRF value never leaves main-process memory or enters logs/errors. If no trusted desktop process exists on macOS, PromptHub may start the native `language_server` only from the verified `/Applications/Antigravity.app` or `~/Applications/Antigravity.app` resource path, with fixed arguments, telemetry and the built-in Chrome DevTools MCP disabled, a reserved loopback port, a random in-memory CSRF token, bounded startup/output/request limits, and no shell. The helper's IDE version is read through bounded `plutil` access to the verified app's `Info.plist`, with a sanitized compatibility fallback; PromptHub binds and waits for the explicitly announced HTTP listener rather than sending JSON RPC to the HTTPS gRPC port. Startup-only connection, timeout, and HTTP readiness failures retry with a bounded delay and overall deadline. The helper is terminated after every success or failure and escalates from `SIGTERM` to `SIGKILL` when necessary. The quota-summary request runs first so grouped quota remains available even when the optional account-status request fails. macOS Keychain (`service=gemini`, `account=antigravity`), legacy Antigravity CLI token, and shared Gemini credential reads remain compatibility fallbacks when the helper is absent or unavailable. PromptHub does not copy Antigravity OAuth client credentials or refresh its tokens itself; `antigravity-not-running` remains only a recovery state when neither a running service nor the bounded helper can provide current quota.
 - Gemini CLI: read `~/.gemini/oauth_creds.json` (`expiry_date` ms); POST `loadCodeAssist` then `retrieveUserQuota`; buckets -> `quota` metrics by `modelId`, tier -> plan.
 - Copilot: resolve a GitHub OAuth token from `~/.config/gh/hosts.yml` then `~/.config/github-copilot/hosts.json`; `GET https://api.github.com/copilot_internal/user` with `Authorization: token`; map `quota_snapshots.premium_interactions`/`chat` (entitlement/remaining/percent_used) -> `premium`/`chat` quota metrics, `quota_reset_date` -> resetsAt, `copilot_plan` -> plan.
 - Cursor stays `planned` (no public quota API; documented exclusion).
@@ -1129,7 +1158,7 @@ Batch confirmed on 2026-07-21; implements `FR-AGENT-028`.
 
 ### Composition (renderer-only, no new main-process surface)
 
-- The Skills domain of `AgentAssetsWorkspace` renders `AgentSkillAssetPanel`: toolbar (search, managed/unmanaged/symlink/copy filter chips, refresh, "Install My Skill") plus a responsive card grid. Skills, MCP and Plugins now render through the same `AgentAssetManagementSurface`, `AgentAssetCard` and `AgentAssetActionButton` primitives rather than duplicating visually similar toolbar, grid, card and action markup. Domain panels retain only scoped selectors, card body content, detail routes and owning-store actions; Rules retain their editor workspace.
+- The Skills domain of `AgentAssetsWorkspace` renders `AgentSkillAssetPanel`: toolbar (search, managed/unmanaged/symlink/copy filter chips, refresh, "Add Skill") plus a responsive card grid. Skills, MCP and Plugins now render through the same `AgentAssetManagementSurface`, `AgentAssetPrimaryAction`, `AgentAssetCard` and `AgentAssetActionButton` primitives rather than duplicating visually similar toolbar, primary action, grid, card and action markup. The shared toolbar never renders a raw asset path; locale-specific filter labels and Add labels come from each domain's seven-locale resource tree. It remains one non-wrapping row: the filter strip owns bounded horizontal overflow while refresh and the shared Add action remain fixed on the right. Add Skill, Add MCP and Add Plugin each open an Agent-scoped library dialog over the current workspace; MCP and Plugin dialogs write only through the owning stores to verified targets already scoped to that Agent. Domain panels retain only scoped selectors, card body content, detail routes and owning-store actions; Rules retain their editor workspace.
 - Rows reuse `agentScanState[agent.id]` from the skill store and `getSkillScanStatus` for badge semantics — the same source of truth as `SkillAgentsView`; `AgentAssetItem` is not extended; the panel consumes `AgentScannedSkill` directly via a dedicated hook.
 - Actions map one-to-one to existing flows: open folder (`window.electron.openPath`), adopt (`useSkillStore.importScannedSkills` with the `handleImportAgentSkill` hydration pattern), open managed skill (jump to the Skills module my-skills view), install from library (`SkillLibraryImportModal` with the agent's skills dir as fixed target), uninstall (`skillApi.uninstallPlatformSkill` + `ConfirmDialog`, built-in blocked).
 - Card click opens `SkillFullDetailPage` with `overrideSkill` + `agentContext` + `agentActions` (the `buildProjectDetailSkill` adapter), replacing the right pane with a back action — the same drill-in contract as the Skills module, embedded in the workspace shell.
@@ -1309,9 +1338,18 @@ presentation alias with a `CLI` suffix is introduced.
 - User Skills live at `<root>/skills`, global Rules at `<root>/RULES.md`, and
   user MCP at `<root>/mcp.json`. A project target is `<project>/.omp/mcp.json`.
 - Oh My Pi plugins are installed by the native runtime below the sibling
-  `<root>/../plugins` directory (normally `~/.omp/plugins`). PromptHub exposes
-  this as a derived path only; it does not scan or install package contents as
-  PromptHub-owned Plugin records in this batch.
+  `<root>/../plugins` data root (normally `~/.omp/plugins`). PromptHub reads the
+  official version 2 `installed_plugins.json` registry from this root and
+  projects only `scope: "user"` packages into the shared Plugin inventory.
+- Registry parsing is read-only and bounded to 1 MiB. Every package path is
+  resolved through `realpath` and must remain below the same plugin data root;
+  duplicate paths, project-scoped entries, missing packages, symlink escapes,
+  invalid versions and malformed or oversized registries are ignored. The
+  authoritative registry may point to a multi-capability package without a
+  generic manifest marker.
+- PromptHub does not read or write Oh My Pi's `agent.db`, auth broker or
+  credentials, and it does not install, update, enable or remove native Oh My
+  Pi packages. Those lifecycle operations remain owned by Oh My Pi.
 - Config Files uses an allowlist of `config.yml`, `config.yaml`,
   `settings.json`, `mcp.json`, `.mcp.json`, and `RULES.md`. Credentials,
   session files, caches, and arbitrary profile files are not promoted into the
@@ -1768,6 +1806,11 @@ most 16 MiB per page, hides non-visible runtime/tool records, and keeps
 scanning until the visible page is full, the source ends or the scan budget is
 reached. A budget boundary returns a continuation cursor, including when the
 page has no visible entry, rather than claiming the conversation has no body.
+The visible-message projector accepts both legacy `event_msg` user/agent
+messages and current top-level `response_item` message records. Only explicit
+user/assistant roles and bounded `input_text`/`output_text` content are
+projected; developer instructions, reasoning, tool calls, outputs and image
+payloads remain private.
 
 Augment uses the same public page contract over its native
 `~/.augment/sessions/*.json` documents. The adapter validates the session id,
@@ -1783,6 +1826,13 @@ server cursor or locally unmounted legacy entries remain. Selection changes
 invalidate in-flight pages. `truncated` remains reserved for data that cannot
 be recovered, such as bounded field text; a paginatable source uses
 `nextCursor` instead of the old permanent-preview warning.
+
+Pi and Oh My Pi use the same source-bound JSONL cursor contract instead of the
+legacy fixed 2 MiB prefix. Each request collects at most 200 visible messages,
+scans complete lines in bounded chunks and returns the next opaque cursor when
+more native records remain. The renderer no longer renders the generic limited
+preview notice: recoverable history stays available through message-page
+navigation, while transcript bytes remain external and are never persisted.
 
 ## `DES-AGENT-095`: Shell-Owned Agent Asset Detail Navigation
 
@@ -1843,10 +1893,13 @@ and carries `cwd` through the conversation service to the terminal launcher.
 Invalid or missing metadata is ignored rather than decoded from Claude's lossy
 project-directory folder name.
 
-The renderer keeps avatars and bubbles as separate elements, but reduces the
-transcript stack gap to 10px and vertical viewport padding to 16px. Native
-resume uses the current-Agent terminal contract; `DES-AGENT-103` supersedes the
-earlier compact glyph treatment with the explicit two-action hierarchy.
+The renderer keeps avatars and bubbles as separate elements, reduces the
+transcript stack gap to 10px and vertical viewport padding to 16px, and does
+not add a generic top margin inside every message bubble. User and assistant
+Markdown content starts directly within the bubble's existing padding; tool and
+system notices may keep only a 4px role-to-body separation. Native resume uses
+the current-Agent terminal contract; `DES-AGENT-103` supersedes the earlier
+compact glyph treatment with the explicit two-action hierarchy.
 
 ### `DES-AGENT-103`: Continuation Intent Gate And View Pagination
 
@@ -1856,11 +1909,17 @@ typed native `resume` contract and a cross-Agent handoff action. The handoff
 action opens a custom modal containing all detected target Agents and the
 project selector; preview generation remains the confirmation boundary before
 the existing digest-verified handoff. Export has a dedicated compact icon with
-Markdown/JSON choices. Edit and soft delete/restore remain in the custom
-overflow menu.
+Markdown/JSON choices. The custom overflow menu contains edit plus
+adapter-owned permanent delete only when the selected session supports it.
 
 `AgentConversationService.previewHandoff` is the single source of truth for the
-portable payload and transport tier. Verified Claude Code and Codex executable
+portable payload and transport tier. Each generated preview also receives an
+opaque, main-process-only token and a five-minute bounded in-memory lease.
+Confirmation looks up that exact snapshot, rechecks its identity and digest,
+and never rereads a live transcript after the user has reviewed it. Expired,
+evicted or tampered previews fail with an actionable stable error and do not
+create a handoff record. The cache is capped at 64 entries, is not persisted,
+and successful launches consume the token. Verified Claude Code and Codex executable
 contracts use `direct` and expose a shell-quoted command using the same target,
 project directory and payload consumed by Terminal launch. Other detected
 Agents with an allowlisted application launch path use `launch`: the main
@@ -1880,7 +1939,17 @@ read in bounded batches of 80 entries, while the renderer mounts 20 entries per
 view page. The fixed pagination bar selects any loaded page, resets the
 transcript scroll position on navigation and requests the next source cursor
 only when the user advances beyond the loaded page count. The merged detail
-deduplicates entry ids and preserves parse/truncation metadata.
+deduplicates entry ids and preserves parse/truncation metadata. The transcript
+detail keeps the selected title and source path in the session list; its compact
+action header does not repeat those values, reserving the vertical space for
+conversation entries.
+
+The opt-in session-index control states its ownership boundary next to the
+toggle: PromptHub stores only redacted device-local metadata for faster search
+and pagination, while transcript bodies remain in Agent-owned files and are
+read on demand. Successful resume, handoff, copy and export actions use the
+shared renderer toast surface instead of adding a status row to the conversation
+toolbar.
 
 ## `DES-AGENT-097`: Shared Agent MCP Entry Detail
 
@@ -1991,6 +2060,18 @@ and rollback remain exclusively owned by the activation service. Other
 platforms advertise no official restore until their default provider and model
 write contract is independently verified.
 
+The renderer represents the native source with the same bordered-card language
+as editable Profiles, without a selected left rail. Its detail pane uses a
+bounded grid of framed, sanitized fields and an explicit ownership notice. The
+notice is not merely copy: its primary action calls the existing redacted
+import/adopt flow, then immediately sets the newly created Profile as the
+right-pane edit target. This preserves the source-of-truth boundary: native
+files and credentials stay Agent-owned and main-process-only, while subsequent
+editing targets an independent PromptHub Profile and activation still uses the
+existing preview, backup, verification, and rollback path. Rendering remains
+`O(1)` for the native summary and does not add filesystem reads or network
+requests.
+
 ## `DES-AGENT-104`: Right-Pane Provider Draft Editor
 
 `AgentProviderProfileWorkbench` owns a renderer-local edit target with three
@@ -2009,3 +2090,1241 @@ as an alternative to a PromptHub-managed secret. The editor does not add model
 catalog, reasoning conversion, custom User-Agent, failover or proxy controls:
 those CC Switch surfaces depend on the separately gated proxy capability in
 `FR-AGENT-017` and are not accepted by the current direct adapters.
+
+## `DES-AGENT-105`: Source-Bound Config Inventory And Editor State
+
+`AgentUserConfigFileService` keeps its existing bounded discovery policy
+(`MAX_CONFIG_ENTRIES`, `MAX_CONFIG_FILES`, `MAX_CONFIG_DEPTH`) as the single
+filesystem inventory boundary. Existing non-declared targets are authorized
+only when the same discovery policy returns their normalized path; missing
+targets remain limited to adapter declarations. This adds at most one bounded
+`O(E)` directory scan per uncached source context, where `E <= 2,000`, and the
+service keeps at most 64 source inventories in an in-memory LRU cache. `list()`
+refreshes that cache so external changes are observed without unbounded
+watchers, polling or durable state.
+
+`SkillFileEditor` attaches list and read requests to a monotonically increasing
+source generation. A source change clears inventory, selected content and
+per-path cache before loading the next source. Late results are ignored unless
+their generation and source key are still current. Same-source refreshes retain
+the existing content cache, avoiding redundant reads.
+
+The existing dirty-editor confirmation is extracted as a shared renderer hook
+and reused by both module navigation and Agent selection.
+
+Allowing an undetected Agent to create declared config files is intentionally
+not implemented in this design because it conflicts with `FR-AGENT-075`, which
+requires undetected Agents to remain absent and forbids config reads or writes.
+Changing that source-of-truth boundary requires an explicit product decision
+about whether configured-but-undetected Agents re-enter the sidebar.
+
+## `DES-AGENT-106`: Appearance Context Rail
+
+`AgentAppearancePanel` owns a renderer-local `skins | pets` selection whose
+default is `skins`. A fixed-width navigation rail presents Pets before desktop
+skins and derives both counters from the single `AgentAppearanceOverview`;
+switching destinations performs no IPC and does not duplicate durable state.
+The right pane renders a destination-specific toolbar and scroll surface, so
+skin and Pet actions cannot be confused.
+
+Refresh remains the only shared operation. Import, invalid-count messaging,
+folder opening and inventory rendering are selected by the current destination.
+This keeps navigation `O(1)` and inventory rendering `O(S)` for skins or `O(P)`
+for Pets rather than mounting both collections at once. Existing main-process
+validation, filesystem ownership, apply/restore and Pet animation contracts are
+unchanged.
+
+The exported panel remains a declarative orchestration component that wires the
+existing command surface into the two focused workspaces. Its render body may
+exceed the default 50-line function target because splitting that one-to-one
+action wiring behind a second abstraction would hide the IPC ownership without
+removing a repeated decision; all inventory and card rendering remains in
+smaller domain components.
+
+## `DES-AGENT-107`: Filesystem Pet Manager And Bounded Official Catalog
+
+The renderer splits Pet inventory and catalog concerns into a dedicated
+workspace component. A white context rail selects installed Pets or the
+official catalog while one responsive `auto-fill` grid renders domain cards.
+Installed cards use the existing preview bridge and filesystem actions;
+catalog cards use a separate read-only preview endpoint. Both surfaces derive
+installed state from one `AgentAppearanceOverview`, avoiding duplicate durable
+state and keeping list work `O(P)` for installed Pets or `O(C)` for the current
+bounded catalog page. Installed and catalog cards render through the shared
+Agent asset-card shell, including the same padding, typography and quick-action
+footer. Their domain-specific content body uses a bounded 112-pixel preview so
+the animated Pet is the primary signal. Its detail column has a fixed bounded
+height, two-line description clamp and one-line metadata lane so variable
+upstream copy cannot resize or escape the card. Installed filesystem paths and
+catalog identifiers are omitted from the visible card body; the exact installed
+path remains owned by the path-open action. The renderer still performs no
+extra I/O for this presentation change, and list work remains linear in the
+bounded page.
+
+`AgentAppearanceService` remains the owner of `<codex-root>/pets`. Its metadata
+update reads the existing manifest, merges only validated display fields,
+revalidates the full result and atomically replaces `pet.json`, preserving
+unknown version-compatible fields. A separate main-process
+`AgentPetStoreService` owns network access. It accepts no caller-supplied URL.
+Catalog, manifests and installable spritesheets are restricted to the official
+raw GitHub repository prefix. Card previews first request the project's
+published, frame-sized `codexpet.top/assets/previews/<safe-id>/webp/idle.webp`
+asset with a 2 MiB ceiling; if unavailable, the service validates `pet.json`
+and uses its allowlisted spritesheet as a 20 MiB fallback. This avoids fetching
+a multi-megabyte animation sheet for every healthy catalog card while retaining
+a deterministic recovery path. All requests enforce a 10-second timeout and
+reject redirects. The renderer loads at most four previews concurrently,
+deduplicates in-flight preview ids and retains at most 96 preview data URLs for
+the active process. The main process persists valid preview bytes under
+`<dataRoot>/agent-pet-store/cache/previews`, reuses them for seven days across
+application restarts, and atomically writes then prunes the cache to at most 96
+files and 192 MiB. Preview hits require one bounded file lookup/read; a prune is
+`O(C log C)` for `C <= 96`, while an uncached page remains `O(P)` network work
+with four renderer workers. The service also retains at most one short-lived
+catalog cache and stages installs under PromptHub's temporary data area. The
+staging directory is removed on every result path.
+
+Catalog search keeps renderer-local draft and committed values separate.
+Keystrokes update only the draft. Enter or the search icon commits a trimmed
+query, resets paging and increments a bounded request generation; this permits
+a newer explicit search to supersede an older in-flight request while the
+existing source-bound guard discards the stale completion. Network work is
+therefore proportional to explicit searches and page/refresh actions, not the
+number of typed characters.
+
+IPC and preload add typed list/install/preview/update operations. Renderer
+requests are source-bound and ignore stale results after Agent, search or page
+changes. No database, backup, sync, runtime path or upstream execution contract
+changes.
+
+## `DES-AGENT-108`: Cached Native Menu Quota Projection
+
+`agent-usage-runtime.ts` owns one process-wide `AgentUsageService` used by both
+Agent IPC and a new main-process tray projection service. The projection owns a
+fixed allowlist of the six verified usage adapters and resolves their display
+names from the existing platform registry. It maps only the public
+`AgentUsageQuota` contract; credentials, provider response bodies and raw
+exceptions never enter the tray model.
+
+The projection evaluates `P` providers with `O(P + M)` time and `O(P + M)`
+snapshot memory, where `M` is the total returned metric count. `P` is currently
+six and provider I/O runs through a two-worker queue, so network concurrency is
+`O(1)` and cannot fan out without bound. Each adapter retains its existing
+10-second request timeout and 60-second cache. A rejected provider becomes a
+sanitized unavailable item while successful peers remain intact.
+
+`TrayController` owns the last successful presentation and one in-flight quota
+reload. Menu creation and each macOS `mouse-down` first rebuild synchronously
+from that presentation, then request an asynchronous refresh. Repeated opens
+join the in-flight request rather than issuing duplicate work; destroy advances
+the generation so late results cannot recreate or mutate an owned tray.
+
+`tray-menu.ts` keeps the native-menu rendering boundary. It selects the metric
+with greatest utilization as the compact summary, formats every metric as
+remaining percentage plus a bounded relative reset, and localizes known metric
+ids and status text through the existing seven-language tray dictionary. A
+refresh command and the existing Agent management command remain available in
+the quota submenu. This intentionally adapts CodexBar's provider/metric/reset
+hierarchy to Electron native menu constraints instead of copying its SwiftUI
+view implementation or vendoring third-party source.
+
+## `DES-AGENT-109`: Incremental Quota Projection And Kimi Token Renewal
+
+The tray projection starts with six typed loading rows derived from the existing
+verified-adapter allowlist. Provider work remains a two-worker queue, but each
+settled item is reported to `TrayController` immediately and merged by stable
+Agent id. This keeps cold-start rendering at `O(P)` memory and lets a later menu
+open use partial results instead of waiting for the slowest provider. The final
+array remains in registry order; an already-open native macOS menu is not
+mutated in place because Electron installs menus as native snapshots.
+
+Kimi renewal is owned by a focused main-process helper rather than renderer UI.
+It reads only `<root>/credentials/kimi-code.json`, applies the upstream
+`auth.kimi.com/api/oauth/token` refresh-token form contract and registered Kimi
+Code client id, and bounds each request to ten seconds with at most three total
+attempts and short exponential backoff. Legacy OAuth files remain read-only.
+
+Before rotating a token, the helper acquires Kimi Code's native
+`<root>/oauth/kimi-code.lock` directory with a bounded wait, refreshes the lock
+mtime while held, and re-reads the credential after acquisition so a concurrent
+Kimi process can win without being overwritten. Persistence preserves unknown
+JSON fields, uses same-directory atomic replacement with mode `0600`, and
+releases the lock on every path. Unauthorized refreshes do not overwrite Kimi
+credentials; transport and write failures become sanitized unavailable states.
+The helper coalesces refreshes within this process, so repeated workspace and
+tray reads do not rotate the same refresh token concurrently.
+
+## `DES-AGENT-110`: Rendered Tray Quota Popover
+
+On macOS, `TrayController` routes the primary tray click directly to one
+frameless `BrowserWindow`; it does not require a localized quota command or
+native submenu. A secondary click explicitly calls `Tray.popUpContextMenu()`
+with the remaining native commands. Windows and Linux continue using the native
+context menu and keep its quota command because their tray interaction contract
+differs. The focused popover controller anchors below or above
+`Tray.getBounds()`, clamps the window to the nearest display work area, reuses
+it across opens, hides it on blur and destroys it with the tray/application
+lifecycle. It loads the existing renderer entry with `surface=agent-usage`; the
+normal application bootstrap is not mounted for that surface.
+
+On macOS the frameless window uses Electron's native `vibrancy: "popover"`
+material with an active visual-effect state. The renderer shell stays
+transparent so the system blur, tint and window shadow remain visible instead
+of painting an opaque white card. Windows and Linux keep the existing opaque
+renderer fallback because those platforms do not provide the same native
+popover material contract.
+
+The rendered surface uses the existing `PlatformIcon` assets, theme tokens and
+seven-locale i18n resources. It adapts CodexBar's `UsageMenuCardView` hierarchy
+to React: compact product identity and normalized plan, then the most
+constrained metric label, a small inline tabular remaining value, slim progress
+track and reset text. Optional expansion reveals remaining metrics using the
+same hierarchy. Loading, missing credentials, expired credentials and
+unavailable states never render fake zero values. SwiftUI source and CodexBar
+assets are not copied because they cross an incompatible runtime and licensing
+boundary; only the verified information architecture is reproduced with
+PromptHub components.
+
+The renderer calls the existing `AGENT_USAGE_GET` contract with an optional
+validated `forceRefresh` flag. One fixed six-Agent queue runs at concurrency two
+and publishes each settled result independently. Existing local successful
+snapshots render first; failed refreshes leave them in place. The process-wide
+main usage service remains the only provider/credential owner and keeps its
+adapter timeout and 60-second cache. Popover state is presentation-only and no
+database, filesystem, backup or sync contract changes.
+
+## `DES-AGENT-112`: Conversation Toolbar And Cursor Boundary
+
+`AgentConversationActions` renders one flex row directly inside the detail header;
+the header owns the border, background and spacing, so the action row does not
+introduce a second card surface. Session selection uses the existing semantic
+foreground/muted tokens and a low-contrast accent background rather than a
+saturated primary fill. This is renderer-only and does not change metadata,
+native transcript, IPC or persistence ownership.
+
+Transcript pagination keeps the existing 20-entry viewport and 80-entry fetch
+size. When the requested page is beyond the loaded boundary, it follows native
+cursors until the target page has an entry, the cursor is exhausted, the cursor
+stops advancing, or eight hops have been attempted. Each response is de-duplicated
+by entry id in `O(n)` time per fetched page; the bounded hop count prevents
+pathological adapters from causing unbounded I/O. The renderer updates the
+existing detail snapshot once, clamps the visible page to the last loaded page,
+and preserves a cursor for a later retry when the hop budget is reached.
+
+## `DES-AGENT-113`: Shared Provider Workbench Composition And Pi Import
+
+`AgentProviderWorkbenchLayout.tsx` owns the stable Provider & Model visual
+composition: responsive sidebar tracks, top action toolbar, scrollable provider
+list, bottom create action, detail canvas, list-item classes, detail header,
+metadata rows and section surfaces. The generic Provider Profile adapter and
+Pi native catalog adapter provide data and commands to these primitives rather
+than maintaining independent shells.
+
+Pi import reuses the existing PromptHub provider-source discovery service. The
+service adds a Pi protocol projection (`openai-completions`,
+`anthropic-messages`, or `google-generative-ai`) and resolves the selected
+provider/model entirely in the main process. A dedicated IPC operation passes
+only source and model identities from the renderer and returns only backup
+metadata; literal credentials remain main-process-only.
+
+The Pi writer prepares the `models.json` and optional `auth.json` edits before
+performing either write. It creates both backups, verifies both original
+digests, writes with atomic replacement, verifies the generated structures,
+and restores both original files if either replacement fails. Duplicate ids,
+invalid endpoints, unsupported protocols and malformed native files fail
+before the first write.
+
+Provider discovery remains `O(P + M)` for `P` configured providers and `M`
+chat models. Pi import performs a constant number of bounded file reads,
+backups and atomic replacements; it adds no cache, polling loop, network call
+or renderer-resident credential state.
+
+## `DES-AGENT-114`: Pi Current Provider Override Import
+
+The Pi workbench toolbar mirrors the generic Provider toolbar with current
+configuration import first and PromptHub-source import second. Renderer sends
+only `{ agentId: "pi" }`; main re-inspects `settings.json` and the sanitized Pi
+catalog, so stale renderer-selected provider ids cannot choose a filesystem
+write target.
+
+For a current built-in provider, main writes a same-id provider entry containing
+an empty `modelOverrides` record for the current verified model into
+`models.json`. Pi treats this as a valid, behavior-preserving override: unlike a
+provider-level `baseUrl`, it cannot reroute sibling models that use different
+protocols or endpoints. Built-in models remain composed underneath it, while
+existing `auth.json` and environment credentials remain owned by Pi. The catalog
+projection marks a built-in provider with a matching custom entry as custom so
+the existing edit/remove controls operate on the override. Removing the entry
+restores the unmodified built-in projection.
+
+The import performs `O(P + M)` bounded catalog inspection and one bounded JSONC
+write. Existing backup, digest comparison, atomic replacement, semantic re-read
+verification and rollback primitives remain the only persistence path. Missing
+current provider/model, non-built-in source, stale model, malformed source and
+duplicate override fail before mutation.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-095` | `DES-AGENT-113` | `TEST-AGENT-136` | `T-AGENT-182` |
+| `FR-AGENT-096` | `DES-AGENT-114` | `TEST-AGENT-137` | `T-AGENT-183` |
+
+## `DES-AGENT-115`: Semantic Quota Contract And Shared Meter Composition
+
+Quota adapters normalize provider payloads into a versioned contract whose
+metrics carry typed scope, period and value unions. Finite values cross IPC only
+as remaining percentage, with remaining/limit amounts when trustworthy;
+unlimited and unknown are explicit variants. Adapters do not select a renderer
+or parse their ids in UI code.
+
+A shared pure presentation model owns grouping, semantic ordering, primary
+selection, bounded model expansion, reset formatting, tone and visualization
+selection. Finite percentage or amount values with rolling or day/week calendar
+periods use a compact SVG ring; month, billing-cycle, lifetime and
+provider-defined values use a horizontal remaining bar. Overview and the menu-bar popover compose
+the same meter component at different densities. Successful summaries omit the
+redundant provider-provenance sentence. Cached values remain stable during an
+in-flight refresh, whose busy state stays on the refresh control; stale copy is
+reserved for a failed refresh that affects trust. Old V1 renderer caches are
+ignored through the contract schema version. Provider endpoints, credential
+ownership, process cache, concurrency and persistence remain unchanged.
+
+Antigravity is a source-specific normalization rule, not a renderer branch. Its
+baseline metrics come only from `RetrieveUserQuotaSummary` grouped five-hour
+and weekly buckets. `GetUserStatus` contributes plan identity, while legacy
+prompt-credit counters are ignored because current provider documentation
+defines AI credits as overage and no verified balance contract is present.
+
+Kimi is also normalized at the adapter boundary. The current coding usages
+payload reports `remaining` and `limit`, and expresses its 5-hour window as
+`300 TIME_UNIT_MINUTE`; the adapter prefers that remaining value, accepts the
+proto unit, and retains compatibility with the older `used` payload. The
+official client treats top-level `usage` as weekly and `limits[]` as rolling
+windows. PromptHub does not map `totalQuota` because it is not a trustworthy
+numeric source for the separate cross-product monthly membership total.
+
+The complete adapter matrix, contract shape, cardinality rules, complexity,
+failure states and verification plan are authoritative in
+`quota-presentation-design.md`.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-097` | `DES-AGENT-115` | `TEST-AGENT-138` | `T-AGENT-184` |
+
+## `DES-AGENT-116`: Native Model Adapter Registry Expansion
+
+The existing main-process model configuration boundary remains the owner of
+native inspection and mutation. Its registry adds independent JSON/JSONC/YAML
+projections for Antigravity, Qoder, CoPaw, AutoClaw, QClaw and Hermes. Existing
+Claude Code, Codex, Grok, Pi, OpenCode and OpenClaw behavior is reused rather
+than copied into new renderer components. Capability declarations and Provider
+runtime registration derive from the same implemented platform set.
+
+The normalized operation remains O(F + M) time and O(F + M) bounded memory,
+where F is one native config file capped at 2 MiB and M is the platform's
+declared model catalog. Each request performs at most one primary config read,
+one optional catalog/active-workspace read, one backup copy, one atomic write
+and one verification read. No network request, polling loop, cache or background
+process is introduced.
+
+Antigravity resolves Provider state from the sibling
+`~/.gemini/antigravity-cli/settings.json` while retaining
+`~/.gemini/config` as its Skills/MCP root. Qoder reads `model.name` and sanitizes
+metadata from `modelConfigs.customModels`. AutoClaw reads `setting.json`. QClaw
+uses its own root with the verified OpenClaw JSON shape. Hermes reads
+`config.yaml`. CoPaw resolves the active workspace from `config.json`, validates
+that the selected workspace remains under the platform root, then reads and
+writes only its `agent.json`; its provider secret file is outside the adapter.
+
+All JSON mutations use structural JSONC edits so comments and unrelated keys
+survive. YAML mutations use the existing document-preserving parser. Backup,
+concurrent-change detection, atomic replacement, semantic verification and
+rollback are shared with existing adapters. Renderer and Provider Profile code
+continue to consume the normalized contract and therefore need no Agent-specific
+layout branch.
+
+NanoClaw is a separate target-binding design: the native source of truth is a
+per-group `container_configs` row managed by its CLI, not one platform-global
+file. It remains planned until `AgentProviderAdapterContext` and the workbench
+can carry an explicit child target. This avoids unsafe fan-out, arbitrary group
+selection and mutation of generated files.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-098` | `DES-AGENT-116` | `TEST-AGENT-176` | `T-AGENT-185` |
+
+## `DES-AGENT-117`: Provider Toolbar And Sidebar Containment
+
+`AgentProviderWorkbenchLayout` changes its toolbar from one fixed-height icon
+row to a bounded one-column command grid. Generic Profile and Pi workbenches
+continue to supply the same two commands, but each button now renders its
+existing localized accessible name as visible text. This keeps action semantics
+and IPC unchanged while making the commands discoverable at the sidebar's
+224-288 px responsive widths and across all seven locales.
+
+The sidebar owns `overflow-x-hidden` and keeps only its existing vertical scroll
+container. The native configuration card moves spacing to a containing block;
+the button remains `w-full` inside that block instead of combining `w-full`
+with horizontal margins. This removes the deterministic extra-width overflow
+without clipping focus state or changing list selection behavior.
+
+Rendering remains O(V), where V is the visible virtualized profile count. No
+network, filesystem, persistence, cache or process boundary changes.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-099` | `DES-AGENT-117` | `TEST-AGENT-177` | `T-AGENT-186` |
+
+## `DES-AGENT-118`: Adapter-Owned Session Footprint And Deletion
+
+`AgentSessionMetadata` carries an optional `sizeBytes` and an explicit
+`nativeDeleteSupported` capability. File-backed adapters populate the size from
+the same contained source they already discover. Shared-database adapters leave
+the size unknown until they implement a truthful row-level calculation; the UI
+never substitutes the whole database size. Codex reports the exact rollout JSONL
+size already collected during its bounded scan.
+
+The project selector builds an O(S + P) map from loaded sessions (`S`) and
+registered projects (`P`). Its stable identity is the exact project path, with a
+separate namespace for registered ids lacking a loaded path. Filtering uses the
+same identity helper, so equal basenames do not merge different directories.
+No additional filesystem scan, cache, network request or persistent project row
+is introduced.
+
+Permanent deletion remains behind the session adapter. The conversation service
+invokes the adapter-owned native delete first and changes no PromptHub metadata
+when that operation fails. After native success it hard-deletes the matching
+metadata row; a cleanup failure is logged without turning the already deleted
+native session into a reversible state. The Codex adapter validates the session
+id, rescans its configured active and archived roots without following symlinks,
+resolves the current matching rollout and unlinks only that contained regular
+file. There is no generic `sourcePath` deletion path. Renderer confirmation is
+required before IPC, and a successful response removes the session from local UI
+state immediately.
+
+Codex list and delete remain O(F), where `F` is the bounded native rollout
+inventory already required for identity resolution. Size display adds no extra
+I/O because scan metadata already includes byte size. Delete performs one bounded
+rescan, one native unlink and at most one metadata-row delete, with no retry.
+Native failure leaves metadata unchanged; successful native deletion is
+intentionally irreversible.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-100` | `DES-AGENT-118` | `TEST-AGENT-178` | `T-AGENT-187` |
+
+## `DES-AGENT-119`: Draft/Submitted Search State And Metadata Scope
+
+`AgentSessionsPanel` owns two ephemeral values: the input draft and the last
+submitted query. `onChange` updates only the draft. An Enter key handler ignores
+IME composition, prevents implicit form behavior and copies the trimmed draft to
+the submitted value. Only the submitted value participates in list requests,
+pagination and visible filtering. Agent changes reset both values. No search
+state is persisted.
+
+The main session-index service applies one final metadata predicate to live
+adapter results using `title`, `projectLabel` and `projectPath`; adapter-native
+body matches are therefore discarded before IPC. The persistent SQLite index
+uses `title` and `project_path` only and no longer consults `redacted_preview`.
+The renderer repeats the same visible metadata predicate so PromptHub-owned
+display-title overrides can be honored without allowing notes, tags or models to
+expand the result set.
+
+The indexed path retains the existing bounded SQLite query and page shape. The
+live path retains each adapter's bounded native lookup plus an `O(p)` pass over
+the returned page of at most 200 rows. Typing performs zero I/O; one Enter
+submission performs one list request. This change adds no cache, persistence,
+network request, unbounded scan or process lifetime.
+
+Analyze gate: the previous debounced/body-search behavior in
+`session-index-designs.md`, the database preview predicate and renderer adapter
+exceptions conflict with the newly confirmed product behavior. `FR-AGENT-101`
+supersedes those search semantics without changing transcript ownership or the
+list IPC shape. No source-of-truth migration, compatibility fallback or blocking
+`[待确认]` item remains.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-101` | `DES-AGENT-119` | `TEST-AGENT-179` | `T-AGENT-188` |
+
+## `DES-AGENT-120`: Loaded-Inventory Sort And Codex Thread-Name Projection
+
+`AgentSessionsPanel` replaces its status-filter state with an ephemeral sort
+mode. A pure comparator copies the filtered array before sorting by effective
+time (`updatedAt`, then `createdAt`) or truthful `sizeBytes`. Null and invalid
+values always compare after known values; ties use newest effective time and
+then session id. The default is newest. The operation is `O(n log n)` time and
+`O(n)` array space for the currently loaded, explicitly counted inventory, adds
+no I/O, and reapplies after each bounded page append. PromptHub archive metadata
+no longer excludes a native row; the existing compact archive icon preserves
+that state without retaining a status-filter control.
+
+The conversation projection has no soft-delete state. The renderer has no
+Restore branch or removed-state icon, and the shared IPC/preload contract does
+not expose a restore channel. The only visible delete command is the confirmed
+adapter-owned native delete from `FR-AGENT-100`.
+
+One renderer title helper supplies the effective title to list rows,
+destructive confirmation and handoff previews: trimmed PromptHub override,
+native adapter title, then id.
+Adapters continue to own their native-title/fallback decision. The Codex adapter
+adds one read-only title projection from `<codexRoot>/session_index.jsonl`. It
+resolves the index as a contained regular file, reads at most 8 MiB from the
+tail, drops a partial leading record, parses newest-to-oldest so the latest valid
+record wins, accepts only safe ids and bounds titles to 160 characters. One
+index read builds an `O(i)` map per list call and metadata projection remains
+`O(p)` for the requested page. Missing, symlinked, malformed and truncated index
+data falls back to the existing first visible user message without changing the
+rollout, index, SQLite state or IPC contract.
+
+Analyze gate: the existing status selector and archive-hides-from-Active copy
+conflict with the newly confirmed ordering behavior. `FR-AGENT-102` supersedes
+that renderer-only status exclusion while retaining non-destructive archive
+metadata and preserving the adapter-owned permanent-delete boundary from
+`FR-AGENT-100`.
+Codex's native `session_index.jsonl` is an additional read-only native source,
+not a PromptHub source-of-truth migration. No blocking `[待确认]` item remains.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-102` | `DES-AGENT-120` | `TEST-AGENT-180` | `T-AGENT-189` |
+
+## `DES-AGENT-121`: Bounded Latest Seek And Shared Row Context Menu
+
+`AgentSessionsPanel` owns only ephemeral context-menu coordinates and the
+selected session id. A native `contextmenu` event selects the row and renders
+the menu through `AgentConversationActions`, so toolbar and context actions call
+the same resume, handoff, export and confirmed-delete operations. No duplicate
+IPC orchestration, persistent menu state, metadata editor or new contract is
+introduced. The menu position is clamped to the viewport and global close
+listeners are installed only while it is open, then removed on close/unmount.
+
+The latest command reuses the existing 80-entry cursor reader and 20-entry view
+pages. One activation follows at most eight advancing cursors, de-duplicates
+entries by stable entry id and lands on the final loaded page. A stalled cursor
+is cleared; an advancing cursor remaining after eight reads stays available for
+another explicit activation. For `k <= 8` cursor pages and `e` loaded entries,
+one activation performs `O(k)` bounded I/O and `O(e)` de-duplication space/time.
+It adds no network work, cache, durable state, process or filesystem mutation.
+
+Analyze gate: earlier conversation CRUD and two-step-continuation text described
+a generic metadata editor as a History action. The confirmed product behavior
+removes that renderer operation while retaining the existing metadata storage
+boundary for already projected titles/project/archive state. No schema,
+migration, IPC or source-of-truth change is required, and no blocking
+`[待确认]` item remains.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-103` | `DES-AGENT-121` | `TEST-AGENT-181` | `T-AGENT-190` |
+
+## `DES-AGENT-122`: Shrinkable Markdown Surfaces And Tool Message Semantics
+
+`AgentConversationMarkdown` wraps GFM tables in a `max-w-full`, `min-w-0`
+horizontal scroll region and renders the table at `w-max min-w-full`. The
+Markdown root and user/assistant/tool bubble flex items also receive
+`min-w-0 max-w-full` containment. Ordinary tables still fill the bubble; only
+content wider than the available bubble scrolls. This is presentation-only and
+does not parse, copy, mutate or persist transcript text.
+
+`ConversationMessage` handles Tool before the informational fallback. Tool uses
+the assistant-side flex row, Agent avatar and the same 82% bounded bubble, with
+a sky-accented Tool label and terminal icon inside the bubble. System and
+unknown events continue through the centered notice branch. No role contract,
+adapter parser, IPC or storage boundary changes.
+
+Layout work remains `O(v)` for the visible Markdown nodes. Browser-native local
+overflow handles wide tables without duplicate rendering, measurement loops,
+observers, cache, I/O or background work. Tool rendering remains `O(1)` per
+visible entry.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-104` | `DES-AGENT-122` | `TEST-AGENT-182` | `T-AGENT-191` |
+
+## `DES-AGENT-123`: Capability-Gated Native Location Commands
+
+`AgentConversationActions` keeps the More trigger independent of permanent
+delete support and supplies the same location commands to both the toolbar menu
+and row context menu. Show in folder receives only `session.sourcePath`; Open
+project folder receives the already resolved registered/native `projectPath`.
+Missing values disable the matching menu item, rather than deriving a parent,
+falling back to an Agent root or hiding the distinction between the two paths.
+
+Both commands reuse `window.electron.openPath`, whose existing main-process
+handler validates existence and resolves file versus directory behavior: files
+are revealed with `showItemInFolder`, while directories use `shell.openPath`.
+This adds no IPC contract, storage, migration, cache, background process or
+network request. Each explicit action performs one `O(1)` IPC invocation and
+one filesystem metadata lookup in the existing handler. Failure returns through
+the existing conversation-action error surface without mutating transcript or
+PromptHub metadata.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-105` | `DES-AGENT-123` | `TEST-AGENT-183` | `T-AGENT-192` |
+
+## `DES-AGENT-124`: Claude Native-Record Classification And Cwd Projection
+
+The Claude JSONL parser returns both the validated native record and an optional
+visible entry. This lets metadata and index scans reuse one parse without
+mistaking intentionally hidden records for malformed input. Only native `user`
+and `assistant` records continue to content projection. `isMeta` rows,
+non-message types and known generated command wrappers are valid-but-hidden;
+`tool_result` arrays project as Tool entries. Malformed JSON and non-object rows
+remain parse errors. Titles continue to use the first visible User entry.
+
+Both the bounded live metadata read and optional local-index scan accept only an
+absolute, null-free native `cwd`. The exact value becomes `projectPath`, while
+`path.basename(projectPath)` becomes the displayed label; the encoded Claude
+storage directory is retained only when no valid cwd is available. Indexed
+metadata derives the same label and includes the same cwd in the verified
+`claude --resume` command. The Claude index adapter version advances from 1 to
+2, so enabled rebuildable metadata is rescanned rather than preserving the old
+encoded projection. There is no SQLite schema, IPC, transcript-body persistence
+or native-file migration.
+
+For `n` bounded JSONL records, parsing remains one `O(n)` pass with `O(1)`
+additional state. Live/index metadata reads remain capped at 256 KiB per file,
+detail reads remain capped at 2 MiB, scan concurrency remains one, and no new
+network, cache or background process is introduced.
+
+Analyze gate: Claude's encoded project directory and internal records were
+native storage details incorrectly exposed by the adapter, while the stable
+product behavior requires project identity and visible transcript semantics.
+The source of truth remains Claude's native JSONL; only its read-only projection
+changes. No compatibility migration or unresolved material decision remains.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-106` | `DES-AGENT-124` | `TEST-AGENT-184` | `T-AGENT-193` |
+
+## `DES-AGENT-125`: Bounded Gemini Marker And Cursor Key Resolution
+
+`scanGeminiFiles` resolves one optional `.project_root` marker per native cache
+directory before enumerating its chats. The marker is accepted only when it is
+a regular non-symlink file, no larger than 4 KiB, and contains one null-free
+absolute path. The resulting `SessionFile.projectPath` is reused by live
+metadata, index scan and resume projection. Gemini index adapter version
+advances from 1 to 2 so enabled, rebuildable metadata is reparsed without a
+schema migration.
+
+Gemini message parsing returns visible entries plus a count of malformed rows.
+`user` text maps to User, `gemini` text to Assistant, and a user content array
+whose only visible payload is `functionResponse.response.output` maps to Tool.
+`info`, unknown and empty well-formed rows are ignored without increasing parse
+errors. Native `error` text remains a System entry because it represents a
+user-relevant failed response rather than cache metadata. A non-empty native
+`summary`, bounded to its first 160-character line, precedes the first visible
+User title fallback in live and indexed metadata.
+
+The Cursor adapter receives the configured `homeDir`. It computes the Cursor
+key for that home and resolves only a remaining suffix below that root. At each
+level it streams actual directory entries, rejects symlinks, and follows every
+component name whose literal name is an exact or hyphen-delimited prefix of the
+remaining key. Resolution accepts exactly one terminal directory; zero or
+multiple matches fail closed. The walk visits at most 64 directories and 4,096
+entries per directory. When exact resolution fails for an under-home key, a
+second cached walk removes only uniquely matched existing prefix components and
+uses the remaining literal suffix as a compact label; it still returns no
+project path. The resolver never scans transcript content, follows symlinks,
+walks above home, accesses Cursor private databases or treats string
+replacement as proof of a path.
+
+Gemini enumeration remains `O(P + S)` for `P` project caches and `S` chat files,
+with one bounded marker read per project. Cursor resolution is bounded by 64
+directory opens and 4,096 streamed entries per opened directory, with `O(c)`
+candidate state for `c <= 64`. Both changes are read-only, add no network,
+schema, IPC, cache, background process or native-file mutation.
+
+Analyze gate: stable research previously kept Cursor project identity partial
+because no canonical private history index was allowed. This design does not
+promote that private index or claim universal resolution; it adds a
+filesystem-verified, unique under-home projection and preserves null fallback.
+Gemini's `.project_root` is an existing native marker and remains the source of
+truth. No unresolved material decision remains.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-107` | `DES-AGENT-125` | `TEST-AGENT-185` | `T-AGENT-194` |
+
+## `DES-AGENT-126`: Grok Build Usage And Conversation Size Projection
+
+The existing main-process usage service owns the Grok adapter. It reads at
+most 256 KiB from `<grok-root>/auth.json`, accepts only a host entry rooted at
+`https://auth.x.ai::` with a non-empty `key`, and parses `expires_at` through
+the shared epoch/ISO timestamp helper. The token remains inside the main
+process. One refresh launches exactly two parallel requests, each using the
+existing 10-second timeout and error classification:
+
+- `GET https://cli-chat-proxy.grok.com/v1/user?include=subscription` supplies
+  `subscriptionTier` only.
+- `GET https://cli-chat-proxy.grok.com/v1/billing?format=credits` supplies
+  `config.currentPeriod`, `creditUsagePercent` and the weekly reset boundary.
+
+Billing success is sufficient for an `ok` quota; user metadata failure leaves
+the plan absent without discarding a valid weekly metric. Billing failure uses
+the existing `expired` or `unavailable` state and may retain a successfully
+read plan. The shared 60-second cache bounds normal refresh traffic to two
+requests per Agent per minute. Parsing is linear in the bounded JSON payload;
+the response mapper retains one weekly metric, so renderer memory is constant.
+
+The shared plan formatter maps known Grok native tier enums to public labels,
+including `XPremium` to `X Premium`, without adding a Grok-specific component.
+The existing period-first presentation policy renders the calendar-week metric
+as a ring.
+
+The Grok session adapter resolves `chat_history.jsonl` through the existing
+contained real-file guard while reading metadata, performs one file stat for
+each projected row, and uses that file for both `sourcePath` and `sizeBytes`.
+The directory scan remains bounded by the existing 50,000-session ceiling and
+detail reads remain capped at 2 MiB. No schema, IPC, transcript ownership or
+native file mutation changes.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-108` | `DES-AGENT-126` | `TEST-AGENT-186` | `T-AGENT-195` |
+
+## `DES-AGENT-127`: Session-Owned Footprint And Delete Registry
+
+The main session service owns a typed lifecycle registry beside the existing
+read adapters. Each listed adapter registers one of three deletion strategies:
+
+- a contained single-file target;
+- a contained multi-file or session-directory target resolved again from the
+  native session id; or
+- a native command / shared-database row mutation implemented by that adapter.
+
+The renderer still sends only `agentId` and `sessionId`. Immediately before a
+mutation, the main process reloads the native identity and validates every
+filesystem target as a regular non-symlink child of the configured Agent root.
+Multi-target validation finishes before the first removal. Shared SQLite
+stores use a transaction to delete known child rows before the session row and
+verify that exactly one session was removed. Native CLI stores use the CLI's
+own delete command. No generic renderer-provided `sourcePath` deletion exists.
+
+List projection uses the same registered target set. A file target contributes
+its exact byte size; a directory target is streamed without following symlinks
+and is capped by the existing 50,000-entry session inventory limit. Shared
+database adapters calculate logical bytes from the session row and its child
+rows in the same list query, so one session never reports the whole database
+file. Known sizes remain `O(1)` for file/stat and database projections;
+directory footprints are `O(F)` time and `O(D)` bounded traversal space for the
+files and directories owned by that session. List enrichment uses a bounded
+worker pool rather than unbounded `Promise.all` I/O.
+
+This design changes the earlier `DES-AGENT-118` capability gate: delete remains
+adapter-owned and confirmed, but every adapter that returns sessions must now
+provide a verified lifecycle strategy. The native mutation succeeds before
+PromptHub metadata is hard-deleted. A native failure leaves PromptHub metadata
+unchanged; a later metadata cleanup failure is reported without pretending the
+native content can be restored.
+
+Traceability:
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-110` | `DES-AGENT-127` | `TEST-AGENT-187` | `T-AGENT-196` |
+
+## `DES-AGENT-128`: Full Rule Inventory And Explicit Creation
+
+The Rules store keeps two related projections from the same IPC result:
+
+- `availableFiles` retains every descriptor returned by `rules:list` or
+  `rules:scan`, including global descriptors whose target does not yet exist.
+- `files` remains the existing visible workspace projection, so standalone
+  Rules navigation continues to omit missing global targets and disabled
+  platforms.
+
+`AgentRulesWorkspace` resolves its Agent target from `availableFiles`, still
+preferring the normalized resolved path over platform identity. Synchronization
+selects and reads only descriptors whose `exists` flag is true. A known missing
+descriptor renders an unframed centered creation state using the descriptor's
+`name` and `path`; an absent descriptor retains the bounded rescan and retry
+state.
+
+Creation reuses `window.api.rules.save(ruleId, "")`. The store merges the
+returned descriptor into both projections, selects the created rule, exposes
+its empty content through the existing editor and schedules the existing
+WebDAV save-sync. A failed write leaves the missing descriptor intact and
+returns the prompt to a retryable state. No IPC, preload, shared type,
+filesystem layout or main-process write path changes.
+
+Inventory matching and projection are `O(n)` in the bounded rule descriptor
+count with `O(n)` renderer state. Opening a missing target performs no I/O
+beyond the existing bounded inventory load; confirming creation performs one
+save IPC and one existing save-sync schedule.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-109` | `DES-AGENT-128` | `TEST-AGENT-188` | `T-AGENT-197` |
+
+## `DES-AGENT-129`: Pi MCP Capability Registry Correction
+
+Pi's MCP target presets and stable platform reference already define the
+compatible primary target at `<root>/mcp.json` plus separate shared and project
+candidates. The built-in `pi` platform declaration therefore adds only
+`mcpRelativePath: "mcp.json"`. The existing managed-Agent query derives
+`paths.mcp`, and the machine-readable capability inventory changes MCP from
+`planned` to `partial` through its existing path-backed policy. No renderer
+branch, IPC channel, storage model, parser, writer, or target-preset duplication
+is introduced.
+
+The Agent MCP workspace continues to filter the owning MCP preset inventory by
+the stable `pi` platform id. This keeps `~/.pi/agent/mcp.json`, shared adapter
+files, and project candidates independently visible while preserving the
+separate `oh-my-pi` identity. Registry projection remains linear in the bounded
+platform and preset counts; opening Pi adds no scan or network request beyond
+the existing MCP workspace load.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-111` | `DES-AGENT-129` | `TEST-AGENT-189` | `T-AGENT-198` |
+
+## `DES-AGENT-130`: Application-Owned Session Index Preference And Paging Boundary
+
+The renderer settings store owns one boolean history-acceleration preference.
+Its default is `true`, it persists through the existing bounded Zustand
+settings snapshot, and General Settings exposes the only user-facing toggle.
+No new database schema, IPC channel or native Agent setting is introduced.
+
+`AgentSessionsPanel` passes the preference to the existing session-index hook.
+On each supported History mount the hook reads native index state once,
+reconciles an enabled-state mismatch and performs one refresh only when the
+application preference is enabled. Existing renderer-scoped request ids,
+progress filtering, cancellation on unmount, 10,000-record scan ceiling and
+live-reader fallback remain authoritative. The panel removes its indexing
+controls; refresh progress stays internal and the completed revision triggers
+the existing bounded list reload.
+
+The transcript pager adds one `ChevronsLeft` icon command before Previous. It
+sets the current display page to zero using the already loaded entry array and
+is disabled while loading or already on page zero. Latest retains the existing
+bounded cursor traversal. First-page navigation is therefore `O(1)` state work
+and zero I/O; index refresh remains `O(n)` in the bounded native session count
+with one scan in flight.
+
+Analyze gate: this intentionally replaces the earlier per-source opt-in UI in
+`DES-AGENT-047`. Native transcript files remain authoritative, index metadata
+remains local and rebuildable, and disabling preserves the existing live-reader
+path. The user explicitly selected a system setting with default-on behavior,
+so no unresolved source-of-truth or privacy decision remains.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-112` | `DES-AGENT-130` | `TEST-AGENT-190` | `T-AGENT-199` |
+
+## `DES-AGENT-131`: Project Rule Kind And Target-Specific MCP Projection
+
+Cursor user rules remain Cursor-settings-owned because the official product
+does not publish a canonical user rule file. The platform registry declares
+only the project target `.cursor/rules/prompthub.mdc`. Managed Agent projection
+adds a separate `projectRules` path so global and project scopes cannot be
+confused. The existing Rules workspace gains a bounded rule kind registry:
+`workspace` continues to target `AGENTS.md`, while `cursor` targets the MDC
+file. Duplicate detection uses the resolved target path, allowing both files
+under one project root. Existing atomic write, version, conflict and backup
+flows remain authoritative.
+
+Qoder declares the same `workspace` project-rule kind at `AGENTS.md`, so its
+Agent Rules view reuses an existing workspace descriptor by resolved target
+path. The renderer is parameterized by rule kind and platform id; it does not
+add a Qoder-only editor or duplicate managed file.
+
+The Agent Rules panel derives projects from the existing `skillProjects`
+setting, selects one bounded project, and registers the Cursor target only
+after explicit confirmation. No new IPC, schema or renderer filesystem write
+is introduced.
+
+MCP support extends the shared target registry rather than adding Agent UI
+branches. OpenClaw gets a nested JSON projector for `mcp.servers` and canonical
+remote transport output; Qoder reuses the top-level `mcpServers` JSON projector;
+Grok reuses bounded TOML section scanning with target-aware `headers` output;
+Antigravity uses the same top-level container with a target-specific
+`serverUrl` remote projection. Reasonix exposes only its documented project
+`.mcp.json` through the generic JSON contract. Its modern global `[[plugins]]`
+array remains excluded because the current Codex-style TOML merger cannot
+preserve and reconcile that schema losslessly.
+Global presets add the documented user files and project presets add Qoder's
+two documented scopes plus Grok and Antigravity project files. Unknown
+JSON/TOML siblings are preserved. WebSocket-only Qoder declarations, OpenClaw
+and Antigravity OAuth state and other unknown native fields are not modeled.
+
+Registry lookup is `O(P)` in the bounded platform/preset count. Rule descriptor
+lookup is `O(R)` and MCP JSON/TOML merge is `O(S)` / `O(file lines)` with no
+new network request, background process or unbounded cache.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-113` | `DES-AGENT-131` | `TEST-AGENT-191` | `T-AGENT-200` |
+
+## `DES-AGENT-132`: Fresh Session Index Reuse And Background Warmup
+
+`useAgentSessionIndex` treats a completed scan timestamp as a freshness lease.
+A source refreshed within five minutes is reused directly; a missing or stale
+lease starts one module-scoped background refresh per Agent. The bounded map
+contains only currently running promises and removes each entry on settlement,
+so it cannot grow with historical requests. A background request is owned by
+the application renderer window rather than the mounted History component:
+tab/Agent navigation does not cancel it, while the existing main IPC binding
+still aborts it when the sender window is destroyed.
+
+Automatic enablement updates source state without invoking the foreground
+refresh path, then joins or starts background warmup. The existing explicit
+hook refresh remains component-scoped and cancellable for tests and future
+commands. Freshness checking is `O(1)`; deduplication is expected `O(1)` map
+lookup; the existing bounded scan remains `O(n)` filesystem metadata work and
+`O(n)` validation memory only when stale.
+
+`AgentSessionsPanel` delays automatic reconciliation until its first bounded
+list settles. The initial load therefore performs one native/index list instead
+of racing that list against a full scan. Index revisions and submitted searches
+reuse the visible panel and never reactivate its initial blocking loader. The
+existing bounded list result atomically replaces visible metadata when ready.
+
+Analyze gate: this supersedes `DES-AGENT-130` only where that design refreshed
+on every mount and cancelled automatic work on unmount. It does not change the
+SQLite schema, IPC contract, native transcript ownership, scan ceiling, live
+fallback or user preference. The user explicitly requested real cache reuse
+after observing repeated long Gemini scans, so no material decision remains.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-114` | `DES-AGENT-132` | `TEST-AGENT-192` | `T-AGENT-201` |
+
+## `DES-AGENT-133`: Agent-Scoped Asset Selection Dialogs
+
+The Agent MCP panel reuses `McpLibraryDeployDialog`, which already owns bounded
+My MCP selection, disabled/already-installed states and target application. The
+panel supplies the first matching writable preset exactly as the previous
+navigation handoff did, but invokes the MCP store directly and refreshes the
+Agent target status in place. Target conflicts retain the existing explicit
+overwrite confirmation; no new IPC or persistence contract is introduced.
+
+The Agent Plugin panel opens a dedicated library selection dialog over the
+current workspace. The dialog reads the existing Plugin library, filters in
+memory, keeps selected ids in bounded component state and exposes the existing
+copy/symlink modes. Confirmation distributes sequentially through the existing
+Plugin store to the enabled target ids already scoped to the current Agent,
+then reloads the shared library/target matrix. Standalone manager navigation
+remains available from detail actions, but is no longer the Add workflow.
+
+Selection and duplicate checks are `O(A)` for library assets and `O(T)` for the
+bounded Agent target set. The dialogs add no filesystem access, network call,
+background process, durable UI state or unbounded cache.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-115` | `DES-AGENT-133` | `TEST-AGENT-193` | `T-AGENT-202` |
+
+## `DES-AGENT-134`: Provider Product Vocabulary And Native Read Boundary
+
+The renderer removes the native-import commands from the shared Provider
+workbench, native detail and Pi catalog. The native summary remains a derived,
+read-only view, and official restore keeps its existing explicit activation
+preview. Add provider and PromptHub provider import continue through their
+existing workflows.
+
+All seven locale namespaces replace user-facing profile/configuration-profile
+copy with the locale's provider term. Component, store, shared type, IPC and
+database identifiers keep `ProviderProfile` for compatibility; changing those
+names would add migration and contract risk without changing product behavior.
+The unused native-import dialog is removed from the renderer, while low-level
+preload/main operations remain available to avoid an unrelated cross-process
+contract deletion.
+
+The change removes UI branches and performs no new scan, filesystem write,
+network request, persistent state or cache. Rendering remains `O(P + M)` for
+the bounded provider/model inventory with the same memory bound.
+
+Analyze gate: the requested product vocabulary conflicts only with existing
+UI copy, not with the durable Provider Profile boundary. Keeping internal names
+and removing the exposed conversion action resolves the conflict without a
+schema or migration decision.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-116` | `DES-AGENT-134` | `TEST-AGENT-194` | `T-AGENT-203` |
+
+## `DES-AGENT-135`: Plugin Empty-State And Git Proxy Authority Boundary
+
+`AgentPluginAssetPanel` always opens the fixed-Agent library dialog. Inventory
+emptiness is evaluated before target availability so an empty library renders a
+plain no-Plugin state and never emits the internal no-target toast. When library
+packages exist but the scoped target list has no enabled destination, the dialog
+renders one user-facing unsupported notice and disables selection and install.
+No target is guessed or created.
+
+The desktop network-proxy service remains the only owner of effective proxy
+environment. `system` restores the environment captured at application startup,
+`direct` removes upper- and lower-case HTTP(S), ALL and NO proxy variables, and
+`manual` writes the validated configured proxy and bypass rules. Settings changes
+continue to apply immediately through the existing settings IPC path.
+
+The core Git runner performs one bounded attempt and inherits that effective
+process environment. It does not inspect proxy failures, switch to direct mode or
+override Network Settings. Existing 30-second timeout, diagnostic redaction and
+temporary-path cleanup remain unchanged. Runtime stays `O(1)` with one Git
+attempt.
+
+The renderer owns one shared Plugin operation error presenter. It classifies
+network/proxy, source access, package validation, duplicate, local storage and
+Git availability failures into seven-locale messages containing the failed
+operation, likely cause and corrective action. Market install, local/source
+import, Agent deployment and batch installation use that presenter. Batch
+installation keeps aggregate counts and appends the first explained failure.
+Unexpected errors retain only a bounded sanitized reason; source URLs, local
+paths, IPC prefixes and internal wrappers are removed. If Agent deployment
+succeeds but its inventory refresh fails, the dialog reports that distinct
+partial-success state rather than claiming installation failed.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-117` | `DES-AGENT-135` | `TEST-AGENT-195` | `T-AGENT-204` |
+
+## `DES-AGENT-136`: Source Import Presentation And Protocol Projection
+
+`AgentProviderSourceCandidate` adds a bounded ordered `protocols` list while
+retaining `protocol` as the recommended default. `ImportAgentProviderSourceRequest`
+adds the required selected `protocol`. This is an in-version renderer/preload/main
+contract update with no database or filesystem migration.
+
+The main source service owns one projection function for list and import. It
+intersects the source `apiProtocol` with the destination Agent's verified write
+formats: Codex and OpenCode can choose OpenAI Chat or Responses; Pi can choose
+its OpenAI Completions or Responses APIs; Claude, Gemini and Qwen retain their
+direct protocol-specific mappings. Import recomputes that list and rejects any
+submitted value outside it before accessing the profile creator or Pi writer.
+For `openai` on the exact official `api.openai.com` host, Responses is ordered
+first for Codex, OpenCode and Pi; compatible third-party endpoints keep
+Chat/Completions first. The user may still explicitly select the other verified
+direct protocol.
+There is no proxy or format conversion fallback.
+
+The renderer reuses `ModelIcons.getCategoryIcon`, `getProviderIconCategory`,
+`getModelCategory` and the portal-backed shared `Select`. Provider identity is
+derived from `providerKind`; model identity is derived from the selected model
+and provider. This keeps light/dark assets and fallback behavior identical to
+Model Services without adding image files or another icon registry.
+
+Listing performs `O(P + M)` work over the already bounded AI configuration.
+Each provider receives at most two protocol options, so selection state is
+`O(1)` and no cache, network request or background process is added.
+
+Analyze gate: CC Switch v3.19.2 confirms that upstream API format is an explicit
+provider choice and distinguishes direct Responses from Chat/Anthropic formats.
+PromptHub adopts only that interaction principle; its actual options remain
+constrained by PromptHub's existing native Agent adapters, and no CC Switch
+runtime code, routing proxy or promotional preset is copied.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-118` | `DES-AGENT-136` | `TEST-AGENT-196` | `T-AGENT-205` |
+
+## `DES-AGENT-137`: Shared Provider Sidebar Actions
+
+`AgentProviderWorkbenchActions` owns the two shared entry presentations used by
+the Profile-backed workbench and Pi's native catalog. The toolbar renders Import
+from PromptHub followed by Add custom provider, using the same add icon and the
+existing secondary button treatment. `AgentProviderWorkbenchLayout` no longer
+owns a fixed footer because no provider creation action remains at the bottom.
+
+Each provider navigation surface owns only a bounded `{x, y}` context-menu
+position. Its native `contextmenu` event opens the shared menu, whose actions
+call the same state setters as the toolbar. The menu adds no alternate import,
+creation, IPC or persistence path. Busy state disables both presentations;
+Web omits the unsupported PromptHub import action.
+
+Rendering and interaction remain `O(1)` beyond the existing provider list. The
+change adds no scan, network request, cache, durable state or background task.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-119` | `DES-AGENT-137` | `TEST-AGENT-197` | `T-AGENT-206` |
+
+## `DES-AGENT-139`: Layered Inline Provider Form Surface
+
+`AgentProviderProfileFormDialog` remains the owner of the inline right-pane
+editor. Its scroll body uses the existing muted application background and
+contains one bounded `bg-card` form surface. Identity, connection, models and
+authentication remain full-width bands inside that surface, separated by
+borders and compact icon-backed headings. This adds hierarchy without nesting
+cards or changing form state, validation, save behavior or pane sizing.
+Each band's field group uses one full-width column because the editor already
+occupies the narrower third pane; no control is paired with empty half-row space.
+
+The shared `Input` component gains an explicit `outlined` presentation variant
+so repeated provider fields do not fight the default borderless input classes.
+`AgentProviderFormSelect` composes the existing portal-backed shared `Select`
+with the same border, card background, radius, focus ring and disabled treatment;
+all four provider-form selection surfaces use it and no native `select` remains.
+Its form presentation keeps the portal and positioning behavior but replaces
+the shared menu's promotional radius and deep shadow with a trigger-width,
+small-radius, light-shadow list whose selected row uses the neutral muted fill
+and a primary check icon.
+Provider-kind labels are human-readable while submitted values remain the exact
+adapter contract. Protocol options continue to come only from each Agent's
+verified direct write formats; the protocol bridge change remains separately
+gated.
+
+The form reuses CC Switch's field concepts only as interaction evidence. Name,
+provider id, endpoint, model, context size and API-key inputs receive concrete
+examples, including destination-specific model ids and `/v1` endpoint hints for
+OpenAI-family adapters. No notes, website, icon, proxy or request-conversion
+field is added because PromptHub has no matching durable contract in this form.
+The surface and every text, secret and select control span the available pane
+width at all supported viewport sizes.
+
+Rendering remains `O(F + O)` for the bounded field and option counts; each
+selector performs one bounded linear lookup over at most seven options. It uses
+no new durable state, scan, network request, persistence, IPC, timer or background
+process.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-121` | `DES-AGENT-139` | `TEST-AGENT-199` | `T-AGENT-208` |
+
+## `DES-AGENT-140`: Claude Code Role-Based Model Mapping
+
+Claude role models use the existing `AgentProviderModelMapping` boundary rather
+than adding profile JSON or a storage migration. `primary` maps to the native
+top-level `model`; optional `sonnet`, `opus`, `haiku` and `subagent` routes map
+to `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_OPUS_MODEL`,
+`ANTHROPIC_DEFAULT_HAIKU_MODEL` and `CLAUDE_CODE_SUBAGENT_MODEL`. The renderer
+emits only non-empty optional mappings, and the Claude adapter owns validation,
+native import, planning, atomic write, post-write verification and rollback.
+
+The adapter parses the bounded mapping list once into a route record. It rejects
+unknown or duplicate route keys, non-empty parameters, missing primary values,
+control characters and model ids longer than 512 characters. Activation clears
+the four managed role keys before applying the selected profile, preventing a
+previous profile's role override from leaking into the new provider while
+preserving all unrelated JSON and environment keys.
+
+The field count is fixed at five, so parsing, rendering and reconciliation are
+`O(1)` in product terms and use no cache, scan, network request or background
+process. Endpoint model discovery is not coupled to this UI-only addition: a
+future implementation must reuse the main-process SSRF, timeout, response-size,
+proxy and write-only-secret boundaries rather than calling a renderer fetch.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-122` | `DES-AGENT-140` | `TEST-AGENT-200` | `T-AGENT-209` |
+
+## `DES-AGENT-142`: Codex Primary-Model Runtime Parameters
+
+Codex reasoning effort and context window use the existing primary
+`AgentProviderModelMapping.parameters` object rather than profile JSON or a new
+schema. The optional `reasoningEffort` value maps to top-level
+`model_reasoning_effort`; optional `contextWindow` maps to top-level
+`model_context_window`. Import projects the same values back onto the primary
+mapping, so list, edit, activation and native state share one durable value.
+
+The adapter accepts only the official bounded reasoning enum and a safe positive
+integer no larger than 10,000,000. Reasoning effort is rejected outside the
+Responses path, except for the native OpenAI profile whose transport is owned by
+Codex. Activation surgically replaces or removes only the two managed scalar
+keys. The TOML editor preserves trailing comments and rejects arrays, inline
+tables, non-integer replacements or other complex shapes instead of reformatting
+the whole file.
+
+The mapping list and parameter set are fixed-size, so validation and rendering
+remain `O(1)` with no cache, network request, database migration, process or
+background resource. `disable_response_storage` is absent from the current
+official Codex reference, `goals` is global rather than provider-owned, and
+OpenAI-auth reuse changes credential ownership; none belongs in this bounded
+model-parameter change.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-124` | `DES-AGENT-142` | `TEST-AGENT-203` | `T-AGENT-212` |
+
+## `DES-AGENT-141`: List-Owned Activation And Ephemeral Native Tests
+
+The shared Provider workbench renders activation state beside each provider
+identity through `AgentProviderActivationSwitch`. It remains a command surface,
+not a second durable boolean: the checked state is derived only from the
+verified native digest/current profile state. A checked switch is disabled so
+the UI cannot create an invalid no-provider state. Selecting another row's
+switch delegates to the existing activation preview and review dialog; apply,
+verification and rollback remain owned by `AgentProviderActivationService`.
+
+Current native testing uses two explicit preload/IPC operations. Core calls the
+registered adapter's `importCurrent`, validates its sanitized preview, and
+constructs an in-memory `native:<platformId>` profile plus bounded model
+mappings. It then reuses the adapter's existing connection/model probe and
+result validation. The ephemeral target never enters the repository, secret
+store, snapshot store or activation writer. Model cancellation keeps the
+existing renderer-scoped request id and `AbortController` lifecycle.
+
+Codex is the explicit platform-native exception to the generic unsupported
+fallback. The Codex adapter resolves the allowlisted `codex` executable through
+the shared native-command resolver and points `CODEX_HOME` at the validated
+Agent root. Connection testing runs `codex login status`, which checks the
+official authentication method without a model request. Model testing runs
+`codex exec` with `--ephemeral`, `--ignore-user-config`, `--ignore-rules`,
+`--skip-git-repo-check`, `--sandbox read-only`, an explicit model and a bounded
+temporary final-message file. The runner uses no shell, accepts cancellation,
+cleans temporary output in `finally`, never returns stdout/stderr or auth data,
+and maps only allowlisted error classes to the shared redacted result contract.
+
+One extracted `AgentProviderConnectionCheck` renders both stored and current
+provider results. Runtime cost is `O(M)` for the current preview's bounded model
+mappings and one explicit network probe at most; there is no cache, scan,
+background process or additional persistent state. Probe failures remain
+redacted at the core boundary. Unimplemented platform-native protocols return
+the adapter's truthful unsupported state; official Codex uses the bounded native
+probe above.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-123` | `DES-AGENT-141` | `TEST-AGENT-201` | `T-AGENT-210` |
+
+## `DES-AGENT-143`: Encrypted Codex Account Snapshots
+
+Codex continues to own one active `<codex-root>/auth.json`. PromptHub adds a
+desktop-main `AgentCodexAccountService` whose private vault lives under the
+PromptHub user-data root. Each entry contains bounded public metadata, a SHA-256
+digest of the exact native bytes and a `safeStorage` ciphertext. Raw JSON and
+tokens never leave the main process after the write-only import call.
+
+The service exposes list, save-current, import, activate and delete operations
+through fixed preload/IPC channels. Activation is serialized per vault, saves
+an unrecognized current file as a recovery account, decrypts and validates the
+target, writes a same-directory temporary file with mode `0600`, renames it over
+`auth.json`, re-reads its digest and rolls back to the prior bytes on any write
+or verification failure. Active entries cannot be deleted. The vault and native
+payload are bounded to 32 accounts and 256 KiB per account.
+
+No database migration, provider activation, network call, process, watcher,
+timer or background cache is introduced. List and activation are `O(A)` for at
+most 32 metadata records; native replacement is `O(B)` for a payload bounded to
+256 KiB. The account manager renders only inside Codex's official native
+provider detail and does not expose a general-purpose secret JSON editor.
+
+| Requirement    | Design          | Verification     | Task          |
+| -------------- | --------------- | ---------------- | ------------- |
+| `FR-AGENT-125` | `DES-AGENT-143` | `TEST-AGENT-204` | `T-AGENT-213` |

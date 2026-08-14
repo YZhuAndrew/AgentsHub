@@ -7,10 +7,12 @@ import type {
   AgentAppearanceOverview,
   AgentDesktopThemeSummary,
   AgentPetSummary,
+  UpdateAgentPetInput,
 } from "@prompthub/shared/types";
 
 const DEFAULT_MAX_PET_IMAGE_BYTES = 20 * 1024 * 1024;
 const SAFE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const bundledThemeSeedTasks = new Map<string, Promise<void>>();
 
 interface AppearanceState {
   activeThemeId: string | null;
@@ -415,6 +417,29 @@ export class AgentAppearanceService {
     return targetDir;
   }
 
+  async updatePetMetadata(
+    input: UpdateAgentPetInput,
+  ): Promise<AgentPetSummary> {
+    if (input.agentId !== "codex") {
+      throw new Error("Appearance is only supported for Codex");
+    }
+    assertSafeId(input.petId, "Pet");
+    const parsed = await this.requirePet(input.petId);
+    const manifestPath = path.join(parsed.summary.directoryPath, "pet.json");
+    const raw = JSON.parse(await fs.readFile(manifestPath, "utf8")) as unknown;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+      throw new Error("Pet manifest must be an object");
+    }
+    const updated = {
+      ...(raw as Record<string, unknown>),
+      displayName: input.name.trim(),
+      description: input.description.trim(),
+    };
+    normalizePetManifest(updated);
+    await writeJsonAtomic(manifestPath, updated);
+    return (await this.requirePet(input.petId)).summary;
+  }
+
   async deletePet(petId: string): Promise<void> {
     assertSafeId(petId, "Pet");
     const parsed = await this.requirePet(petId);
@@ -491,6 +516,23 @@ export class AgentAppearanceService {
   }
 
   private async seedBundledThemes(): Promise<void> {
+    const seedKey = path.resolve(this.themeDir);
+    const activeTask = bundledThemeSeedTasks.get(seedKey);
+    if (activeTask) {
+      await activeTask;
+      return;
+    }
+
+    const task = this.seedBundledThemesOnce();
+    bundledThemeSeedTasks.set(seedKey, task);
+    try {
+      await task;
+    } finally {
+      bundledThemeSeedTasks.delete(seedKey);
+    }
+  }
+
+  private async seedBundledThemesOnce(): Promise<void> {
     const sources = this.options.engine.getBundledThemeDirectories?.() ?? [];
     if (!sources.length) return;
     const marker = path.join(this.themeDir, ".dream-skin-bundled-v1");

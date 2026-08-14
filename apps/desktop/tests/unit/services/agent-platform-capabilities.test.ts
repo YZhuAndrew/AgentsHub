@@ -11,17 +11,23 @@ import {
 } from "@prompthub/shared/constants/platforms";
 
 const expectedProviderAdapters = [
+  "antigravity",
+  "autoclaw",
   "claude",
   "codex",
+  "copaw",
   "copilot",
   "gemini",
   "grok",
+  "hermes",
   "kimi",
   "kiro",
   "oh-my-pi",
   "openclaw",
   "opencode",
   "pi",
+  "qclaw",
+  "qoder",
   "qwen",
 ];
 
@@ -77,6 +83,7 @@ const expectedUsageAdapters = [
   "codex",
   "copilot",
   "gemini",
+  "grok",
   "kimi",
 ];
 
@@ -132,7 +139,9 @@ describe("Agent platform capability inventory", () => {
       );
 
       const inventory = getAgentPlatformCapabilityInventory(platform!);
-      expect(inventory.providerModel.status, platformId).toBe("planned");
+      expect(inventory.providerModel.status, platformId).toBe(
+        platformId === "nanoclaw" ? "planned" : "partial",
+      );
       expect(inventory.sessions.status, platformId).toBe(
         platformId === "nanoclaw" || platformId === "copaw"
           ? "supported"
@@ -287,8 +296,8 @@ describe("Agent platform capability inventory", () => {
         evidence: "mcp-relative-path",
       },
       rules: {
-        status: "planned",
-        evidence: "protocol-evidence-pending",
+        status: "partial",
+        evidence: "project-rule-path",
       },
       plugins: {
         status: "partial",

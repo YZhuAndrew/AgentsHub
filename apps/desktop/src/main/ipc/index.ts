@@ -18,6 +18,7 @@ import { AgentConversationService } from "../services/agent-conversation-service
 import { createAgentTerminalLauncher } from "../services/agent-terminal-launcher";
 import { createNativeCommandRunner } from "../services/native-command";
 import { registerAgentProviderProfileIPC } from "./agent-provider-profile.ipc";
+import { registerAgentCodexAccountIPC } from "./agent-codex-account.ipc";
 import { registerAgentProviderSourceIPC } from "./agent-provider-source.ipc";
 import { registerAgentManagementBackupIPC } from "./agent-management-backup.ipc";
 import { registerAgentProviderActivationIPC } from "./agent-provider-activation.ipc";
@@ -25,7 +26,11 @@ import { registerAgentProviderCurrentStateIPC } from "./agent-provider-current-s
 import { registerAgentProviderMigrationIPC } from "./agent-provider-migration.ipc";
 import { registerAgentAppearanceIPC } from "./agent-appearance.ipc";
 import { createAgentCodexProviderMigrationService } from "../services/agent-codex-provider-migration-service";
-import { resolveAgentProviderContext } from "../services/agent-platform-context";
+import {
+  getAgentConfigContext,
+  resolveAgentProviderContext,
+} from "../services/agent-platform-context";
+import { importPiCustomProvider } from "../services/agent-pi-model-writes";
 import {
   createAgentProviderRuntime,
   type AgentProviderRuntime,
@@ -45,7 +50,13 @@ import { SkillInstaller } from "../services/skill-installer";
 import { launchAgentPlatform } from "../services/agent-launch-service";
 import { createAgentProviderSourceService } from "../services/agent-provider-source-service";
 import { createAgentProviderOfficialProfileService } from "../services/agent-provider-official-profile-service";
-import { coreAIConfigService } from "@prompthub/core";
+import {
+  coreAIConfigService,
+  createRendererPersistenceStore,
+  type CoreAIConfigFile,
+} from "@prompthub/core";
+import { getUserDataPath } from "../runtime-paths";
+import { configureCanonicalGithubTokenReader } from "../settings/settings-readers";
 
 const REBINDABLE_DB_CHANNELS = [
   IPC_CHANNELS.PROMPT_CREATE,
@@ -83,6 +94,14 @@ const REBINDABLE_DB_CHANNELS = [
   IPC_CHANNELS.FOLDER_INSERT_DIRECT,
   IPC_CHANNELS.SETTINGS_GET,
   IPC_CHANNELS.SETTINGS_SET,
+  IPC_CHANNELS.SETTINGS_RENDERER_PERSISTENCE_MIGRATE,
+  IPC_CHANNELS.SETTINGS_RENDERER_PERSISTENCE_GET,
+  IPC_CHANNELS.SETTINGS_RENDERER_PERSISTENCE_REPLACE_SETTINGS,
+  IPC_CHANNELS.SETTINGS_RENDERER_PERSISTENCE_REPLACE_SOURCES,
+  IPC_CHANNELS.SETTINGS_RENDERER_PERSISTENCE_REPLACE_RECOVERY_PATHS,
+  IPC_CHANNELS.SETTINGS_RENDERER_PERSISTENCE_DEVICE_ID,
+  IPC_CHANNELS.SETTINGS_RENDERER_PERSISTENCE_IDB_STATUS,
+  IPC_CHANNELS.SETTINGS_RENDERER_PERSISTENCE_IDB_DONE,
   IPC_CHANNELS.CLOUD_AUTH_GET_STATE,
   IPC_CHANNELS.CLOUD_AUTH_LOGIN,
   IPC_CHANNELS.CLOUD_AUTH_LOGOUT,
@@ -163,7 +182,6 @@ const REBINDABLE_DB_CHANNELS = [
   IPC_CHANNELS.AGENT_CONVERSATION_METADATA_LIST,
   IPC_CHANNELS.AGENT_CONVERSATION_METADATA_UPDATE,
   IPC_CHANNELS.AGENT_CONVERSATION_DELETE,
-  IPC_CHANNELS.AGENT_CONVERSATION_RESTORE,
   IPC_CHANNELS.AGENT_CONVERSATION_RESUME,
   IPC_CHANNELS.AGENT_CONVERSATION_HANDOFF_PREVIEW,
   IPC_CHANNELS.AGENT_CONVERSATION_HANDOFF_CONTINUE,
@@ -180,12 +198,19 @@ const REBINDABLE_DB_CHANNELS = [
   IPC_CHANNELS.AGENT_PROVIDER_MIGRATION_PREVIEW,
   IPC_CHANNELS.AGENT_PROVIDER_MIGRATION_APPLY,
   IPC_CHANNELS.AGENT_PROVIDER_IMPORT_CURRENT,
+  IPC_CHANNELS.AGENT_PROVIDER_TEST_CURRENT_CONNECTION,
+  IPC_CHANNELS.AGENT_PROVIDER_TEST_CURRENT_MODEL,
   IPC_CHANNELS.AGENT_PROVIDER_TEST_CONNECTION,
   IPC_CHANNELS.AGENT_PROVIDER_TEST_MODEL,
   IPC_CHANNELS.AGENT_PROVIDER_CANCEL_MODEL_TEST,
   IPC_CHANNELS.AGENT_PROVIDER_PREVIEW,
   IPC_CHANNELS.AGENT_PROVIDER_ACTIVATE,
   IPC_CHANNELS.AGENT_PROVIDER_CURRENT_STATE,
+  IPC_CHANNELS.AGENT_CODEX_ACCOUNTS_LIST,
+  IPC_CHANNELS.AGENT_CODEX_ACCOUNT_SAVE_CURRENT,
+  IPC_CHANNELS.AGENT_CODEX_ACCOUNT_IMPORT,
+  IPC_CHANNELS.AGENT_CODEX_ACCOUNT_ACTIVATE,
+  IPC_CHANNELS.AGENT_CODEX_ACCOUNT_DELETE,
   IPC_CHANNELS.AGENT_APPEARANCE_GET,
   IPC_CHANNELS.AGENT_APPEARANCE_IMPORT_THEME,
   IPC_CHANNELS.AGENT_APPEARANCE_APPLY_THEME,
@@ -303,11 +328,29 @@ export function registerAllIPC(
   const promptDB = new PromptDB(db);
   const folderDB = new FolderDB(db);
   const skillDB = new SkillDB(db);
+  const rendererPersistence = createRendererPersistenceStore({
+    rootPath: getUserDataPath(),
+    encryption: safeStorage,
+  });
+  configureCanonicalGithubTokenReader(() => {
+    const state = rendererPersistence.readHydratedStateSync();
+    const token = state.settings.githubToken;
+    return state.migrationComplete &&
+      typeof token === "string" &&
+      token.trim() &&
+      !/[\r\n\x00-\x1f\x7f]/.test(token)
+      ? token.trim()
+      : null;
+  });
 
   registerIpcGroup("prompt", () => registerPromptIPC(promptDB, folderDB, db));
   registerIpcGroup("folder", () => registerFolderIPC(folderDB, promptDB));
   registerIpcGroup("rules", () => registerRulesIPC());
-  registerIpcGroup("settings", () => registerSettingsIPC(db));
+  registerIpcGroup("settings", () =>
+    registerSettingsIPC(db, {
+      rendererPersistence,
+    }),
+  );
   registerIpcGroup("cloud", () => registerCloudIPC());
   registerIpcGroup("security", () => registerSecurityIPC(db));
   registerIpcGroup("backup", () =>
@@ -354,6 +397,16 @@ export function registerAllIPC(
             runtime.sessionIndexDb,
             agentId,
           ).read(agentId, sessionId, input),
+        canDelete: (agentId) =>
+          createAgentSessionIndexOperations(
+            runtime.sessionIndexDb,
+            agentId,
+          ).canDelete(agentId),
+        delete: (agentId, sessionId) =>
+          createAgentSessionIndexOperations(
+            runtime.sessionIndexDb,
+            agentId,
+          ).delete(agentId, sessionId),
       },
       resolveExecutable: commandRunner.resolve,
       launch: (command) => terminal.launch(command),
@@ -407,9 +460,38 @@ export function registerAllIPC(
       },
     });
     registerAgentProviderProfileIPC(runtime.profileService);
+    registerAgentCodexAccountIPC(runtime.codexAccountService);
     const providerSourceService = createAgentProviderSourceService({
-      readConfig: () => coreAIConfigService.read(),
+      readConfig: () => {
+        const state = rendererPersistence.readHydratedStateSync();
+        if (!state.migrationComplete) return coreAIConfigService.read();
+        return {
+          kind: "prompthub-ai-config",
+          version: 1,
+          updatedAt: new Date().toISOString(),
+          providers: Array.isArray(state.settings.aiProviders)
+            ? state.settings.aiProviders
+            : [],
+          models: Array.isArray(state.settings.aiModels)
+            ? state.settings.aiModels
+            : [],
+          modelRouteDefaults:
+            state.settings.modelRouteDefaults &&
+            typeof state.settings.modelRouteDefaults === "object"
+              ? state.settings.modelRouteDefaults
+              : {},
+        } as CoreAIConfigFile;
+      },
       createProfile: (request) => runtime.profileService.create(request),
+      importPiProvider: ({ provider, secret }) => {
+        const context = getAgentConfigContext("pi");
+        return importPiCustomProvider(context.rootPath, provider, secret, {
+          backupRoot: path.join(
+            app.getPath("userData"),
+            "agent-config-backups",
+          ),
+        });
+      },
     });
     const officialProfileService = createAgentProviderOfficialProfileService({
       createProfile: (request) => runtime.profileService.create(request),
@@ -420,6 +502,7 @@ export function registerAllIPC(
     registerAgentProviderSourceIPC({
       list: providerSourceService.list,
       importSource: providerSourceService.importSource,
+      importPiSource: providerSourceService.importPiSource,
       ensureOfficial: officialProfileService.ensure,
     });
     registerAgentManagementBackupIPC(runtime.backupService);

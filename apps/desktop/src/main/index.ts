@@ -1,4 +1,3 @@
-import { configureRuntimePaths as configureCoreRuntimePaths } from "@prompthub/core/runtime-paths";
 import {
   app,
   BrowserWindow,
@@ -11,7 +10,16 @@ import {
   nativeImage,
   session,
   protocol,
+  safeStorage,
 } from "electron";
+import {
+  applyStorageRootChange,
+  classifyStorageRoot,
+  createRendererPersistenceStore,
+  getStorageDiagnostic,
+  recoverJournaledStorageRestore,
+  recoverPendingStorageRootChangeSync,
+} from "@prompthub/core";
 import { IPC_CHANNELS } from "@prompthub/shared/constants/ipc-channels";
 import path from "path";
 import fs from "fs";
@@ -26,7 +34,6 @@ import {
   isDatabaseEmpty,
   detectRecoverableDatabases,
   detectRecoverableDatabaseFiles,
-  performDatabaseRecovery,
 } from "./database";
 import { registerAllIPC } from "./ipc";
 import {
@@ -50,11 +57,10 @@ import {
   registerE2EIPC,
   shouldUseDevServer,
 } from "./testing/e2e";
+import { configureE2ESecretStorage } from "./testing/e2e-secret-storage";
 import {
-  copyDataPathItem,
   getHistoricalDefaultUserDataPath,
-  inspectDataPath,
-  isLinkSafeDataPathRoot,
+  getStorageOperationControlDirectory,
   readConfiguredDataPath,
   resolveInitialUserDataPath,
   writeConfiguredDataPath,
@@ -63,12 +69,16 @@ import {
   configureRuntimePaths,
   getImagesDir,
   getGeneratedImagesDir,
+  getGenerationsDir,
   getRulesDir,
   getVideosDir,
   getSkillsDir,
   getWorkspaceDir,
   getPromptsWorkspaceDir,
-  getConfigDir,
+  getCacheDir,
+  getDataDir,
+  getDatabasePath,
+  getUserDataPath,
 } from "./runtime-paths";
 import { registerAppRuntimeIPC } from "./ipc/app-runtime.ipc";
 import { PromptDB } from "./database/prompt";
@@ -82,11 +92,15 @@ import {
   migrateLegacyDataLayout,
   detectResidualLegacyEntries,
 } from "./services/data-layout-migration";
-import {
-  createUpgradeDataSnapshot,
-  listUpgradeBackups,
-} from "./services/upgrade-backup";
+import { listUpgradeBackups } from "./services/upgrade-backup";
 import { runUpgradeBackupStartupTasks } from "./services/upgrade-backup-startup";
+import { performJournaledDatabaseRecovery } from "./services/journaled-database-recovery";
+import { registerPortableSnapshotIPC } from "./services/portable-snapshot-ipc";
+import {
+  inspectStorageDatabase,
+  verifyDataRootDatabase,
+  verifyRestoredStorageRoot,
+} from "./services/storage-database-inspection";
 import {
   buildDirectoryRecoveryCandidate,
   buildResidualLegacyRecoveryCandidate,
@@ -108,7 +122,10 @@ import { handleLegacyDesktopCliInvocation } from "./legacy-cli-invocation";
 import { getTrayMenuLabels } from "./tray-menu";
 import type { AgentProviderRuntime } from "./services/agent-provider-runtime";
 import { handleAgentProviderTraySelection } from "./services/agent-provider-tray-handler";
+import { createDefaultAgentUsagePopoverWindowController } from "./agent-usage-popover-window";
 import { startAgentDeepLinkRouting } from "./agent-deep-link-router";
+import { ensureCanonicalStorageAuthorityOnStartup } from "./services/canonical-storage-startup";
+import { createMcpResourceSecretStore } from "./services/mcp-resource-secret-store";
 
 let mainWindow: BrowserWindow | null = null;
 let minimizeToTray = false;
@@ -129,6 +146,14 @@ let isDebugMode = false;
 async function applyStoredNetworkProxySettings(
   db: Database.Database,
 ): Promise<void> {
+  const canonical = createRendererPersistenceStore({
+    rootPath: getUserDataPath(),
+    encryption: safeStorage,
+  }).readHydratedStateSync();
+  if (canonical.migrationComplete) {
+    await applyNetworkProxySettings(canonical.settings.networkProxy);
+    return;
+  }
   const row = db
     .prepare("SELECT value FROM settings WHERE key = ?")
     .get("networkProxy") as { value: string } | undefined;
@@ -169,8 +194,8 @@ export function sendToMainWindow(channel: string, ...args: unknown[]) {
     }
   }
 }
-
 export function emitWindowVisibility(isVisible: boolean) {
+  if (isQuitting) return;
   sendToMainWindow("window:visibility-changed", isVisible);
   trayController.refresh();
 }
@@ -214,6 +239,17 @@ if (!isE2E) {
   app.setName("AgentsHub"); // dev mode: show AgentsHub instead of Electron; userData pinned to PromptHub below
 
   const appDataPath = app.getPath("appData");
+  const rootRecovery = recoverPendingStorageRootChangeSync({
+    controlDirectory: getStorageOperationControlDirectory(appDataPath),
+    publishBootPointer: (rootPath) =>
+      writeConfiguredDataPath(appDataPath, rootPath),
+    verifyDatabase: verifyDataRootDatabase,
+  });
+  if (rootRecovery.status === "recovery-required") {
+    throw new Error(
+      `PromptHub storage root recovery is required: ${rootRecovery.reason ?? "unknown error"}`,
+    );
+  }
   const resolvedUserDataPath = resolveInitialUserDataPath({
     appDataPath,
     defaultUserDataPath: getHistoricalDefaultUserDataPath(
@@ -234,14 +270,6 @@ configureRuntimePaths({
   isPackaged: app.isPackaged,
   platform: process.platform,
 });
-configureCoreRuntimePaths({
-  appDataPath: app.getPath("appData"),
-  userDataPath: app.getPath("userData"),
-  productName: "PromptHub",
-  exePath: process.execPath,
-  isPackaged: app.isPackaged,
-  platform: process.platform,
-});
 const isDev = shouldUseDevServer(app.isPackaged);
 
 const dispatchFromTray = (command: AppCommand) =>
@@ -253,6 +281,8 @@ const dispatchFromTray = (command: AppCommand) =>
     sendCommand: (pendingCommand) =>
       sendToMainWindow(IPC_CHANNELS.APP_COMMAND, pendingCommand),
   });
+const agentUsagePopoverController =
+  createDefaultAgentUsagePopoverWindowController(isDev);
 const trayController = createTrayController({
   agentManagementEnabled: true,
   buildMenu: (template) => Menu.buildFromTemplate(template),
@@ -284,6 +314,8 @@ const trayController = createTrayController({
     });
   },
   onCommand: dispatchFromTray,
+  onOpenAgentUsage: () =>
+    void agentUsagePopoverController.show(trayController.getBounds()),
   onQuit: () => {
     isQuitting = true;
     app.quit();
@@ -446,7 +478,7 @@ async function createWindow() {
     // Dev mode: try to load Vite dev server
     // 开发模式：尝试连接 Vite 开发服务器
     const devServerUrl =
-      process.env.VITE_DEV_SERVER_URL || "http://localhost:5173";
+      process.env.VITE_DEV_SERVER_URL || "http://127.0.0.1:5173";
     console.log("Loading dev server:", devServerUrl);
     try {
       await mainWindow.loadURL(devServerUrl);
@@ -713,15 +745,12 @@ ipcMain.on("window:closeDialogCancel", () => {
   pendingCloseAction = false;
 });
 
-// Create system tray
-// 创建系统托盘
 function createTray() {
   trayController.create();
 }
 
-// Destroy tray
-// 销毁托盘
 function destroyTray() {
+  agentUsagePopoverController.destroy();
   trayController.destroy();
 }
 
@@ -800,6 +829,13 @@ ipcMain.handle("data:getStatus", () => {
     needsRestart:
       !!resolvedConfiguredPath &&
       resolvedConfiguredPath !== resolvedCurrentPath,
+    storage: getStorageDiagnostic(currentPath, {
+      controlDirectory: getStorageOperationControlDirectory(
+        app.getPath("appData"),
+      ),
+      inspectDatabase: (databasePath) =>
+        inspectStorageDatabase(databasePath, appDb, getDatabasePath()),
+    }),
   };
 });
 
@@ -1099,7 +1135,10 @@ ipcMain.handle("data:performRecovery", async (_event, sourcePath: string) => {
   // Close current database before overwriting
   closeDatabase();
 
-  const result = performDatabaseRecovery(sourcePath, currentPath);
+  const result = await performJournaledDatabaseRecovery(
+    sourcePath,
+    currentPath,
+  );
 
   if (result.success) {
     // Clear cache so next check sees the recovered data
@@ -1183,104 +1222,7 @@ ipcMain.handle("data:dismissRecovery", () => {
   return { success: true };
 });
 
-interface ExportZipScope {
-  prompts: boolean;
-  versions: boolean;
-  images: boolean;
-  videos?: boolean;
-  skills: boolean;
-  rules?: boolean;
-  config: boolean;
-  aiConfigJson?: string;
-  settingsJson?: string;
-  exportJson?: string;
-}
-
-ipcMain.handle(
-  "data:exportZip",
-  async (
-    _event,
-    params: { scope: ExportZipScope },
-  ): Promise<{ canceled: boolean; filePath?: string; error?: string }> => {
-    try {
-      const { zipSync, strToU8 } = await import("fflate");
-      const dateStr = new Date().toISOString().split("T")[0];
-      const { canceled, filePath } = await dialog.showSaveDialog({
-        title: "导出数据",
-        defaultPath: `prompthub-export-${dateStr}.zip`,
-        filters: [{ name: "ZIP Archive", extensions: ["zip"] }],
-      });
-      if (canceled || !filePath) return { canceled: true };
-
-      const zipFiles: Record<
-        string,
-        [Uint8Array, { level: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 }]
-      > = {};
-
-      function collectDirFiles(srcDir: string, zipPrefix: string): void {
-        if (!fs.existsSync(srcDir)) return;
-        const entries = fs.readdirSync(srcDir, { withFileTypes: true });
-        for (const entry of entries) {
-          const fullPath = path.join(srcDir, entry.name);
-          const zipPath = `${zipPrefix}${entry.name}`;
-          if (entry.isDirectory()) {
-            collectDirFiles(fullPath, `${zipPath}/`);
-          } else if (entry.isFile()) {
-            zipFiles[zipPath] = [fs.readFileSync(fullPath), { level: 1 }];
-          }
-        }
-      }
-
-      const { scope } = params;
-      if (scope.prompts) {
-        collectDirFiles(getPromptsWorkspaceDir(), "prompts/");
-      }
-      if (scope.versions) {
-        const versionsDir = path.join(getWorkspaceDir(), ".versions");
-        collectDirFiles(versionsDir, "versions/");
-      }
-      if (scope.skills) {
-        collectDirFiles(getSkillsDir(), "skills/");
-      }
-      if (scope.rules) {
-        collectDirFiles(getRulesDir(), "rules/");
-      }
-      if (scope.images) {
-        collectDirFiles(getImagesDir(), "images/");
-      }
-      if (scope.videos) {
-        collectDirFiles(getVideosDir(), "videos/");
-      }
-      if (scope.config) {
-        collectDirFiles(getConfigDir(), "config/");
-      }
-      if (scope.aiConfigJson) {
-        zipFiles["ai-config.json"] = [
-          strToU8(scope.aiConfigJson),
-          { level: 1 },
-        ];
-      }
-      if (scope.settingsJson) {
-        zipFiles["settings.json"] = [strToU8(scope.settingsJson), { level: 1 }];
-      }
-      if (scope.exportJson) {
-        zipFiles["import-with-prompthub.json"] = [
-          strToU8(scope.exportJson),
-          { level: 1 },
-        ];
-      }
-
-      const zipped = zipSync(zipFiles);
-      fs.writeFileSync(filePath, zipped);
-      return { canceled: false, filePath };
-    } catch (error) {
-      return {
-        canceled: false,
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-  },
-);
+registerPortableSnapshotIPC(isE2E ? () => undefined : scheduleAppRelaunch);
 
 /**
  * Build the list of candidate paths where a previous database might reside.
@@ -1295,23 +1237,6 @@ interface DataPathSummary {
   available: boolean;
   error?: string;
 }
-
-const DATA_PATH_MIGRATION_ITEMS = [
-  "prompthub.db",
-  "data",
-  "config",
-  "backups",
-  "logs",
-  "workspace",
-  "IndexedDB",
-  "Local Storage",
-  "Session Storage",
-  "images",
-  "videos",
-  "skills",
-  "shortcuts.json",
-  "shortcut-mode.json",
-];
 
 function getObjectNumberValue(source: unknown, key: string): number {
   if (!source || typeof source !== "object") {
@@ -1361,8 +1286,9 @@ function summarizeDataPath(targetPath: string): DataPathSummary {
       return summarizeDatabase(appDb);
     }
 
-    const dbPath = path.join(resolvedTargetPath, "prompthub.db");
-    if (!fs.existsSync(dbPath)) {
+    const classification = classifyStorageRoot(resolvedTargetPath);
+    const dbPath = classification.databasePath;
+    if (!dbPath || !fs.existsSync(dbPath)) {
       return {
         promptCount: 0,
         folderCount: 0,
@@ -1402,10 +1328,18 @@ function isSensitiveDataPathTarget(resolvedNewPath: string): string | null {
     "C:\\Program Files",
   ];
 
+  const candidate = path.resolve(resolvedNewPath);
   return (
-    sensitiveRoots.find((root) =>
-      resolvedNewPath.toLowerCase().startsWith(root.toLowerCase()),
-    ) ?? null
+    sensitiveRoots.find((root) => {
+      const sensitiveRoot = path.resolve(root);
+      const relative = path.relative(sensitiveRoot, candidate);
+      return (
+        relative === "" ||
+        (relative !== ".." &&
+          !relative.startsWith(`..${path.sep}`) &&
+          !path.isAbsolute(relative))
+      );
+    }) ?? null
   );
 }
 
@@ -1475,16 +1409,6 @@ async function applyDataPathChange(
     };
   }
 
-  if (
-    fs.existsSync(resolvedTargetPath) &&
-    !isLinkSafeDataPathRoot(resolvedTargetPath)
-  ) {
-    return {
-      success: false,
-      error: `Cannot use symbolic link as data directory: ${resolvedTargetPath}`,
-    };
-  }
-
   if (action !== "switch" && isPathInside(currentPath, resolvedTargetPath)) {
     return {
       success: false,
@@ -1519,52 +1443,47 @@ async function applyDataPathChange(
     };
   }
 
-  let backupPath: string | undefined;
+  let databaseClosed = false;
   try {
-    if (
-      action === "overwrite" &&
-      targetInspection.exists &&
-      targetInspection.hasPromptHubData
-    ) {
-      const snapshot = await createUpgradeDataSnapshot(resolvedTargetPath, {
-        fromVersion: `${app.getVersion()}-pre-data-path-overwrite`,
-        toVersion: app.getVersion(),
-      });
-      backupPath = snapshot.backupPath;
+    if (action !== "switch") {
+      closeDatabase();
+      appDb = null;
+      databaseClosed = true;
     }
-
-    if (!fs.existsSync(resolvedTargetPath)) {
-      fs.mkdirSync(resolvedTargetPath, { recursive: true });
-    }
-
-    let migratedCount = 0;
-    for (const item of DATA_PATH_MIGRATION_ITEMS) {
-      // Preserve the target snapshot created just before destructive overwrite.
-      if (action === "overwrite" && item === "backups" && backupPath) {
-        continue;
-      }
-
-      const sourcePath = path.join(currentPath, item);
-      const destPath = path.join(resolvedTargetPath, item);
-      if (!fs.existsSync(sourcePath)) {
-        continue;
-      }
-
-      if (copyDataPathItem(sourcePath, destPath, action === "overwrite")) {
-        migratedCount++;
-      }
-    }
-
-    writeConfiguredDataPath(app.getPath("appData"), resolvedTargetPath);
-
+    const result = await applyStorageRootChange({
+      action,
+      sourceRoot: currentPath,
+      targetRoot: resolvedTargetPath,
+      controlDirectory: getStorageOperationControlDirectory(
+        app.getPath("appData"),
+      ),
+      publishBootPointer: (rootPath) =>
+        writeConfiguredDataPath(app.getPath("appData"), rootPath),
+      verifyDatabase: verifyDataRootDatabase,
+      includeSecrets: true,
+    });
+    scheduleAppRelaunch(500);
     return {
       success: true,
-      message: `Successfully migrated ${migratedCount} items`,
+      message:
+        action === "switch"
+          ? "Data directory switched"
+          : `Successfully migrated ${result.copiedFiles} files`,
       newPath: resolvedTargetPath,
       needsRestart: true,
-      backupPath,
+      backupPath: result.recoveryArtifactPath,
     };
   } catch (error) {
+    if (databaseClosed) {
+      try {
+        appDb = initDatabase();
+      } catch (reopenError) {
+        console.error(
+          "[DataPath] Failed to reopen source database:",
+          reopenError,
+        );
+      }
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -1584,32 +1503,47 @@ ipcMain.handle(
 
     const currentPath = app.getPath("userData");
     const resolvedTargetPath = path.resolve(newPath);
-    if (
-      fs.existsSync(resolvedTargetPath) &&
-      !isLinkSafeDataPathRoot(resolvedTargetPath)
-    ) {
+    const classification = classifyStorageRoot(resolvedTargetPath);
+    if (classification.kind === "invalid" || classification.kind === "mixed") {
       return {
         success: false,
-        error: `Cannot use symbolic link as data directory: ${resolvedTargetPath}`,
+        error:
+          classification.reason ??
+          `Cannot use ${classification.kind} data directory: ${resolvedTargetPath}`,
       };
     }
-
-    const inspection = inspectDataPath(resolvedTargetPath);
+    if (classification.kind === "unknown") {
+      return {
+        success: false,
+        error: `Target is a non-empty directory not owned by PromptHub: ${classification.unknownEntries.join(", ")}`,
+      };
+    }
     const isCurrentPath = path.resolve(currentPath) === resolvedTargetPath;
+    const hasPromptHubData =
+      classification.kind === "canonical" || classification.kind === "legacy";
 
     return {
       success: true,
       targetPath: resolvedTargetPath,
       currentPath,
-      exists: inspection.exists,
-      hasPromptHubData: inspection.hasPromptHubData,
+      exists: classification.kind !== "missing",
+      hasPromptHubData,
       isCurrentPath,
-      markers: inspection.markers,
+      markers: classification.databasePath
+        ? [
+            {
+              name: path.relative(
+                resolvedTargetPath,
+                classification.databasePath,
+              ),
+            },
+          ]
+        : [],
       currentSummary: summarizeDataPath(currentPath),
       targetSummary: summarizeDataPath(resolvedTargetPath),
       recommendedAction: isCurrentPath
         ? "switch"
-        : inspection.hasPromptHubData
+        : hasPromptHubData
           ? "switch"
           : "migrate",
     };
@@ -1711,6 +1645,8 @@ app.whenReady().then(async () => {
       return;
     }
 
+    configureE2ESecretStorage(safeStorage);
+
     // Register updater IPC as early as possible so renderer calls do not depend on
     // later startup work (DB bootstrap, workspace sync, window creation) completing.
     registerUpdaterIPC();
@@ -1771,6 +1707,15 @@ app.whenReady().then(async () => {
     );
 
     try {
+      const restoreRecovery = await recoverJournaledStorageRestore({
+        activeRoot: app.getPath("userData"),
+        verifyActive: verifyRestoredStorageRoot,
+      });
+      if (restoreRecovery.status === "recovery-required") {
+        throw new Error(
+          `Storage restore recovery is required: ${restoreRecovery.reason ?? "unknown error"}`,
+        );
+      }
       const backupStartup = await runUpgradeBackupStartupTasks(
         app.getPath("userData"),
         app.getVersion(),
@@ -1831,6 +1776,51 @@ app.whenReady().then(async () => {
       console.error("[startup] upgrade backup bootstrap failed:", error);
       logStartupEvent({
         event: "startup:upgrade_backup_failed_to_bootstrap",
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+
+    try {
+      const activeRoot = getUserDataPath();
+      const rendererPersistence = createRendererPersistenceStore({
+        rootPath: activeRoot,
+        encryption: safeStorage,
+      }).readHydratedStateSync();
+      const authorityStartup = await ensureCanonicalStorageAuthorityOnStartup({
+        activeRoot,
+        sourceDatabasePath: getDatabasePath(),
+        prepareSourceDatabase: () => {
+          const sourceDatabase = initDatabase();
+          try {
+            applyE2ESeed(sourceDatabase);
+          } finally {
+            closeDatabase();
+          }
+        },
+        deviceId: rendererPersistence.selfHostedDeviceId ?? undefined,
+        persistExtractedMcpSecrets: (secrets) =>
+          createMcpResourceSecretStore({
+            filePath: path.join(
+              activeRoot,
+              "secrets",
+              "mcp-resource-secrets.json",
+            ),
+            encryption: safeStorage,
+          }).writeMany(secrets),
+      });
+      logStartupEvent({
+        event: "startup:canonical_storage_authority",
+        ...authorityStartup,
+        recoveryArtifactPath:
+          "recoveryArtifactPath" in authorityStartup
+            ? scrubPath(authorityStartup.recoveryArtifactPath)
+            : undefined,
+      });
+    } catch (error) {
+      console.error("[startup] canonical storage publication failed:", error);
+      logStartupEvent({
+        event: "startup:canonical_storage_authority_failed",
         error: error instanceof Error ? error.message : String(error),
       });
       throw error;
@@ -2002,6 +1992,7 @@ app.on("window-all-closed", () => {
 // 应用退出前清理
 app.on("before-quit", () => {
   isQuitting = true;
+  agentUsagePopoverController.destroy();
   closeDatabase();
 });
 

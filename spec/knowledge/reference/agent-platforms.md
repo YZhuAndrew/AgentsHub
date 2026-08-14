@@ -51,15 +51,16 @@ Kimi 与 Auggie 不共享 Sparkles/Sparkle 通用图标；即使品牌资源加�
 ## User Config Files Boundary
 
 - Agent Config Files 管理的是 canonical registry 或用户覆盖解析出的用户级 Agent 根目录，不扫描项目级配置空间。
-- 主进程在该根目录内有界发现现有文本配置文件；平台声明的相对路径仍用于默认选中和创建缺失的已知配置文件，不再限制已存在的配置文件清单。
+- 主进程在该根目录内有界发现现有文本配置文件；平台声明的相对路径仍用于默认选中和创建缺失的已知配置文件。读写 IPC 只接受平台声明路径或同一有界发现清单内的现有文件，调用方不能用任意相对路径绕过清单。
+- Config Files 的 inventory、选中内容、缓存和异步响应按 Agent source identity 隔离；用户切换 Agent 前必须确认是否丢弃未保存修改。
 - `auth`、credential、token、secret 文件以及 session、history、log、cache、database、backup、generated content、Skill 和 Plugin 目录不得进入列表或读写 IPC。
 - 文件内容跨 IPC 前必须遮罩嵌入的敏感值。直接编辑只允许保留遮罩占位符，不允许通过通用配置编辑器新增、删除或修改凭据。
 - 保存必须校验 expected revision 与 JSON/JSONC/TOML/YAML 格式，并使用加密设备本地备份、原子替换、重读验证和失败回滚。结构性新建、重命名和删除不属于当前能力。
 
-## Read-Only CLI Diagnostic Snapshot
+## Internal CLI Probe Snapshot
 
 `packages/shared/constants/platforms.ts` is the only executable-descriptor
-source of truth. PromptHub currently exposes a read-only version diagnostic
+source of truth. PromptHub retains an internal read-only version probe
 for the following evidence-backed built-ins:
 
 | Platform    | Executable | Version arguments | Capability |
@@ -74,31 +75,40 @@ for the following evidence-backed built-ins:
 
 The Electron main process resolves only those registry-owned executable names
 through a bounded PATH search and executes fixed argument arrays without a
-shell. Results expose only a canonical path, one bounded version line, coarse
-install-source classification, timestamp and stable error code. Raw output,
-environment values and process errors do not cross IPC. Platforms without a
+shell. The general Agent workspace does not expose a CLI Diagnostics menu or
+modal, and renderer preload/IPC has no generic diagnostic or update operation.
+Internal results contain only a canonical path, one bounded version line,
+coarse install-source classification, timestamp and stable error code. Raw output,
+environment values and process errors do not leave the internal service boundary. Platforms without a
 verified descriptor remain `planned`, and custom Agents do not accept
-renderer-provided executable paths. Install and update remain separate
-plan/confirm/apply work. OpenCode native updates and npm-managed Codex or Qwen
-Code updates additionally reuse the bounded main-owned lifecycle; every other
-installation source and all installation workflows remain diagnostic-only.
+renderer-provided executable paths. The bounded lifecycle service remains
+main-process infrastructure, but it is not registered as a user-facing action.
+Any future install or update UI requires a separate platform-specific verified
+design, explicit confirmation and rollback behavior.
 
 ## MCP Config Support Snapshot
 
 PromptHub MCP 管理第一版建模为“配置库 + 目标文件投影”，不运行 MCP 网关、代理或统一 endpoint。
 
-| Target      | PromptHub Target ID | Default Scope Paths                                                | Config Shape                        | Evidence / Notes                                   |
-| ----------- | ------------------- | ------------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------- |
-| Codex       | `codex`             | `~/.codex/config.toml`; project `.codex/config.toml`               | TOML `[mcp_servers.<name>]`         | Officially documented                              |
-| Claude Code | `claude`            | `~/.claude.json`; project `.mcp.json`                              | JSON `mcpServers`                   | Officially documented; scopes include user/project |
-| Cursor      | `cursor`            | `~/.cursor/mcp.json`; project `.cursor/mcp.json`                   | JSON `mcpServers`                   | Officially documented                              |
-| VS Code     | `vscode`            | project `.vscode/mcp.json`; user profile path varies by VS Code UI | JSON `servers`                      | Officially documented                              |
-| Cline       | `cline`             | `~/.cline/data/settings/cline_mcp_settings.json`                   | JSON `mcpServers`-style settings    | Officially documented                              |
-| WorkBuddy   | `workbuddy`         | `~/.workbuddy/mcp.json`; project `.workbuddy/mcp.json`             | JSON `mcpServers`                   | Officially documented                              |
-| CodeBuddy   | `codebuddy`         | `~/.codebuddy/.mcp.json`; project `.mcp.json`                      | JSON / JSONC `mcpServers`           | Officially documented                              |
-| ZCode Agent | `zcode`             | `~/.zcode/cli/config.json`; project `.zcode/config.json`           | JSON `mcp.servers`                  | Officially documented                              |
-| Custom JSON | `custom-json`       | user-selected file path                                            | JSON `mcpServers`                   | PromptHub generic projection                       |
-| Custom TOML | `custom-toml`       | user-selected file path                                            | Codex-compatible managed TOML block | PromptHub generic projection                       |
+| Target      | PromptHub Target ID | Default Scope Paths                                                          | Config Shape                            | Evidence / Notes                                                             |
+| ----------- | ------------------- | ---------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------- |
+| Codex       | `codex`             | `~/.codex/config.toml`; project `.codex/config.toml`                         | TOML `[mcp_servers.<name>]`             | Officially documented                                                        |
+| Claude Code | `claude`            | `~/.claude.json`; project `.mcp.json`                                        | JSON `mcpServers`                       | Officially documented; scopes include user/project                           |
+| Cursor      | `cursor`            | `~/.cursor/mcp.json`; project `.cursor/mcp.json`                             | JSON `mcpServers`                       | Officially documented                                                        |
+| VS Code     | `vscode`            | project `.vscode/mcp.json`; user profile path varies by VS Code UI           | JSON `servers`                          | Officially documented                                                        |
+| Cline       | `cline`             | `~/.cline/data/settings/cline_mcp_settings.json`                             | JSON `mcpServers`-style settings        | Officially documented                                                        |
+| WorkBuddy   | `workbuddy`         | `~/.workbuddy/mcp.json`; project `.workbuddy/mcp.json`                       | JSON `mcpServers`                       | Officially documented                                                        |
+| CodeBuddy   | `codebuddy`         | `~/.codebuddy/.mcp.json`; project `.mcp.json`                                | JSON / JSONC `mcpServers`               | Officially documented                                                        |
+| ZCode Agent | `zcode`             | `~/.zcode/cli/config.json`; project `.zcode/config.json`                     | JSON `mcp.servers`                      | Officially documented                                                        |
+| Oh My Pi    | `oh-my-pi`          | `~/.omp/agent/mcp.json`; project `.omp/mcp.json`                             | JSON `mcpServers`                       | Officially documented; native Oh My Pi target                                |
+| Pi          | `pi`                | `~/.pi/agent/mcp.json`; project `.pi/mcp.json`; adapter shared files         | JSON `mcpServers`                       | Compatible writer; runtime/adapter remains Pi-owned                          |
+| Grok Build  | `grok`              | `~/.grok/config.toml`; project `.grok/config.toml`                           | TOML `[mcp_servers.<name>]` + `headers` | Officially documented                                                        |
+| OpenClaw    | `openclaw`          | `~/.openclaw/openclaw.json`                                                  | JSON `mcp.servers`                      | Officially documented; native OAuth remains Agent-owned                      |
+| Qoder       | `qoder`             | `~/.qoder/settings.json`; project `.qoder/settings.local.json` / `.mcp.json` | JSON `mcpServers`                       | Officially documented; stdio/SSE/HTTP projection                             |
+| Antigravity | `antigravity`       | `~/.gemini/config/mcp_config.json`; project `.agents/mcp_config.json`        | JSON `mcpServers`; remote `serverUrl`   | Officially documented                                                        |
+| Reasonix    | `reasonix`          | project `.mcp.json`                                                          | JSON `mcpServers`                       | Project compatibility only; modern global `[[plugins]]` remains native-owned |
+| Custom JSON | `custom-json`       | user-selected file path                                                      | JSON `mcpServers`                       | PromptHub generic projection                                                 |
+| Custom TOML | `custom-toml`       | user-selected file path                                                      | Codex-compatible managed TOML block     | PromptHub generic projection                                                 |
 
 Stable product rule:
 
@@ -113,6 +123,49 @@ Stable product rule:
 - MCP entries are configuration records, not Skill directory packages; they do not participate in Skill versioning, safety scanning, or rating flows.
 - Roo Code remains documented below as an external Agent asset, but PromptHub no longer exposes it as a built-in MCP target preset.
 - Qwen Code uses user/project `settings.json` `mcpServers`; PromptHub now exposes distinct global and project `qwen` MCP targets through structured JSON merge. Secret-bearing environment values remain main-process-only, and the remaining `TEST-AGENT-036` gate covers broader UI/E2E behavior rather than the existence of the target.
+- Oh My Pi and Pi remain separate targets. Pi uses `mcp`/`mcpServers` JSON
+  projections for the native `<root>/mcp.json` candidate and the compatible
+  adapter candidates `~/.config/mcp/mcp.json`, `~/.agents/mcp.json`, and
+  `~/.agents/mcp/mcp.json`; project targets are `<project>/.mcp.json` and
+  `<project>/.pi/mcp.json`. PromptHub exposes each candidate independently so
+  users can choose the file that their installed adapter/runtime actually
+  reads. It writes compatible configuration; it does not embed or execute
+  `pi-mcp-adapter`.
+- The adapter's documented precedence is low to high: `~/.config/mcp/mcp.json`,
+  `~/.agents/mcp.json`, `~/.agents/mcp/mcp.json`, `<Pi agent dir>/mcp.json`,
+  `.mcp.json`, then `.pi/mcp.json`. PromptHub keeps those layers as separate
+  selectable targets rather than merging them in the library or owning Pi's
+  effective-runtime resolution.
+- OpenClaw projection owns only supported fields under `mcp.servers`, preserves
+  unrelated root, `mcp`, OAuth, filter and timeout fields, and writes explicit
+  `transport: "streamable-http"` only for Streamable HTTP. Qoder WebSocket-only
+  declarations remain native-owned because PromptHub's normalized transport
+  contract currently covers stdio, SSE and Streamable HTTP. Grok uses `headers`
+  rather than Codex's `http_headers` while sharing the bounded managed TOML
+  block and conflict safeguards.
+- Antigravity projection writes its required `serverUrl` key and keeps native
+  OAuth, disabled-tool and authentication-provider fields Agent-owned. Reasonix
+  project `.mcp.json` uses the documented field-for-field JSON compatibility;
+  PromptHub does not project the modern global `[[plugins]]` TOML array through
+  a Codex-style table writer.
+- My MCP detail, distribution counts, quick deploy, batch deploy, and target
+  dialogs use one merged global/project target projection. Agent and Project
+  workspaces remain separately navigable, while registered project files can
+  be selected directly from My MCP.
+- MCP environment references are additive `envRefs`/`headerRefs` maps. Legacy
+  `${VAR}`, `${env:VAR}`, `$VAR`, and `$env:VAR` values are normalized without resolving
+  them. Cursor, VS Code, and Windsurf receive `${env:VAR}`; Claude, Codex, Pi,
+  Oh My Pi, and other supported targets receive `${VAR}`. `${VAR:-default}` is
+  rejected for targets that do not document default-value interpolation.
+- Health checks inspect only whether a referenced variable is present in the
+  current PromptHub process environment; missing required references produce a
+  warning without exposing the value. An explicit `.env` import converts a
+  selected reference to a local literal value.
+- Direct values remain local compatibility data, while reference fields are
+  portable non-secret templates. UI previews, apply/remove results, renderer
+  library snapshots, backup/export payloads, and CLI workspace bundles redact
+  direct environment/header values. Restore merges redaction markers with the
+  current local value and never writes the marker as a credential.
 
 ## Evidence Levels
 
@@ -135,6 +188,10 @@ Stable product rule:
 - GitHub Copilot CLI: `~/.copilot/copilot-instructions.md` or the resolved
   `<COPILOT_HOME>/copilot-instructions.md`
 - Windsurf: `~/.codeium/windsurf/memories/global_rules.md`
+- Kiro: `~/.kiro/steering/AGENTS.md` or the resolved
+  `<KIRO_HOME>/steering/AGENTS.md`
+- Cline CLI: `~/.cline/data/settings/rules/AGENTS.md`
+- Augment: `~/.augment/user-guidelines.md`
 - OpenClaw: `~/.openclaw/workspace/SOUL.md`
 - Qwen Code: `~/.qwen/QWEN.md` or the resolved `<QWEN_HOME>/QWEN.md`
 - Oh My Pi: `~/.omp/agent/RULES.md` or the resolved
@@ -158,16 +215,25 @@ Stable product rule:
 - `GitHub Copilot CLI` 已进入 Rules 白名单，但只暴露用户根目录下的
   `copilot-instructions.md`；仓库级 `.github/instructions/` 多文件规则仍由
   Copilot 和项目上下文管理。
-- `Cursor`、`Kiro`、`Roo Code` 已在资产文档中建模，但当前仍未进入
-  `Rules` 运行时全局规则白名单。
-- `Reasonix` 不进入当前白名单：它使用项目层级或记忆文件合并。Augment 仍以 rules 目录为主。
+- `Kiro` 和 `Cline CLI` 已进入 Rules 白名单，但分别只暴露
+  `steering/AGENTS.md` 与 CLI rules 目录中的 `AGENTS.md`；同目录 sibling
+  files 仍由原平台管理。`Augment` 只暴露官方用户指南入口
+  `user-guidelines.md`。
+- `Cursor` 不伪造用户级规则文件：官方 User Rules 仍由 Cursor Settings
+  管理。Agent Rules 通过已登记项目显式管理
+  `<project>/.cursor/rules/prompthub.mdc`，可与同项目 `AGENTS.md` 独立并存。
+  `Qoder` 不伪造用户级规则文件，但通过官方兼容入口复用已登记项目根
+  `AGENTS.md`。`Roo Code` 当前仍未进入 Rules 运行时全局规则白名单。
+- `Reasonix` 不进入当前白名单：它使用项目层级或记忆文件合并。Cherry Studio 与 TRAE 系列也没有已验证的用户级规则文件入口。
 - `Qwen Code` 已进入全局 Rules 运行时白名单，使用解析后的 `<QWEN_HOME>/QWEN.md`。项目 `QWEN.md` 与个人覆盖 `.qwen/QWEN.local.md` 的专用 scope UI 仍属于后续门禁，当前不得把 auto-memory 当作 Rule 导入。
-- 这些平台未进入白名单的主要原因分别是：缺少已确认的单一本地全局规则文件、以 steering / rules directory / multi-entry 结构为主，或其协议本身以 repository-scoped 文件为核心，而非用户级单文件。
+- 这些平台未进入白名单的主要原因是缺少已确认的用户级本地文件入口，或其协议只提供 repository-scoped 文件；PromptHub 不为这些平台发明不会被读取的全局文件。
 
 项目规则当前稳定支持：
 
 - 当前项目：`<repo>/AGENTS.md`
 - 用户手动添加目录：`<selected-project>/AGENTS.md`
+- Cursor 项目：`<selected-project>/.cursor/rules/prompthub.mdc`
+- Qoder 项目兼容：`<selected-project>/AGENTS.md`
 
 ## Special Filenames
 
@@ -322,7 +388,7 @@ Current support boundary:
 - `Qwen Code` 使用独立 `qwen` 平台 id；默认用户根为 `~/.qwen`，支持 `QWEN_HOME`，而 `QWEN_RUNTIME_DIR` 只影响会话/日志等运行态输出。
 - `Kimi Code` 保留 `kimi` 平台 id；优先解析 `KIMI_CODE_HOME` / `~/.kimi-code`，仅在 current root 缺失时回退 `KIMI_SHARE_DIR` / `~/.kimi`。Agent 工作台允许编辑 current `config.toml` / `tui.toml` / `mcp.json`，但不把 Kimi 伪装成尚未实现的结构化 MCP writer。
 - `Reasonix` 使用 `reasonix` 平台 id，管理 `~/.reasonix/skills/`，并把 `config.toml`、`settings.json`、`trust.json` 标记为发现/配置预览；Reasonix 的 TOML Plugin/MCP 语法不复用 Codex writer。
-- `Augment` 使用 `augment` 平台 id，管理 `~/.augment/skills/`，预览 `settings.json`；其 `rules/` 目录和 frontmatter 不压平成单一全局规则文件。
+- `Augment` 使用 `augment` 平台 id，管理 `~/.augment/skills/`，预览 `settings.json`，并通过 Rules 暴露官方 `~/.augment/user-guidelines.md` 用户指南入口；其 `rules/` 目录和 frontmatter 不压平成单一文件。
 - `QClaw` 使用独立 `qclaw` 平台 id，默认根目录为 PromptHub 兼容约定 `~/.qclaw`；由于官方强调基于 OpenClaw 并可关联 OpenClaw，当前复用 OpenClaw 的 workspace/SOUL.md 规则候选和 `skills/` 兼容面，但不创建未确认的 MCP 配置路径。
 - `Marvis` 暂不作为内置平台。当前公开资料证明产品存在和系统级 Agent 能力，但没有可落地的本地资产路径或 MCP/Skill 文件合同。
 
@@ -349,6 +415,12 @@ Current support boundary:
     structurally and preserves unrelated JSON/JSONC content
   - the selected model is the top-level `model`; direct or compatible
     Anthropic endpoints use `env.ANTHROPIC_BASE_URL`
+  - optional Sonnet, Opus, Haiku and subagent routes use
+    `env.ANTHROPIC_DEFAULT_SONNET_MODEL`,
+    `env.ANTHROPIC_DEFAULT_OPUS_MODEL`,
+    `env.ANTHROPIC_DEFAULT_HAIKU_MODEL` and
+    `env.CLAUDE_CODE_SUBAGENT_MODEL`; the selected PromptHub profile owns these
+    four route keys during activation
   - PromptHub-managed credentials may project only
     `env.ANTHROPIC_API_KEY` or `env.ANTHROPIC_AUTH_TOKEN`
   - Bedrock, Vertex and Foundry flags are detected and imported as read-only
@@ -384,6 +456,16 @@ Current support boundary:
 - Config and profiles:
   - `~/.codex/config.toml`, `.codex/config.toml`, `/etc/codex/config.toml`
   - named profiles and enterprise `requirements.toml` documented
+  - PromptHub custom Provider Profiles project `model_provider`, `model`, the
+    selected `[model_providers.<id>]` endpoint/auth source and a matching named
+    profile while preserving unrelated TOML text
+  - optional primary-model parameters project the official
+    `model_reasoning_effort` enum and positive `model_context_window`; activating
+    a profile without either option removes the previous PromptHub-managed
+    scalar so Codex falls back to its model defaults
+  - current official Codex configuration documents Responses as the custom
+    provider wire API; PromptHub's older Chat compatibility remains a separate
+    legacy boundary rather than evidence for adding more form fields
 - Maintenance:
   - npm- and Node version-manager-managed installs may review and confirm the canonical `npm install -g @openai/codex@latest` update; PromptHub verifies the same active Codex executable and can restore the captured exact package version
   - Homebrew, standalone, system, user-local and ambiguous installs remain read-only diagnostics rather than being routed through the npm writer
@@ -626,7 +708,7 @@ Current support boundary:
   - built-in id `antigravity` uses the display name `Antigravity` and represents the shared Antigravity customization surface used by both current clients
   - built-in id `gemini` uses the display name `Gemini`, remains independent as an enterprise/legacy compatibility target, and keeps the Gemini CLI configuration/session adapters
   - both built-in display names omit the `CLI` suffix; lifecycle badges carry availability differences
-  - PromptHub exposes the Antigravity MCP path for discovery, but does not claim a generic writer until its `serverUrl` schema and secret-bearing headers have a dedicated adapter
+  - PromptHub uses a dedicated Antigravity MCP adapter for global and workspace targets: remote entries write `serverUrl`, while secret-bearing headers are redacted from previews and preserved only in native configuration
 
 ### OpenCode
 
@@ -665,14 +747,29 @@ Current support boundary:
   fork retains the same environment-variable name.
 - Assets: native user Skills are `<root>/skills`, extensions are
   `<root>/extensions`, and global instructions are `<root>/AGENTS.md`.
-  PromptHub does not advertise native MCP support because upstream Pi exposes
-  MCP through optional extensions rather than a built-in MCP configuration
-  contract.
+- MCP: PromptHub exposes a compatible config-writer target rather than claiming
+  to be Pi's runtime or a bundled adapter. Native global/project candidates are
+  `~/.pi/agent/mcp.json` and `<project>/.pi/mcp.json`; adapter/shared candidates
+  are `~/.config/mcp/mcp.json`, `~/.agents/mcp.json`, `~/.agents/mcp/mcp.json`,
+  and `<project>/.mcp.json`. All use top-level `mcpServers`. The target list
+  keeps candidates separate because the installed adapter/runtime owns final
+  discovery and precedence.
 - Config: the raw-editor allowlist is `settings.json`, `models.json`, and
   `AGENTS.md`; authentication files, sessions, caches and installed package
   state are excluded. The model projection reads `defaultProvider` and
   `defaultModel` from `settings.json` and updates only those selection fields
   through the existing backup, atomic-write and verification workflow.
+- Provider workbench: Pi uses the same master-detail shell, toolbar, provider
+  row and detail surfaces as the other Agent provider adapters. The current
+  configuration action creates a same-id `models.json` provider entry with an
+  empty override for the verified current model. This establishes editable
+  override ownership without changing model routing, replacing built-in models
+  or touching existing credentials. Importing a PromptHub provider is an
+  explicit native projection into `<root>/models.json` and, when a managed key
+  exists, `<root>/auth.json`; the main process resolves the source and
+  credential, prepares both JSONC edits, verifies both source revisions and
+  restores both files if either atomic write fails. Credentials never cross the
+  preload boundary or enter `models.json`.
 - Sessions: PromptHub scans only JSONL files below `<root>/sessions`, bounds
   metadata and detail reads, rejects unsafe ids and symlinks, and exposes
   `pi --session <id>` resume metadata without launching or editing Pi.
@@ -855,7 +952,10 @@ Current support boundary:
   - `~/.cline/data/settings/cline_mcp_settings.json`
 - Modeling note:
   - PromptHub now exposes Cline as a built-in platform for root-directory-based Skill integration and asset preview.
-  - Cline is not added to the current `Rules` global single-file whitelist because its public rule surface is directory-oriented and AGENTS-based rather than one canonical user-level markdown file.
+  - PromptHub exposes the verified Cline CLI global entry at
+    `~/.cline/data/settings/rules/AGENTS.md`. Other CLI rule files and the IDE
+    compatibility directory remain Cline-managed and are not inventoried by
+    the current single-entry Rules projection.
   - Cline's documented plugin surface applies to Cline SDK / CLI / Kanban and uses `AgentPlugin` entrypoints for tools/hooks/commands. It is runtime-only for PromptHub Plugin planning, not a first-version bundle adapter for the VSCode / JetBrains extension runtime.
   - History is read-only and partial: current Cline sessions use
     `~/.cline/data/sessions/sessions.db` as a bounded metadata index with
@@ -993,7 +1093,10 @@ Current support boundary:
   - steering supports `always`, `fileMatch`, `manual`, and `auto`
   - manual and auto steering files surface like commands, but Kiro does not present a separate dedicated local `commands/` directory in current docs
 - Modeling note:
-  - Kiro is documented well enough for asset-level modeling, but its steering-first directory model is not the same thing as a single canonical global rule file, so it is not part of the current `Rules` whitelist.
+  - PromptHub exposes the verified user-level entry
+    `<KIRO_HOME>/steering/AGENTS.md` through Rules. Other steering files and
+    inclusion modes remain Kiro-managed and are not represented as complete
+    directory support.
   - locally verified CLI session metadata and JSONL are read-only runtime
     evidence, not a claimed public stable schema. PromptHub exposes only
     visible Prompt/Assistant `text` content, rejects unsafe files, hides
@@ -1324,6 +1427,7 @@ Current support boundary:
 - Reasonix guide: `https://github.com/esengine/DeepSeek-Reasonix/blob/main-v2/docs/GUIDE.md`
 - Augment Skills: `https://docs.augmentcode.com/cli/skills`
 - Augment rules: `https://docs.augmentcode.com/cli/rules`
+- Augment user guidelines: `https://docs.augmentcode.com/setup-augment/guidelines`
 - Augment CLI reference: `https://docs.augmentcode.com/cli/reference`
 - Augment MCP: `https://docs.augmentcode.com/cli/integrations`
 - Cherry Studio storage locations: `https://docs.cherry-ai.com/advanced-basic/data-storage-location`
@@ -1364,8 +1468,14 @@ Current support boundary:
   `https://github.com/earendil-works/pi/blob/main/packages/coding-agent/README.md`
 - Settings and root override:
   `https://pi.dev/docs/latest/environment-variables`
+- Built-in provider composition, `models.json` and `modelOverrides` semantics:
+  `https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/models.md`
 - Session format:
   `https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/session.md`
+- MCP adapter package and supported config discovery:
+  `https://pi.dev/packages/pi-mcp-adapter`
+- Oh My Pi MCP configuration and precedence:
+  `https://github.com/can1357/oh-my-pi/blob/main/docs/mcp-config.md`
 
 ## Canonical Sources
 

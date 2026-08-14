@@ -13,6 +13,7 @@ import type {
   Prompt,
   PromptRelation,
   PromptRelationQuery,
+  PromptSummary,
   PromptVersion,
   UpdateOutputFormatItemDTO,
   UpdatePromptRelationDTO,
@@ -167,6 +168,50 @@ export async function resetDatabase(): Promise<void> {
 
 // ==================== Prompt 操作 ====================
 // ==================== Prompt Operations ====================
+
+/**
+ * Project a full Prompt into its lightweight list summary.
+ * Used by the legacy fallback path and by store mutations that receive a
+ * full Prompt (create / update) and must keep the summary list consistent.
+ *
+ * 把完整 Prompt 投影为轻量列表摘要；用于 legacy fallback 以及
+ * create/update 返回完整对象后同步 summary 列表。
+ */
+export function promptToSummary(prompt: Prompt): PromptSummary {
+  return {
+    id: prompt.id,
+    ownerUserId: prompt.ownerUserId,
+    visibility: prompt.visibility,
+    title: prompt.title,
+    description: prompt.description,
+    promptType: prompt.promptType,
+    tags: prompt.tags,
+    folderId: prompt.folderId,
+    parentId: prompt.parentId,
+    order: prompt.order,
+    images: prompt.images,
+    videos: prompt.videos,
+    isFavorite: prompt.isFavorite,
+    isPinned: prompt.isPinned,
+    usageCount: prompt.usageCount,
+    source: prompt.source,
+    version: prompt.version,
+    currentVersion: prompt.currentVersion,
+    createdAt: prompt.createdAt,
+    updatedAt: prompt.updatedAt,
+  };
+}
+
+export async function getAllPromptSummaries(): Promise<PromptSummary[]> {
+  if (window.api?.prompt?.getAllMeta) {
+    return (await window.api.prompt.getAllMeta()) ?? [];
+  }
+
+  // Legacy fallback: when the bridge does not expose getAllMeta (e.g. old
+  // web self-hosted runtime), fall back to full prompts and project locally.
+  const prompts = await getAllPrompts();
+  return prompts.map(promptToSummary);
+}
 
 export async function getAllPrompts(): Promise<Prompt[]> {
   if (window.api?.prompt?.getAll) {
@@ -929,6 +974,24 @@ export function getDatabaseInfo(): { name: string; description: string } {
  */
 const IDB_MIGRATION_DONE_KEY = "prompthub:idb-migration-done";
 
+async function isIndexedDbMigrationMarkedDone(): Promise<boolean> {
+  const canonicalStatus =
+    window.api?.settings?.rendererPersistence?.isIndexedDbMigrationDone;
+  if (canonicalStatus) return canonicalStatus();
+  return localStorage.getItem(IDB_MIGRATION_DONE_KEY) === "1";
+}
+
+async function markIndexedDbMigrationDone(): Promise<void> {
+  const canonicalMarker =
+    window.api?.settings?.rendererPersistence?.markIndexedDbMigrationDone;
+  if (canonicalMarker) {
+    await canonicalMarker();
+    localStorage.removeItem(IDB_MIGRATION_DONE_KEY);
+    return;
+  }
+  localStorage.setItem(IDB_MIGRATION_DONE_KEY, "1");
+}
+
 async function getMainProcessVersionKeys(promptIds: string[]): Promise<Set<string>> {
   if (!window.api?.version?.getAll || promptIds.length === 0) {
     return new Set();
@@ -978,7 +1041,7 @@ export async function migrateLegacyIndexedDbToMainProcess(): Promise<{
 }> {
   // Fast path: migration already confirmed in a previous session.
   // 快速路径：localStorage 标记说明上次已完成，直接跳过。
-  if (localStorage.getItem(IDB_MIGRATION_DONE_KEY) === "1") {
+  if (await isIndexedDbMigrationMarkedDone()) {
     return { migrated: false, promptCount: 0, folderCount: 0, versionCount: 0 };
   }
 
@@ -1003,7 +1066,7 @@ export async function migrateLegacyIndexedDbToMainProcess(): Promise<{
   if (legacyPrompts.length === 0 && legacyFolders.length === 0) {
     // Nothing in IDB either — mark as done so we skip this check on next boot.
     // IDB 也没有数据 — 写入标记，下次启动跳过此检查。
-    localStorage.setItem(IDB_MIGRATION_DONE_KEY, "1");
+    await markIndexedDbMigrationDone();
     return { migrated: false, promptCount: 0, folderCount: 0, versionCount: 0 };
   }
 
@@ -1039,7 +1102,7 @@ export async function migrateLegacyIndexedDbToMainProcess(): Promise<{
       mainFolders,
     )
   ) {
-    localStorage.setItem(IDB_MIGRATION_DONE_KEY, "1");
+    await markIndexedDbMigrationDone();
     return { migrated: false, promptCount: 0, folderCount: 0, versionCount: 0 };
   }
 
@@ -1075,7 +1138,7 @@ export async function migrateLegacyIndexedDbToMainProcess(): Promise<{
           refreshedFolders,
         )
       ) {
-        localStorage.setItem(IDB_MIGRATION_DONE_KEY, "1");
+        await markIndexedDbMigrationDone();
       }
       return { migrated: false, promptCount: 0, folderCount: 0, versionCount: 0 };
     }
@@ -1088,7 +1151,7 @@ export async function migrateLegacyIndexedDbToMainProcess(): Promise<{
 
   // Mark migration as done so future boots skip the IDB check entirely.
   // 写入持久化标记，后续启动直接跳过 IDB 检查。
-  localStorage.setItem(IDB_MIGRATION_DONE_KEY, "1");
+  await markIndexedDbMigrationDone();
 
   return {
     migrated: true,

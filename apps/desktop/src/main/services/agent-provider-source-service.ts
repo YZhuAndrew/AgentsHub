@@ -4,6 +4,8 @@ import type {
   CoreAIProviderConfig,
 } from "@prompthub/core";
 import type {
+  AgentPiCustomProviderInput,
+  AgentPiWriteResult,
   AgentProviderProfilePublic,
   AgentProviderSourceCandidate,
   CreateAgentProviderProfileRequest,
@@ -16,6 +18,10 @@ interface AgentProviderSourceServiceOptions {
   createProfile: (
     request: CreateAgentProviderProfileRequest,
   ) => Promise<AgentProviderProfilePublic>;
+  importPiProvider: (input: {
+    provider: AgentPiCustomProviderInput;
+    secret?: string;
+  }) => Promise<AgentPiWriteResult>;
 }
 
 interface ProviderProjection {
@@ -24,14 +30,28 @@ interface ProviderProjection {
   config: Record<string, unknown>;
 }
 
+const QWEN_CREDENTIAL_ENV_KEYS = {
+  openai: "OPENAI_API_KEY",
+  anthropic: "ANTHROPIC_API_KEY",
+  gemini: "GEMINI_API_KEY",
+} as const;
+
 const MAX_ID_LENGTH = 512;
 const IMPORT_PLATFORM_IDS = new Set([
   "codex",
   "claude",
   "gemini",
   "opencode",
+  "pi",
   "qwen",
 ]);
+
+const OPENAI_PROTOCOL_OPTIONS: Readonly<Record<string, readonly string[]>> = {
+  codex: ["openai-chat", "openai-responses"],
+  opencode: ["openai-chat", "openai-responses"],
+  pi: ["openai-completions", "openai-responses"],
+  qwen: ["openai-chat"],
+};
 
 function requireRequestId(value: unknown): string {
   if (
@@ -57,68 +77,105 @@ function nativeProviderId(sourceId: string): string | null {
     : normalized;
 }
 
-function projectionFor(
+function isOfficialOpenAIProvider(provider: CoreAIProviderConfig): boolean {
+  if (provider.provider.toLowerCase() !== "openai") return false;
+  try {
+    return new URL(provider.apiUrl).hostname.toLowerCase() === "api.openai.com";
+  } catch {
+    return false;
+  }
+}
+
+function protocolOptionsFor(
   platformId: string,
   provider: CoreAIProviderConfig,
-): ProviderProjection | null {
-  if (!IMPORT_PLATFORM_IDS.has(platformId)) return null;
-  const providerId = nativeProviderId(provider.id);
-  if (
-    platformId === "codex" &&
-    provider.apiProtocol === "openai" &&
-    providerId
-  ) {
-    return {
-      providerKind: "openai-compatible",
-      protocol: "openai-chat",
-      config: { providerId },
-    };
+): string[] {
+  if (!IMPORT_PLATFORM_IDS.has(platformId)) return [];
+  switch (provider.apiProtocol) {
+    case "openai": {
+      const protocols = [...(OPENAI_PROTOCOL_OPTIONS[platformId] ?? [])];
+      return isOfficialOpenAIProvider(provider)
+        ? protocols.reverse()
+        : protocols;
+    }
+    case "anthropic":
+      return ["claude", "pi", "qwen"].includes(platformId)
+        ? ["anthropic-messages"]
+        : [];
+    case "gemini":
+      return ["gemini", "pi", "qwen"].includes(platformId)
+        ? ["google-generative-ai"]
+        : [];
   }
-  if (platformId === "claude" && provider.apiProtocol === "anthropic") {
-    return {
-      providerKind: provider.provider,
-      protocol: "anthropic-messages",
-      config: { credentialEnvKey: "ANTHROPIC_API_KEY" },
-    };
-  }
-  if (platformId === "gemini" && provider.apiProtocol === "gemini") {
-    return {
-      providerKind: "google-gemini",
-      protocol: "google-generative-ai",
-      config: { credentialEnvKey: "GEMINI_API_KEY" },
-    };
-  }
-  if (
-    platformId === "opencode" &&
-    provider.apiProtocol === "openai" &&
-    providerId
-  ) {
-    return {
-      providerKind: "openai-compatible",
-      protocol: "openai-chat",
-      config: { providerId, package: "@ai-sdk/openai-compatible" },
-    };
-  }
-  return providerId ? qwenProjection(platformId, provider, providerId) : null;
 }
 
 function qwenProjection(
-  platformId: string,
   provider: CoreAIProviderConfig,
   providerId: string,
-): ProviderProjection | null {
-  if (platformId !== "qwen") return null;
-  const mappings = {
-    openai: ["openai", "openai-chat", "OPENAI_API_KEY"],
-    anthropic: ["anthropic", "anthropic-messages", "ANTHROPIC_API_KEY"],
-    gemini: ["gemini", "google-generative-ai", "GEMINI_API_KEY"],
-  } as const;
-  const mapping = mappings[provider.apiProtocol];
+  protocol: string,
+): ProviderProjection {
   return {
-    providerKind: mapping[0],
-    protocol: mapping[1],
-    config: { providerId, envKey: mapping[2] },
+    providerKind: provider.apiProtocol,
+    protocol,
+    config: {
+      providerId,
+      envKey: QWEN_CREDENTIAL_ENV_KEYS[provider.apiProtocol],
+    },
   };
+}
+
+function projectionFor(
+  platformId: string,
+  provider: CoreAIProviderConfig,
+  requestedProtocol?: string,
+): ProviderProjection | null {
+  const protocols = protocolOptionsFor(platformId, provider);
+  const protocol = requestedProtocol ?? protocols[0];
+  if (!protocol || !protocols.includes(protocol)) return null;
+  const providerId = nativeProviderId(provider.id);
+  if (platformId === "pi" && providerId) {
+    return {
+      providerKind: provider.provider,
+      protocol,
+      config: { providerId },
+    };
+  }
+  if (platformId === "codex" && providerId) {
+    return {
+      providerKind: "openai-compatible",
+      protocol,
+      config: { providerId },
+    };
+  }
+  if (platformId === "claude") {
+    return {
+      providerKind: provider.provider,
+      protocol,
+      config: { credentialEnvKey: "ANTHROPIC_API_KEY" },
+    };
+  }
+  if (platformId === "gemini") {
+    return {
+      providerKind: "google-gemini",
+      protocol,
+      config: { credentialEnvKey: "GEMINI_API_KEY" },
+    };
+  }
+  if (platformId === "opencode" && providerId) {
+    const responses = protocol === "openai-responses";
+    return {
+      providerKind: responses ? "openai" : "openai-compatible",
+      protocol,
+      config: {
+        providerId,
+        package: responses ? "@ai-sdk/openai" : "@ai-sdk/openai-compatible",
+      },
+    };
+  }
+  if (platformId === "qwen" && providerId) {
+    return qwenProjection(provider, providerId, protocol);
+  }
+  return null;
 }
 
 function safeEndpoint(value: string): string | null {
@@ -151,7 +208,8 @@ function candidateFor(
 ): AgentProviderSourceCandidate {
   const models = providerModels(config, provider);
   const endpoint = safeEndpoint(provider.apiUrl);
-  const projection = projectionFor(platformId, provider);
+  const protocols = protocolOptionsFor(platformId, provider);
+  const projection = projectionFor(platformId, provider, protocols[0]);
   const incompatibility = !endpoint
     ? "invalid-endpoint"
     : models.length === 0
@@ -167,6 +225,7 @@ function candidateFor(
     name: provider.name || provider.provider,
     providerKind: provider.provider,
     protocol: projection?.protocol ?? null,
+    protocols,
     endpoint: provider.apiUrl,
     credentialReady: Boolean(
       provider.apiKey || models.some((model) => model.apiKey),
@@ -185,6 +244,7 @@ function candidateFor(
 export function createAgentProviderSourceService({
   readConfig,
   createProfile,
+  importPiProvider,
 }: AgentProviderSourceServiceOptions) {
   function list(platformId: string): AgentProviderSourceCandidate[] {
     const config = readConfig();
@@ -197,8 +257,12 @@ export function createAgentProviderSourceService({
     request: ImportAgentProviderSourceRequest,
   ): Promise<AgentProviderProfilePublic> {
     const platformId = requireRequestId(request.platformId);
+    if (platformId === "pi") {
+      throw new Error("AGENT_PROVIDER_SOURCE_INCOMPATIBLE");
+    }
     const sourceId = requireRequestId(request.sourceId);
     const modelId = requireRequestId(request.modelId);
+    const protocol = requireRequestId(request.protocol);
     const config = readConfig();
     const provider = config.providers.find((item) => item.id === sourceId);
     if (!provider) throw new Error("AGENT_PROVIDER_SOURCE_NOT_FOUND");
@@ -206,12 +270,14 @@ export function createAgentProviderSourceService({
     if (!candidate.compatible) {
       throw new Error("AGENT_PROVIDER_SOURCE_INCOMPATIBLE");
     }
+    if (!candidate.protocols.includes(protocol)) {
+      throw new Error("AGENT_PROVIDER_SOURCE_PROTOCOL_UNSUPPORTED");
+    }
+    const projection = projectionFor(platformId, provider, protocol)!;
     const model = providerModels(config, provider).find(
       (item) => item.id === modelId,
     );
     if (!model) throw new Error("AGENT_PROVIDER_SOURCE_MODEL_NOT_FOUND");
-    const projection = projectionFor(platformId, provider);
-    if (!projection) throw new Error("AGENT_PROVIDER_SOURCE_INCOMPATIBLE");
     return createProfile({
       profile: {
         platformId,
@@ -231,5 +297,54 @@ export function createAgentProviderSourceService({
     });
   }
 
-  return { list, importSource };
+  async function importPiSource(
+    request: ImportAgentProviderSourceRequest,
+  ): Promise<AgentPiWriteResult> {
+    const platformId = requireRequestId(request.platformId);
+    const sourceId = requireRequestId(request.sourceId);
+    const modelId = requireRequestId(request.modelId);
+    const protocol = requireRequestId(request.protocol);
+    if (platformId !== "pi") {
+      throw new Error("AGENT_PROVIDER_SOURCE_INCOMPATIBLE");
+    }
+    const config = readConfig();
+    const provider = config.providers.find((item) => item.id === sourceId);
+    if (!provider) throw new Error("AGENT_PROVIDER_SOURCE_NOT_FOUND");
+    const providerId = nativeProviderId(provider.id);
+    if (!providerId) {
+      throw new Error("AGENT_PROVIDER_SOURCE_INCOMPATIBLE");
+    }
+    const candidate = candidateFor(config, provider, platformId);
+    if (!candidate.compatible) {
+      throw new Error("AGENT_PROVIDER_SOURCE_INCOMPATIBLE");
+    }
+    if (!candidate.protocols.includes(protocol)) {
+      throw new Error("AGENT_PROVIDER_SOURCE_PROTOCOL_UNSUPPORTED");
+    }
+    const projection = projectionFor(platformId, provider, protocol)!;
+    const model = providerModels(config, provider).find(
+      (item) => item.id === modelId,
+    );
+    if (!model) throw new Error("AGENT_PROVIDER_SOURCE_MODEL_NOT_FOUND");
+    const secret = model.apiKey || provider.apiKey;
+    return importPiProvider({
+      provider: {
+        providerId,
+        baseUrl: provider.apiUrl,
+        api: projection.protocol as AgentPiCustomProviderInput["api"],
+        models: [
+          {
+            id: model.model,
+            ...(model.name && { name: model.name }),
+            ...(model.capabilities?.reasoning !== undefined && {
+              reasoning: model.capabilities.reasoning,
+            }),
+          },
+        ],
+      },
+      ...(secret && { secret }),
+    });
+  }
+
+  return { list, importSource, importPiSource };
 }

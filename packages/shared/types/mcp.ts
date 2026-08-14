@@ -18,8 +18,14 @@ export const MCP_TARGET_KINDS = [
   "amp",
   "qwen",
   "opencode",
+  "pi",
   "oh-my-pi",
   "zcode",
+  "grok",
+  "openclaw",
+  "qoder",
+  "antigravity",
+  "reasonix",
   "custom-json",
   "custom-toml",
 ] as const;
@@ -59,8 +65,12 @@ export interface McpServerConfig {
   args?: string[];
   cwd?: string;
   env?: Record<string, string>;
+  /** Canonical `${VAR}` templates for process environment entries. */
+  envRefs?: Record<string, string>;
   url?: string;
   headers?: Record<string, string>;
+  /** Canonical templates for HTTP header values; values are never resolved here. */
+  headerRefs?: Record<string, string>;
   enabled: boolean;
   isFavorite?: boolean;
   tags?: string[];
@@ -138,8 +148,10 @@ export interface McpMarketTemplate {
   args?: string[];
   cwd?: string;
   env?: Record<string, string>;
+  envRefs?: Record<string, string>;
   url?: string;
   headers?: Record<string, string>;
+  headerRefs?: Record<string, string>;
   tags: string[];
   homepage?: string;
   repository?: string;
@@ -199,6 +211,7 @@ export interface McpRemoveTargetNames {
 
 export interface McpApplyResult {
   path: string;
+  /** @deprecated Target projections no longer create persistent backup files. */
   backupPath?: string;
   target: McpTargetKind;
   appliedServerNames: string[];
@@ -251,6 +264,7 @@ export interface McpTargetSyncOptions {
 }
 
 export interface McpTargetSyncUpdated {
+  /** @deprecated Target projections no longer create persistent backup files. */
   backupPath?: string;
   bindingId: string;
   path: string;
@@ -315,6 +329,7 @@ export interface McpCreateFromSourceResult extends McpImportResult {
 
 export interface McpRemoveResult {
   path: string;
+  /** @deprecated Target projections no longer create persistent backup files. */
   backupPath?: string;
   target: McpTargetKind;
   removedServerNames: string[];

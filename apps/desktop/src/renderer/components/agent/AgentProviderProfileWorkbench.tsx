@@ -1,22 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
-  ArchiveIcon,
   CheckCircle2Icon,
+  ClipboardCopyIcon,
   CopyIcon,
-  DatabaseIcon,
-  DownloadIcon,
-  FileInputIcon,
-  FlaskConicalIcon,
   KeyRoundIcon,
   Loader2Icon,
   PencilIcon,
-  PlusIcon,
-  RefreshCwIcon,
   ShieldAlertIcon,
   Trash2Icon,
-  WifiIcon,
-  XIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -29,11 +21,10 @@ import type {
 import { copyTextToClipboard } from "../../utils/clipboard";
 import { isWebRuntime } from "../../runtime";
 import { useAgentProviderStore } from "../../stores/agent-provider.store";
-import { Button, ConfirmDialog } from "../ui";
-import {
-  AgentProviderActivationDialog,
-  AgentProviderImportDialog,
-} from "./AgentProviderProfileDialogs";
+import { Button, ConfirmDialog, Input, Modal } from "../ui";
+import { AgentProviderActivationDialog } from "./AgentProviderProfileDialogs";
+import { AgentProviderActivationSwitch } from "./AgentProviderActivationSwitch";
+import { AgentProviderConnectionCheck } from "./AgentProviderConnectionCheck";
 import { AgentProviderMigrationNotice } from "./AgentProviderMigrationNotice";
 import {
   AgentProviderNativeDetail,
@@ -41,8 +32,21 @@ import {
 } from "./AgentProviderNativeConfig";
 import { AgentProviderProfileFormDialog } from "./AgentProviderProfileFormDialog";
 import { AgentProviderSourceDialog } from "./AgentProviderSourceDialog";
+import {
+  AgentProviderContextMenu,
+  AgentProviderToolbarActions,
+  type AgentProviderContextMenuPosition,
+} from "./AgentProviderWorkbenchActions";
+import {
+  AgentProviderDetailHeader,
+  AgentProviderDetailRow,
+  AgentProviderDetailSection,
+  AgentProviderDetailSurface,
+  AgentProviderWorkbenchLayout,
+  providerWorkbenchListItemClass,
+} from "./AgentProviderWorkbenchLayout";
 
-const PROFILE_ROW_HEIGHT = 68;
+const PROFILE_ROW_HEIGHT = 64;
 
 function secretStateClass(state: AgentProviderProfilePublic["secretState"]) {
   return state === "available"
@@ -63,7 +67,10 @@ function ProfileListItem({
   profile,
   isCurrent,
   selected,
+  busy,
+  activating,
   onSelect,
+  onActivate,
   virtualIndex,
   virtualStart,
   virtualSize,
@@ -72,7 +79,10 @@ function ProfileListItem({
   profile: AgentProviderProfilePublic;
   isCurrent: boolean;
   selected: boolean;
+  busy: boolean;
+  activating: boolean;
   onSelect: () => void;
+  onActivate: () => void;
   virtualIndex: number;
   virtualStart: number;
   virtualSize: number;
@@ -84,57 +94,50 @@ function ProfileListItem({
       data-index={virtualIndex}
       aria-posinset={virtualIndex + 1}
       aria-setsize={virtualSetSize}
-      className="absolute left-0 top-0 w-full"
+      className="absolute left-0 top-0 w-full p-1"
       style={{
         height: `${virtualSize}px`,
         transform: `translateY(${virtualStart}px)`,
       }}
     >
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-current={selected}
-        className={`block h-full w-full overflow-hidden border-l-2 px-4 py-3 text-left transition-colors ${
-          selected
-            ? "border-primary bg-accent"
-            : "border-transparent hover:bg-accent/60"
-        }`}
+      <div
+        className={providerWorkbenchListItemClass(
+          selected,
+          "flex h-full items-center overflow-hidden",
+        )}
       >
-        <span className="flex items-center justify-between gap-2">
-          <span className="min-w-0 truncate text-sm font-semibold text-foreground">
-            {profile.name}
-          </span>
-          <span className="flex shrink-0 items-center gap-1">
-            {isCurrent ? (
-              <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-                {t("agents.providerProfiles.current")}
-              </span>
-            ) : null}
-            <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
-              {t(`agents.providerProfiles.source.${profile.source}`)}
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-current={selected}
+          className="min-w-0 flex-1 px-3 py-2 text-left"
+        >
+          <span className="flex items-center justify-between gap-2">
+            <span className="min-w-0 truncate text-sm font-semibold text-foreground">
+              {profile.name}
             </span>
           </span>
-        </span>
-        <span className="mt-1 block truncate text-xs text-muted-foreground">
-          {primaryModel(profile) ?? t("agents.providerProfiles.noPrimaryModel")}
-        </span>
-      </button>
+          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+            {primaryModel(profile) ??
+              t("agents.providerProfiles.noPrimaryModel")}
+          </span>
+        </button>
+        <div className="pr-3">
+          <AgentProviderActivationSwitch
+            checked={isCurrent}
+            disabled={busy}
+            loading={activating && !isCurrent}
+            label={t(
+              isCurrent
+                ? "agents.providerProfiles.activation.currentLabel"
+                : "agents.providerProfiles.activation.switchLabel",
+              { name: profile.name },
+            )}
+            onActivate={onActivate}
+          />
+        </div>
+      </div>
     </li>
-  );
-}
-
-function DetailRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="grid gap-1 border-b border-border/60 py-3 last:border-0 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-4">
-      <dt className="text-xs font-semibold text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 break-all text-sm text-foreground">{children}</dd>
-    </div>
   );
 }
 
@@ -142,117 +145,107 @@ function ProfileDetail({
   profile,
   isCurrent,
   busy,
-  activating,
   testing,
   modelTesting,
   copied,
   connectionResult,
   modelTestResult,
   supportsConnectionTest,
-  supportsActivation,
   onEdit,
   onTestConnection,
   onTestModel,
   onCancelModelTest,
-  onActivate,
+  onRename,
   onDuplicate,
   onExport,
-  onArchive,
   onDelete,
 }: {
   profile: AgentProviderProfilePublic;
   isCurrent: boolean;
   busy: boolean;
-  activating: boolean;
   testing: boolean;
   modelTesting: boolean;
   copied: boolean;
   connectionResult: AgentProviderConnectionTestResult | null;
   modelTestResult: AgentProviderModelTestResult | null;
   supportsConnectionTest: boolean;
-  supportsActivation: boolean;
   onEdit: () => void;
   onTestConnection: () => void;
   onTestModel: () => void;
   onCancelModelTest: () => void;
-  onActivate: () => void;
+  onRename: () => void;
   onDuplicate: () => void;
   onExport: () => void;
-  onArchive: () => void;
   onDelete: () => void;
 }) {
   const { t } = useTranslation();
   return (
-    <>
-      <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border px-5 py-3">
-        <div className="min-w-0">
-          <div className="flex min-w-0 items-center gap-2">
-            <h2 className="truncate text-sm font-semibold text-foreground">
-              {profile.name}
-            </h2>
-            {isCurrent ? (
-              <span className="shrink-0 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-                {t("agents.providerProfiles.current")}
-              </span>
-            ) : null}
-          </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {profile.providerKind} · {profile.protocol}
-          </p>
-        </div>
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onEdit}
-            disabled={busy}
-          >
-            <PencilIcon className="h-3.5 w-3.5" />
-            {t("common.edit")}
-          </Button>
-          {supportsActivation ? (
-            <Button size="sm" onClick={onActivate} disabled={busy || isCurrent}>
+    <AgentProviderDetailSurface>
+      <AgentProviderDetailSection>
+        <AgentProviderDetailHeader>
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
+              <h2 className="truncate text-sm font-semibold text-foreground">
+                {profile.name}
+              </h2>
               {isCurrent ? (
-                <CheckCircle2Icon className="h-3.5 w-3.5" />
-              ) : activating ? (
-                <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <RefreshCwIcon className="h-3.5 w-3.5" />
-              )}
-              {t(
-                isCurrent
-                  ? "agents.providerProfiles.current"
-                  : "agents.providerProfiles.activate",
-              )}
+                <span className="shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                  {t("agents.providerProfiles.current")}
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {profile.providerKind} · {profile.protocol}
+            </p>
+          </div>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={onEdit}
+              disabled={busy}
+            >
+              <PencilIcon className="h-3.5 w-3.5" />
+              {t("common.edit")}
             </Button>
-          ) : null}
-        </div>
-      </header>
+          </div>
+        </AgentProviderDetailHeader>
+      </AgentProviderDetailSection>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-        <section>
+      <div className="mt-4 space-y-4">
+        <AgentProviderDetailSection className="p-4">
           <h3 className="text-sm font-semibold text-foreground">
             {t("agents.providerProfiles.details")}
           </h3>
           <dl className="mt-2">
-            <DetailRow label={t("agents.providerProfiles.providerKind")}>
+            <AgentProviderDetailRow
+              label={t("agents.providerProfiles.providerKind")}
+            >
               {profile.providerKind}
-            </DetailRow>
+            </AgentProviderDetailRow>
             {typeof profile.config.providerId === "string" ||
             typeof profile.config.legacyProviderId === "string" ? (
-              <DetailRow label={t("agents.providerProfiles.providerId")}>
+              <AgentProviderDetailRow
+                label={t("agents.providerProfiles.providerId")}
+              >
                 {String(
                   profile.config.providerId ?? profile.config.legacyProviderId,
                 )}
-              </DetailRow>
+              </AgentProviderDetailRow>
             ) : null}
-            <DetailRow label={t("agents.providerProfiles.protocol")}>
+            <AgentProviderDetailRow
+              label={t("agents.providerProfiles.protocol")}
+            >
               {profile.protocol}
-            </DetailRow>
-            <DetailRow label={t("agents.providerProfiles.endpoint")}>
+            </AgentProviderDetailRow>
+            <AgentProviderDetailRow
+              label={t("agents.providerProfiles.endpoint")}
+            >
               {profile.endpoint || t("agents.providerProfiles.platformNative")}
-            </DetailRow>
-            <DetailRow label={t("agents.providerProfiles.credential")}>
+            </AgentProviderDetailRow>
+            <AgentProviderDetailRow
+              label={t("agents.providerProfiles.credential")}
+            >
               <span
                 className={`inline-flex items-center gap-1.5 ${secretStateClass(profile.secretState)}`}
               >
@@ -265,136 +258,24 @@ function ProfileDetail({
                   `agents.providerProfiles.secretState.${profile.secretState}`,
                 )}
               </span>
-            </DetailRow>
+            </AgentProviderDetailRow>
           </dl>
-        </section>
+        </AgentProviderDetailSection>
 
         {supportsConnectionTest ? (
-          <section className="mt-6 border-y border-border/60 py-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-semibold text-foreground">
-                  {t("agents.providerProfiles.connection.title")}
-                </h3>
-                {connectionResult ? (
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span
-                      className={
-                        connectionResult.status === "ok"
-                          ? "font-medium text-emerald-600 dark:text-emerald-400"
-                          : "font-medium text-amber-600 dark:text-amber-400"
-                      }
-                    >
-                      {t(
-                        `agents.providerProfiles.connection.status.${connectionResult.status}`,
-                      )}
-                    </span>
-                    {connectionResult.modelCount !== null ? (
-                      <span>
-                        {t(
-                          "agents.providerProfiles.connection.modelsAvailable",
-                          { count: connectionResult.modelCount },
-                        )}
-                      </span>
-                    ) : null}
-                    <span>
-                      {t("agents.providerProfiles.connection.latency", {
-                        ms: connectionResult.totalMs,
-                      })}
-                    </span>
-                  </div>
-                ) : (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {t("agents.providerProfiles.connection.hint")}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={onTestConnection}
-                  disabled={busy}
-                >
-                  {testing ? (
-                    <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <WifiIcon className="h-3.5 w-3.5" />
-                  )}
-                  {testing
-                    ? t("agents.providerProfiles.connection.testing")
-                    : t("agents.providerProfiles.connection.test")}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={modelTesting ? onCancelModelTest : onTestModel}
-                  disabled={modelTesting ? false : busy}
-                >
-                  {modelTesting ? (
-                    <XIcon className="h-3.5 w-3.5" />
-                  ) : (
-                    <FlaskConicalIcon className="h-3.5 w-3.5" />
-                  )}
-                  {modelTesting
-                    ? t("agents.providerProfiles.modelTest.cancel")
-                    : t("agents.providerProfiles.modelTest.test")}
-                </Button>
-              </div>
-            </div>
-            {modelTestResult ? (
-              <div
-                role="status"
-                className="mt-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs"
-              >
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span
-                    className={
-                      modelTestResult.status === "ok"
-                        ? "font-medium text-emerald-600 dark:text-emerald-400"
-                        : "font-medium text-amber-600 dark:text-amber-400"
-                    }
-                  >
-                    {t(
-                      `agents.providerProfiles.modelTest.status.${modelTestResult.status}`,
-                    )}
-                  </span>
-                  {modelTestResult.firstTokenMs !== null ? (
-                    <span className="text-muted-foreground">
-                      {t("agents.providerProfiles.modelTest.firstToken", {
-                        ms: modelTestResult.firstTokenMs,
-                      })}
-                    </span>
-                  ) : null}
-                  <span className="text-muted-foreground">
-                    {t("agents.providerProfiles.modelTest.total", {
-                      ms: modelTestResult.totalMs,
-                    })}
-                  </span>
-                  {modelTestResult.retryCount > 0 ? (
-                    <span className="text-muted-foreground">
-                      {t("agents.providerProfiles.modelTest.retries", {
-                        count: modelTestResult.retryCount,
-                      })}
-                    </span>
-                  ) : null}
-                </div>
-                {modelTestResult.outputPreview ? (
-                  <div className="mt-2">
-                    <span className="text-muted-foreground">
-                      {t("agents.providerProfiles.modelTest.preview")}
-                    </span>
-                    <code className="mt-1 block whitespace-pre-wrap break-words rounded bg-background px-2 py-1.5 text-foreground">
-                      {modelTestResult.outputPreview}
-                    </code>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-          </section>
+          <AgentProviderConnectionCheck
+            busy={busy}
+            testing={testing}
+            modelTesting={modelTesting}
+            connectionResult={connectionResult}
+            modelTestResult={modelTestResult}
+            onTestConnection={onTestConnection}
+            onTestModel={onTestModel}
+            onCancelModelTest={onCancelModelTest}
+          />
         ) : null}
 
-        <section className="mt-6">
+        <AgentProviderDetailSection className="p-4">
           <h3 className="text-sm font-semibold text-foreground">
             {t("agents.providerProfiles.modelMappings")}
           </h3>
@@ -419,9 +300,18 @@ function ProfileDetail({
               {t("agents.providerProfiles.noMappings")}
             </p>
           )}
-        </section>
+        </AgentProviderDetailSection>
 
-        <div className="mt-6 flex flex-wrap gap-2 border-t border-border/60 pt-4">
+        <div className="flex flex-wrap gap-2 rounded-lg border border-border bg-card p-4 shadow-sm">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onRename}
+            disabled={busy}
+          >
+            <PencilIcon className="h-3.5 w-3.5" />
+            {t("agents.providerProfiles.rename")}
+          </Button>
           <Button
             size="sm"
             variant="secondary"
@@ -440,20 +330,11 @@ function ProfileDetail({
             {copied ? (
               <CheckCircle2Icon className="h-3.5 w-3.5 text-emerald-500" />
             ) : (
-              <DownloadIcon className="h-3.5 w-3.5" />
+              <ClipboardCopyIcon className="h-3.5 w-3.5" />
             )}
             {copied
               ? t("agents.providerProfiles.exportCopied")
               : t("agents.providerProfiles.export")}
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onArchive}
-            disabled={busy}
-          >
-            <ArchiveIcon className="h-3.5 w-3.5" />
-            {t("agents.providerProfiles.archive")}
           </Button>
           <Button size="sm" variant="danger" onClick={onDelete} disabled={busy}>
             <Trash2Icon className="h-3.5 w-3.5" />
@@ -461,7 +342,7 @@ function ProfileDetail({
           </Button>
         </div>
       </div>
-    </>
+    </AgentProviderDetailSurface>
   );
 }
 
@@ -474,15 +355,26 @@ export function AgentProviderProfileWorkbench({
   const webRuntime = isWebRuntime();
   const store = useAgentProviderStore();
   const [editing, setEditing] = useState<AgentProviderProfilePublic | null>();
+  const [renameTarget, setRenameTarget] =
+    useState<AgentProviderProfilePublic | null>(null);
+  const [renameValue, setRenameValue] = useState("");
   const [deleteTarget, setDeleteTarget] =
     useState<AgentProviderProfilePublic | null>(null);
   const [modelTestConfirmOpen, setModelTestConfirmOpen] = useState(false);
   const [copiedProfileId, setCopiedProfileId] = useState<string | null>(null);
   const [sourceDialogOpen, setSourceDialogOpen] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] =
+    useState<AgentProviderContextMenuPosition | null>(null);
+  const [activationTargetId, setActivationTargetId] = useState<string | null>(
+    null,
+  );
   const profileScrollRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setEditing(undefined);
+    setRenameTarget(null);
+    setRenameValue("");
+    setActivationTargetId(null);
     void store.load(agent.id);
   }, [agent.id, store.load]);
 
@@ -532,58 +424,56 @@ export function AgentProviderProfileWorkbench({
     if (deleted) setDeleteTarget(null);
   }
 
+  async function confirmRename(): Promise<void> {
+    if (!renameTarget) return;
+    const name = renameValue.trim();
+    if (!name) return;
+    if (name === renameTarget.name) {
+      setRenameTarget(null);
+      return;
+    }
+    const renamed = await store.updateProfile({
+      id: renameTarget.id,
+      expectedUpdatedAt: renameTarget.updatedAt,
+      profile: { name },
+      secretAction: "preserve",
+    });
+    if (!renamed) return;
+    setRenameTarget(null);
+    setRenameValue("");
+  }
+
+  async function previewProfileActivation(profileId: string): Promise<void> {
+    setActivationTargetId(profileId);
+    await store.previewActivation(agent.id, profileId);
+    setActivationTargetId(null);
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       {!webRuntime && agent.id === "codex" ? (
         <AgentProviderMigrationNotice onMigrated={() => store.load(agent.id)} />
       ) : null}
-      <div className="flex min-h-0 flex-1">
-        <aside className="flex w-56 shrink-0 flex-col border-r border-border sm:w-64 xl:w-72">
-          <div className="space-y-2 border-b border-border p-3">
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                className="min-w-0 flex-1"
-                onClick={() => setEditing(null)}
-                disabled={busy}
-              >
-                <PlusIcon className="h-4 w-4" />
-                {t("agents.providerProfiles.add")}
-              </Button>
-              {!webRuntime ? (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  aria-label={t("agents.providerProfiles.import.title")}
-                  title={t("agents.providerProfiles.import.title")}
-                  onClick={() => void store.importCurrent(agent.id)}
-                  disabled={busy}
-                >
-                  {store.busyAction === "import" ? (
-                    <Loader2Icon className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileInputIcon className="h-4 w-4" />
-                  )}
-                </Button>
-              ) : null}
-            </div>
-            {!webRuntime ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                className="w-full"
-                onClick={() => setSourceDialogOpen(true)}
-                disabled={busy}
-              >
-                <DatabaseIcon className="h-4 w-4" />
-                {t("agents.providerProfiles.sourceImport.open")}
-              </Button>
-            ) : null}
-          </div>
+      <AgentProviderWorkbenchLayout
+        toolbar={
+          <AgentProviderToolbarActions
+            busy={busy}
+            onAdd={() => setEditing(null)}
+            onImport={webRuntime ? undefined : () => setSourceDialogOpen(true)}
+          />
+        }
+        sidebar={
           <nav
             ref={profileScrollRef}
             aria-label={t("agents.providerProfiles.listLabel")}
-            className="min-h-0 flex-1 overflow-y-auto"
+            className="h-full min-h-0 overflow-x-hidden overflow-y-auto p-1"
+            onContextMenu={(event) => {
+              event.preventDefault();
+              setContextMenuPosition({
+                x: event.clientX,
+                y: event.clientY,
+              });
+            }}
           >
             {store.currentState?.nativeConfig ? (
               <AgentProviderNativeListItem
@@ -608,10 +498,15 @@ export function AgentProviderProfileWorkbench({
                       profile={profile}
                       isCurrent={profile.id === verifiedCurrentProfileId}
                       selected={profile.id === store.selectedProfileId}
+                      busy={busy || webRuntime}
+                      activating={activationTargetId === profile.id}
                       onSelect={() => {
                         setEditing(undefined);
                         store.select(profile.id);
                       }}
+                      onActivate={() =>
+                        void previewProfileActivation(profile.id)
+                      }
                       virtualIndex={virtualRow.index}
                       virtualStart={virtualRow.start}
                       virtualSize={virtualRow.size}
@@ -635,119 +530,130 @@ export function AgentProviderProfileWorkbench({
               </p>
             )}
           </nav>
-        </aside>
+        }
+      >
+        {store.errorCode ? (
+          <div
+            role="alert"
+            className="border-b border-destructive/30 bg-destructive/[0.06] px-5 py-2.5 text-xs text-destructive"
+          >
+            {t("agents.providerProfiles.errors.operation")}
+          </div>
+        ) : null}
+        {store.currentState?.status === "stale" ||
+        store.currentState?.status === "unavailable" ? (
+          <div
+            role="status"
+            className="border-b border-amber-500/30 bg-amber-500/[0.08] px-5 py-2.5 text-xs text-amber-700 dark:text-amber-300"
+          >
+            {t(
+              `agents.providerProfiles.currentState.${store.currentState.status}`,
+            )}
+          </div>
+        ) : null}
+        {isFormOpen ? (
+          <AgentProviderProfileFormDialog
+            isOpen
+            platformId={agent.id}
+            profile={editing ?? null}
+            busy={
+              store.busyAction === "create" || store.busyAction === "update"
+            }
+            onClose={() => setEditing(undefined)}
+            onCreate={store.createProfile}
+            onUpdate={store.updateProfile}
+          />
+        ) : selectedProfile ? (
+          <ProfileDetail
+            profile={selectedProfile}
+            isCurrent={selectedProfile.id === verifiedCurrentProfileId}
+            busy={busy}
+            testing={store.busyAction === "test-connection"}
+            modelTesting={store.busyAction === "test-model"}
+            copied={copiedProfileId === selectedProfile.id}
+            connectionResult={
+              store.connectionResult?.profileId === selectedProfile.id
+                ? store.connectionResult
+                : null
+            }
+            modelTestResult={
+              store.modelTestResult?.profileId === selectedProfile.id
+                ? store.modelTestResult
+                : null
+            }
+            supportsConnectionTest={
+              !webRuntime && agent.capabilities.provider.status === "supported"
+            }
+            onEdit={() => setEditing(selectedProfile)}
+            onTestConnection={() =>
+              void store.testConnection(agent.id, selectedProfile.id)
+            }
+            onTestModel={() => setModelTestConfirmOpen(true)}
+            onCancelModelTest={() => void store.cancelModelTest()}
+            onRename={() => {
+              setRenameTarget(selectedProfile);
+              setRenameValue(selectedProfile.name);
+            }}
+            onDuplicate={() =>
+              void store.duplicateProfile(
+                selectedProfile.id,
+                t("agents.providerProfiles.duplicateName", {
+                  name: selectedProfile.name,
+                }),
+              )
+            }
+            onExport={() => void exportSelected()}
+            onDelete={() => setDeleteTarget(selectedProfile)}
+          />
+        ) : store.currentState?.nativeConfig ? (
+          <AgentProviderNativeDetail
+            platformId={agent.id}
+            summary={store.currentState.nativeConfig}
+            busyAction={store.busyAction}
+            connectionResult={
+              store.connectionResult?.profileId === `native:${agent.id}`
+                ? store.connectionResult
+                : null
+            }
+            modelTestResult={
+              store.modelTestResult?.profileId === `native:${agent.id}`
+                ? store.modelTestResult
+                : null
+            }
+            supportsConnectionTest={
+              !webRuntime && agent.capabilities.provider.status === "supported"
+            }
+            onRestoreOfficial={() => void store.restoreOfficial(agent.id)}
+            onTestConnection={() => void store.testCurrentConnection(agent.id)}
+            onTestModel={() => setModelTestConfirmOpen(true)}
+            onCancelModelTest={() => void store.cancelModelTest()}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center px-8 text-center">
+            <div className="max-w-sm">
+              <KeyRoundIcon className="mx-auto h-8 w-8 text-muted-foreground/50" />
+              <h2 className="mt-3 text-sm font-semibold text-foreground">
+                {t("agents.providerProfiles.emptyTitle")}
+              </h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {t(
+                  webRuntime
+                    ? "agents.providerProfiles.webEmptyHint"
+                    : "agents.providerProfiles.emptyHint",
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+      </AgentProviderWorkbenchLayout>
 
-        <section className="flex min-w-0 flex-1 flex-col">
-          {store.errorCode ? (
-            <div
-              role="alert"
-              className="border-b border-destructive/30 bg-destructive/[0.06] px-5 py-2.5 text-xs text-destructive"
-            >
-              {t("agents.providerProfiles.errors.operation")}
-            </div>
-          ) : null}
-          {store.currentState?.status === "stale" ||
-          store.currentState?.status === "unavailable" ? (
-            <div
-              role="status"
-              className="border-b border-amber-500/30 bg-amber-500/[0.08] px-5 py-2.5 text-xs text-amber-700 dark:text-amber-300"
-            >
-              {t(
-                `agents.providerProfiles.currentState.${store.currentState.status}`,
-              )}
-            </div>
-          ) : null}
-          {isFormOpen ? (
-            <AgentProviderProfileFormDialog
-              isOpen
-              platformId={agent.id}
-              profile={editing ?? null}
-              busy={
-                store.busyAction === "create" || store.busyAction === "update"
-              }
-              onClose={() => setEditing(undefined)}
-              onCreate={store.createProfile}
-              onUpdate={store.updateProfile}
-            />
-          ) : selectedProfile ? (
-            <ProfileDetail
-              profile={selectedProfile}
-              isCurrent={selectedProfile.id === verifiedCurrentProfileId}
-              busy={busy}
-              activating={
-                store.busyAction === "preview" ||
-                store.busyAction === "activate"
-              }
-              testing={store.busyAction === "test-connection"}
-              modelTesting={store.busyAction === "test-model"}
-              copied={copiedProfileId === selectedProfile.id}
-              connectionResult={
-                store.connectionResult?.profileId === selectedProfile.id
-                  ? store.connectionResult
-                  : null
-              }
-              modelTestResult={
-                store.modelTestResult?.profileId === selectedProfile.id
-                  ? store.modelTestResult
-                  : null
-              }
-              supportsConnectionTest={
-                !webRuntime &&
-                agent.capabilities.provider.status === "supported"
-              }
-              supportsActivation={!webRuntime}
-              onEdit={() => setEditing(selectedProfile)}
-              onTestConnection={() =>
-                void store.testConnection(agent.id, selectedProfile.id)
-              }
-              onTestModel={() => setModelTestConfirmOpen(true)}
-              onCancelModelTest={() => void store.cancelModelTest()}
-              onActivate={() =>
-                void store.previewActivation(agent.id, selectedProfile.id)
-              }
-              onDuplicate={() =>
-                void store.duplicateProfile(
-                  selectedProfile.id,
-                  t("agents.providerProfiles.duplicateName", {
-                    name: selectedProfile.name,
-                  }),
-                )
-              }
-              onExport={() => void exportSelected()}
-              onArchive={() =>
-                void store.archiveProfile(
-                  selectedProfile.id,
-                  selectedProfile.updatedAt,
-                )
-              }
-              onDelete={() => setDeleteTarget(selectedProfile)}
-            />
-          ) : store.currentState?.nativeConfig ? (
-            <AgentProviderNativeDetail
-              summary={store.currentState.nativeConfig}
-              busyAction={store.busyAction}
-              onImport={() => void store.importCurrent(agent.id)}
-              onRestoreOfficial={() => void store.restoreOfficial(agent.id)}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center px-8 text-center">
-              <div className="max-w-sm">
-                <KeyRoundIcon className="mx-auto h-8 w-8 text-muted-foreground/50" />
-                <h2 className="mt-3 text-sm font-semibold text-foreground">
-                  {t("agents.providerProfiles.emptyTitle")}
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  {t(
-                    webRuntime
-                      ? "agents.providerProfiles.webEmptyHint"
-                      : "agents.providerProfiles.emptyHint",
-                  )}
-                </p>
-              </div>
-            </div>
-          )}
-        </section>
-      </div>
+      <AgentProviderContextMenu
+        busy={busy}
+        position={contextMenuPosition}
+        onAdd={() => setEditing(null)}
+        onImport={webRuntime ? undefined : () => setSourceDialogOpen(true)}
+        onClose={() => setContextMenuPosition(null)}
+      />
 
       <AgentProviderSourceDialog
         isOpen={sourceDialogOpen}
@@ -759,12 +665,6 @@ export function AgentProviderProfileWorkbench({
         onImport={store.importSource}
         onClose={() => setSourceDialogOpen(false)}
       />
-      <AgentProviderImportDialog
-        preview={store.importPreview}
-        busy={store.busyAction === "adopt-import"}
-        onClose={store.clearTransient}
-        onAdopt={store.adoptImport}
-      />
       <AgentProviderActivationDialog
         plan={store.activationPlan}
         result={store.activationResult}
@@ -775,13 +675,67 @@ export function AgentProviderProfileWorkbench({
           store.activatePreview(agent.id, resolutions)
         }
       />
+      <Modal
+        isOpen={renameTarget !== null}
+        onClose={() => {
+          if (store.busyAction === "update") return;
+          setRenameTarget(null);
+          setRenameValue("");
+        }}
+        title={t("agents.providerProfiles.renameTitle")}
+        size="sm"
+        closeOnBackdrop={store.busyAction !== "update"}
+        closeOnEscape={store.busyAction !== "update"}
+      >
+        <form
+          className="space-y-4 p-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void confirmRename();
+          }}
+        >
+          <Input
+            label={t("agents.providerProfiles.form.name")}
+            value={renameValue}
+            onChange={(event) => setRenameValue(event.target.value)}
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setRenameTarget(null);
+                setRenameValue("");
+              }}
+              disabled={store.busyAction === "update"}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={!renameValue.trim() || store.busyAction === "update"}
+            >
+              {store.busyAction === "update" ? (
+                <Loader2Icon className="h-4 w-4 animate-spin" />
+              ) : null}
+              {t("common.save")}
+            </Button>
+          </div>
+        </form>
+      </Modal>
       <ConfirmDialog
         isOpen={modelTestConfirmOpen}
         onClose={() => setModelTestConfirmOpen(false)}
         onConfirm={() => {
-          if (!selectedProfile) return;
           setModelTestConfirmOpen(false);
-          void store.testModel(agent.id, selectedProfile.id);
+          if (selectedProfile) {
+            void store.testModel(agent.id, selectedProfile.id);
+            return;
+          }
+          if (store.currentState?.nativeConfig) {
+            void store.testCurrentModel(agent.id);
+          }
         }}
         title={t("agents.providerProfiles.modelTest.confirmTitle")}
         message={t("agents.providerProfiles.modelTest.confirmMessage")}

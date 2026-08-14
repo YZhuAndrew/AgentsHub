@@ -4,7 +4,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CoreMcpLibraryService,
   configureRuntimePaths,
@@ -23,6 +23,7 @@ describe("CoreMcpLibraryService", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     resetRuntimePaths();
     fs.rmSync(userDataPath, { recursive: true, force: true });
   });
@@ -468,7 +469,7 @@ describe("CoreMcpLibraryService", () => {
     expect(service.read()).toEqual(beforeInstall);
   });
 
-  it("applies JSON targets with a backup and preserves unrelated keys", () => {
+  it("applies JSON targets without leaving a backup and preserves unrelated keys", () => {
     const service = new CoreMcpLibraryService();
     const server = service.createServer({
       name: "fetch",
@@ -493,11 +494,114 @@ describe("CoreMcpLibraryService", () => {
     });
     const written = JSON.parse(fs.readFileSync(targetPath, "utf8"));
 
-    expect(result.backupPath).toBeTruthy();
-    expect(fs.existsSync(result.backupPath!)).toBe(true);
+    expect(result.backupPath).toBeUndefined();
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual(["mcp.json"]);
     expect(written.keep).toBe(true);
     expect(written.mcpServers.old.command).toBe("node");
     expect(written.mcpServers.fetch.command).toBe("uvx");
+  });
+
+  it("applies OpenClaw and Grok targets through their verified native schemas", () => {
+    const service = new CoreMcpLibraryService();
+    const server = service.createServer({
+      name: "fetch",
+      displayName: "Fetch",
+      transport: "streamable-http",
+      url: "https://example.test/mcp",
+      headers: { Authorization: "Bearer token" },
+    });
+    const openClawPath = path.join(userDataPath, "openclaw.json");
+    fs.writeFileSync(
+      openClawPath,
+      JSON.stringify({ channel: "stable", mcp: { oauth: { enabled: true } } }),
+      "utf8",
+    );
+    service.apply({
+      target: "openclaw",
+      scope: "global",
+      path: openClawPath,
+      serverIds: [server.id],
+    });
+    const openClaw = JSON.parse(fs.readFileSync(openClawPath, "utf8"));
+    expect(openClaw).toMatchObject({
+      channel: "stable",
+      mcp: {
+        oauth: { enabled: true },
+        servers: {
+          fetch: {
+            url: "https://example.test/mcp",
+            transport: "streamable-http",
+          },
+        },
+      },
+    });
+
+    const grokPath = path.join(userDataPath, "config.toml");
+    fs.writeFileSync(grokPath, 'model = "grok-4"\n', "utf8");
+    const grokResult = service.apply({
+      target: "grok",
+      scope: "global",
+      path: grokPath,
+      serverIds: [server.id],
+    });
+    const grok = fs.readFileSync(grokPath, "utf8");
+    expect(grok).toContain('model = "grok-4"');
+    expect(grok).toContain('headers = { Authorization = "Bearer token" }');
+    expect(grok).not.toContain("http_headers");
+    expect(grokResult.content).not.toContain("Bearer token");
+  });
+
+  it("round-trips Antigravity serverUrl entries without exposing secrets", () => {
+    const service = new CoreMcpLibraryService();
+    const server = service.createServer({
+      name: "remote",
+      displayName: "Remote",
+      transport: "streamable-http",
+      url: "https://example.test/mcp",
+      headers: { Authorization: "Bearer token" },
+    });
+    const targetPath = path.join(userDataPath, "mcp_config.json");
+    fs.writeFileSync(
+      targetPath,
+      JSON.stringify({ mcpServers: {}, ui: { compact: true } }),
+      "utf8",
+    );
+
+    const result = service.apply({
+      target: "antigravity",
+      scope: "global",
+      path: targetPath,
+      serverIds: [server.id],
+    });
+
+    expect(JSON.parse(fs.readFileSync(targetPath, "utf8"))).toMatchObject({
+      ui: { compact: true },
+      mcpServers: {
+        remote: {
+          serverUrl: "https://example.test/mcp",
+          headers: { Authorization: "Bearer token" },
+        },
+      },
+    });
+    expect(result.content).not.toContain("Bearer token");
+    expect(
+      service.getTargetStatus([
+        {
+          id: "antigravity-test",
+          target: "antigravity",
+          scope: "global",
+          label: "Antigravity",
+          path: targetPath,
+          platformId: "antigravity",
+        },
+      ])[0]?.servers,
+    ).toEqual([
+      expect.objectContaining({
+        name: "remote",
+        url: "https://example.test/mcp",
+        transport: "streamable-http",
+      }),
+    ]);
   });
 
   it("does not write target files or bindings when applying only disabled servers", () => {
@@ -592,8 +696,8 @@ describe("CoreMcpLibraryService", () => {
     const written = JSON.parse(fs.readFileSync(targetPath, "utf8"));
 
     expect(result.overwrittenServerNames).toEqual(["fetch"]);
-    expect(result.backupPath).toBeTruthy();
-    expect(fs.existsSync(result.backupPath!)).toBe(true);
+    expect(result.backupPath).toBeUndefined();
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual(["mcp.json"]);
     expect(written.mcpServers.fetch.command).toBe("uvx");
     expect(
       fs
@@ -637,6 +741,131 @@ describe("CoreMcpLibraryService", () => {
     );
   });
 
+  it("does not replace an unchanged target file when reapplying the same projection", () => {
+    const service = new CoreMcpLibraryService();
+    const server = service.createServer({
+      name: "fetch",
+      displayName: "Fetch",
+      transport: "stdio",
+      command: "uvx",
+      args: ["mcp-server-fetch"],
+    });
+    const targetPath = path.join(userDataPath, "target", "mcp.json");
+
+    service.apply({
+      target: "claude",
+      scope: "custom",
+      path: targetPath,
+      serverIds: [server.id],
+    });
+    const stableTimestamp = new Date("2020-01-02T03:04:05.000Z");
+    fs.utimesSync(targetPath, stableTimestamp, stableTimestamp);
+    const before = fs.statSync(targetPath);
+
+    const result = service.apply({
+      target: "claude",
+      scope: "custom",
+      path: targetPath,
+      serverIds: [server.id],
+    });
+    const after = fs.statSync(targetPath);
+
+    expect(result.backupPath).toBeUndefined();
+    expect(after.mtimeMs).toBe(before.mtimeMs);
+    expect(after.ino).toBe(before.ino);
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual(["mcp.json"]);
+  });
+
+  it("restores the exact existing target when binding persistence fails", () => {
+    const service = new CoreMcpLibraryService();
+    const server = service.createServer({
+      name: "fetch",
+      displayName: "Fetch",
+      transport: "stdio",
+      command: "uvx",
+      args: ["mcp-server-fetch"],
+    });
+    const targetPath = path.join(userDataPath, "target", "mcp.json");
+    const original = '{\n  "keep": true\n}\n';
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+    fs.writeFileSync(targetPath, original, "utf8");
+    vi.spyOn(service, "write").mockImplementationOnce(() => {
+      throw new Error("simulated library write failure");
+    });
+
+    expect(() =>
+      service.apply({
+        target: "claude",
+        scope: "custom",
+        path: targetPath,
+        serverIds: [server.id],
+      }),
+    ).toThrow("simulated library write failure");
+
+    expect(fs.readFileSync(targetPath, "utf8")).toBe(original);
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual(["mcp.json"]);
+    expect(service.read().bindings).toEqual([]);
+  });
+
+  it("removes a newly created target when binding persistence fails", () => {
+    const service = new CoreMcpLibraryService();
+    const server = service.createServer({
+      name: "fetch",
+      displayName: "Fetch",
+      transport: "stdio",
+      command: "uvx",
+      args: ["mcp-server-fetch"],
+    });
+    const targetPath = path.join(userDataPath, "target", "mcp.json");
+    vi.spyOn(service, "write").mockImplementationOnce(() => {
+      throw new Error("simulated library write failure");
+    });
+
+    expect(() =>
+      service.apply({
+        target: "claude",
+        scope: "custom",
+        path: targetPath,
+        serverIds: [server.id],
+      }),
+    ).toThrow("simulated library write failure");
+
+    expect(fs.existsSync(targetPath)).toBe(false);
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual([]);
+    expect(service.read().bindings).toEqual([]);
+  });
+
+  it("cleans the temporary projection file when atomic replacement fails", () => {
+    const service = new CoreMcpLibraryService();
+    const server = service.createServer({
+      name: "fetch",
+      displayName: "Fetch",
+      transport: "stdio",
+      command: "uvx",
+      args: ["mcp-server-fetch"],
+    });
+    const targetPath = path.join(userDataPath, "target", "mcp.json");
+    const original = '{"keep":true}\n';
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+    fs.writeFileSync(targetPath, original, "utf8");
+    vi.spyOn(fs, "renameSync").mockImplementationOnce(() => {
+      throw new Error("simulated rename failure");
+    });
+
+    expect(() =>
+      service.apply({
+        target: "claude",
+        scope: "custom",
+        path: targetPath,
+        serverIds: [server.id],
+      }),
+    ).toThrow("simulated rename failure");
+
+    expect(fs.readFileSync(targetPath, "utf8")).toBe(original);
+    expect(fs.readdirSync(path.dirname(targetPath))).toEqual(["mcp.json"]);
+    expect(service.read().bindings).toEqual([]);
+  });
+
   it("syncs stale managed targets without returning secret-bearing content", () => {
     const service = new CoreMcpLibraryService();
     const server = service.createServer({
@@ -677,7 +906,7 @@ describe("CoreMcpLibraryService", () => {
       expect.objectContaining({
         path: targetPath,
         serverName: "mineru",
-        backupPath: expect.any(String),
+        backupPath: undefined,
       }),
     ]);
     expect(JSON.stringify(result)).not.toContain("ph-token-mineru-new");

@@ -43,6 +43,7 @@ function createDefaultAppearanceValues() {
     enableNotifications: true,
     showCopyNotification: true,
     showSaveNotification: true,
+    localSessionIndexEnabled: true,
   } satisfies Partial<SettingsValues>;
 }
 
@@ -73,6 +74,7 @@ function createDefaultSelfHostedSyncValues() {
     selfHostedSyncOnStartup: false,
     selfHostedSyncOnStartupDelay: 10,
     selfHostedAutoSyncInterval: 0,
+    autoSyncHistory: [],
   } satisfies Partial<SettingsValues>;
 }
 

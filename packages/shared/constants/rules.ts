@@ -20,14 +20,36 @@ const opencodePlatform = requirePlatform("opencode");
 const piPlatform = requirePlatform("pi");
 const ohMyPiPlatform = requirePlatform("oh-my-pi");
 const windsurfPlatform = requirePlatform("windsurf");
+const kiroPlatform = requirePlatform("kiro");
+const clinePlatform = requirePlatform("cline");
+const augmentPlatform = requirePlatform("augment");
 const openclawPlatform = requirePlatform("openclaw");
 const qclawPlatform = requirePlatform("qclaw");
 const hermesPlatform = requirePlatform("hermes");
 const codebuddyPlatform = requirePlatform("codebuddy");
 const ampPlatform = requirePlatform("amp");
 const kiloPlatform = requirePlatform("kilo");
+const cursorPlatform = requirePlatform("cursor");
 
 export const RULE_FILE_GROUPS = ["workspace", "assistant", "tooling"] as const;
+
+export const PROJECT_RULE_FILE_TEMPLATES = {
+  workspace: {
+    platformId: "workspace",
+    platformIcon: "FolderRoot",
+    relativePath: "AGENTS.md",
+    canonicalFileName: "AGENTS.md",
+    description: "Project rule file loaded from a user-managed directory.",
+  },
+  cursor: {
+    platformId: "cursor",
+    platformIcon: cursorPlatform.icon,
+    relativePath: ".cursor/rules/prompthub.mdc",
+    canonicalFileName: "prompthub.mdc",
+    description:
+      "Cursor project rule managed in the project's .cursor/rules directory.",
+  },
+} as const;
 
 export const RULE_PLATFORM_ORDER = [
   "claude",
@@ -42,6 +64,9 @@ export const RULE_PLATFORM_ORDER = [
   "pi",
   "oh-my-pi",
   "windsurf",
+  "kiro",
+  "cline",
+  "augment",
   "openclaw",
   "qclaw",
   "hermes",
@@ -189,6 +214,42 @@ export const KNOWN_RULE_FILE_TEMPLATES = {
     name: "global_rules.md",
     description:
       "Global Windsurf rules loaded from the local Windsurf configuration.",
+    group: "tooling",
+  },
+  "kiro-global": {
+    id: "kiro-global",
+    platformId: "kiro",
+    platformName: kiroPlatform.name,
+    platformIcon: kiroPlatform.icon,
+    platformDescription:
+      "Global Kiro AGENTS.md entry stored in the user steering directory.",
+    name: "AGENTS.md",
+    description:
+      "Global Kiro instructions loaded from the user steering directory. Other steering files remain Kiro-managed.",
+    group: "assistant",
+  },
+  "cline-global": {
+    id: "cline-global",
+    platformId: "cline",
+    platformName: clinePlatform.name,
+    platformIcon: clinePlatform.icon,
+    platformDescription:
+      "Global Cline AGENTS.md entry stored in the CLI rules directory.",
+    name: "AGENTS.md",
+    description:
+      "Global Cline instructions loaded from the CLI rules directory. Other rule files remain Cline-managed.",
+    group: "tooling",
+  },
+  "augment-global": {
+    id: "augment-global",
+    platformId: "augment",
+    platformName: augmentPlatform.name,
+    platformIcon: augmentPlatform.icon,
+    platformDescription:
+      "Global Augment user guidelines stored in the documented local guidelines file.",
+    name: "user-guidelines.md",
+    description:
+      "Global Augment user guidelines applied to Agent and Chat sessions.",
     group: "tooling",
   },
   "openclaw-global": {

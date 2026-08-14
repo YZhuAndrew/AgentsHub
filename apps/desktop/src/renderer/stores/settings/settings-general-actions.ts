@@ -59,6 +59,7 @@ type GeneralActionKey =
   | "setEnableNotifications"
   | "setShowCopyNotification"
   | "setShowSaveNotification"
+  | "setLocalSessionIndexEnabled"
   | "setTagFilterMode"
   | "addPromptTagCatalogEntry"
   | "renamePromptTagCatalogEntry"
@@ -287,6 +288,8 @@ function createEditorActions(context: SettingsActionContext) {
       setTouched({ showCopyNotification }),
     setShowSaveNotification: (showSaveNotification) =>
       setTouched({ showSaveNotification }),
+    setLocalSessionIndexEnabled: (localSessionIndexEnabled) =>
+      setTouched({ localSessionIndexEnabled }),
   } satisfies SettingsActionGroup<
     | "setClipboardImportEnabled"
     | "setAutoSave"
@@ -294,6 +297,7 @@ function createEditorActions(context: SettingsActionContext) {
     | "setEnableNotifications"
     | "setShowCopyNotification"
     | "setShowSaveNotification"
+    | "setLocalSessionIndexEnabled"
   >;
 }
 

@@ -46,6 +46,7 @@ export function useSidebarController({
     onNavigate,
     layout,
     prompt.closeTagPopover,
+    prompt.promptViewMode,
   );
   const resources = useSidebarResourceController(
     currentPage,

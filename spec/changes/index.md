@@ -7,8 +7,8 @@ file manually. Run the generator after adding, moving, or archiving a change.
 
 | State | Count |
 | --- | ---: |
-| Active | 44 |
-| Archived | 183 |
+| Active | 56 |
+| Archived | 188 |
 | Legacy | 1 |
 
 ## Active
@@ -16,11 +16,14 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | Change | Recorded status | Path |
 | --- | --- | --- |
 | `agent-management-workbench` | active | `spec/changes/active/agent-management-workbench/` |
+| `agent-provider-protocol-bridge` | active | `spec/changes/active/agent-provider-protocol-bridge/` |
 | `app-shell-left-rail` | in progress | `spec/changes/active/app-shell-left-rail/` |
-| `cli-agent-management` | active | `spec/changes/active/cli-agent-management/` |
+| `cli-agent-management` | implemented | `spec/changes/active/cli-agent-management/` |
 | `cli-feature-completeness` | active | `spec/changes/active/cli-feature-completeness/` |
 | `cli-install-manual-fallback` | active | `spec/changes/active/cli-install-manual-fallback/` |
 | `cloud-account-store-client` | active | `spec/changes/active/cloud-account-store-client/` |
+| `cloud-collaborative-prompt-sharing` | active | `spec/changes/active/cloud-collaborative-prompt-sharing/` |
+| `desktop-dev-server-loopback-isolation` | active | `spec/changes/active/desktop-dev-server-loopback-isolation/` |
 | `desktop-frontend-animation-system` | active | `spec/changes/active/desktop-frontend-animation-system/` |
 | `desktop-frontend-perf-tuneup` | active | `spec/changes/active/desktop-frontend-perf-tuneup/` |
 | `desktop-home-layout-controls` | active | `spec/changes/active/desktop-home-layout-controls/` |
@@ -28,28 +31,36 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `desktop-issue-179-configured-skill-targets` | active | `spec/changes/active/desktop-issue-179-configured-skill-targets/` |
 | `desktop-issue-192-copy-action-parity` | active | `spec/changes/active/desktop-issue-192-copy-action-parity/` |
 | `desktop-prompt-context-move` | active | `spec/changes/active/desktop-prompt-context-move/` |
+| `desktop-prompt-list-projection` | active | `spec/changes/active/desktop-prompt-list-projection/` |
 | `desktop-renderer-ui-test-coverage` | active | `spec/changes/active/desktop-renderer-ui-test-coverage/` |
 | `desktop-skill-ui-size-performance` | active | `spec/changes/active/desktop-skill-ui-size-performance/` |
 | `desktop-update-dialog-polish` | active | `spec/changes/active/desktop-update-dialog-polish/` |
+| `desktop-workspace-live-refresh` | active | `spec/changes/active/desktop-workspace-live-refresh/` |
+| `git-backup-transports` | active | `spec/changes/active/git-backup-transports/` |
 | `grok-build-platform-support` | active | `spec/changes/active/grok-build-platform-support/` |
-| `homebrew-update-routing` | missing implementation | `spec/changes/active/homebrew-update-routing/` |
 | `homepage-changelog-route-retirement` | active | `spec/changes/active/homepage-changelog-route-retirement/` |
+| `legacy-upgrade-recovery-audit` | active | `spec/changes/active/legacy-upgrade-recovery-audit/` |
 | `macos-developer-id-signing` | active | `spec/changes/active/macos-developer-id-signing/` |
+| `marketplace-expansion` | active | `spec/changes/active/marketplace-expansion/` |
+| `mcp-version-history-and-projection-safety` | active | `spec/changes/active/mcp-version-history-and-projection-safety/` |
 | `mobile-app-shell` | active | `spec/changes/active/mobile-app-shell/` |
 | `mobile-prompt-persistence-hardening` | release-pending | `spec/changes/active/mobile-prompt-persistence-hardening/` |
+| `mobile-webdav-distribution` | active | `spec/changes/active/mobile-webdav-distribution/` |
+| `official-cloud-backup-and-saas-platform` | implemented | `spec/changes/active/official-cloud-backup-and-saas-platform/` |
 | `pi-agent-separation` | active | `spec/changes/active/pi-agent-separation/` |
 | `platform-workbench-prototype` | in progress | `spec/changes/active/platform-workbench-prototype/` |
 | `plugin-issue-190-multi-native-manifests` | active | `spec/changes/active/plugin-issue-190-multi-native-manifests/` |
 | `plugin-management` | active | `spec/changes/active/plugin-management/` |
-| `preview-update-channel` | missing implementation | `spec/changes/active/preview-update-channel/` |
 | `project-skill-management` | in progress | `spec/changes/active/project-skill-management/` |
 | `prompt-output-format-contribution` | active | `spec/changes/active/prompt-output-format-contribution/` |
+| `prompt-workspace-completion` | active | `spec/changes/active/prompt-workspace-completion/` |
 | `r2-direct-downloads` | active | `spec/changes/active/r2-direct-downloads/` |
-| `readme-contributor-refresh` | missing implementation | `spec/changes/active/readme-contributor-refresh/` |
 | `readme-screenshots-v0-5-6` | active | `spec/changes/active/readme-screenshots-v0-5-6/` |
+| `release-0-6-0-beta-1-readiness` | active | `spec/changes/active/release-0-6-0-beta-1-readiness/` |
 | `release-0-6-0-version-alignment` | active | `spec/changes/active/release-0-6-0-version-alignment/` |
 | `republish-0-5-9-20260714` | active | `spec/changes/active/republish-0-5-9-20260714/` |
 | `risk-aware-verification-harness` | active | `spec/changes/active/risk-aware-verification-harness/` |
+| `rules-agent-source-matrix` | active | `spec/changes/active/rules-agent-source-matrix/` |
 | `rules-issue-193-missing-project-reconciliation` | active | `spec/changes/active/rules-issue-193-missing-project-reconciliation/` |
 | `rules-managed-copies` | in progress | `spec/changes/active/rules-managed-copies/` |
 | `self-hosted-skill-sync-reliability` | active | `spec/changes/active/self-hosted-skill-sync-reliability/` |
@@ -59,6 +70,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `update-channel-hardening` | active | `spec/changes/active/update-channel-hardening/` |
 | `web-agent-service-parity` | active | `spec/changes/active/web-agent-service-parity/` |
 | `web-sync-contract-completion` | active | `spec/changes/active/web-sync-contract-completion/` |
+| `windows-code-signing-and-reputation` | active | `spec/changes/active/windows-code-signing-and-reputation/` |
 
 ## Archived
 
@@ -247,6 +259,11 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `2026-07-28-unified-custom-store-sources` | archived | `spec/changes/archive/2026/07/2026-07-28-unified-custom-store-sources/` |
 | `2026-07-30-website-release-metadata-stable-boundary` | archived | `spec/changes/archive/2026/07/2026-07-30-website-release-metadata-stable-boundary/` |
 | `2026-08-01-web-agent-management` | archived | `spec/changes/archive/2026/08/2026-08-01-web-agent-management/` |
+| `2026-08-06-mcp-issues-200-202-analysis` | archived | `spec/changes/archive/2026/08/2026-08-06-mcp-issues-200-202-analysis/` |
+| `2026-08-06-mcp-issues-200-202-implementation` | archived | `spec/changes/archive/2026/08/2026-08-06-mcp-issues-200-202-implementation/` |
+| `2026-08-10-desktop-language-startup-persistence` | archived | `spec/changes/archive/2026/08/2026-08-10-desktop-language-startup-persistence/` |
+| `2026-08-12-database-migration-safety` | archived | `spec/changes/archive/2026/08/2026-08-12-database-migration-safety/` |
+| `2026-08-12-storage-recovery-review-fixes` | archived | `spec/changes/archive/2026/08/2026-08-12-storage-recovery-review-fixes/` |
 
 ## Legacy
 

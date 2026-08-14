@@ -571,6 +571,14 @@
           "protocol-unsupported": "此协议不受支持",
           "no-chat-model": "未配置对话模型",
           "invalid-endpoint": "端点地址无效"
+        },
+        "protocol": "协议",
+        "protocols": {
+          "openai-chat": "OpenAI Chat",
+          "openai-completions": "OpenAI Chat",
+          "openai-responses": "OpenAI Responses",
+          "anthropic-messages": "Anthropic Messages",
+          "google-generative-ai": "Google Generative AI"
         }
       },
       "deepLink": {
@@ -684,6 +692,19 @@
           "total-timeout": "模型测试超时",
           "response-too-large": "Provider 响应超过大小限制",
           "unsupported": "此配置档案不支持流式模型测试"
+        },
+        "nativeStatus": {
+          "ok": "Codex 官方模型已响应",
+          "cancelled": "Codex 官方测试已取消",
+          "no-credentials": "Codex 官方登录不可用",
+          "auth-error": "Codex 官方身份验证失败",
+          "model-not-found": "未找到 Codex 官方模型",
+          "quota-error": "Codex 官方额度不可用",
+          "rate-limited": "已触发 Codex 官方速率限制",
+          "protocol-error": "Codex 官方 CLI 测试失败",
+          "network-error": "Codex 官方网络连接失败",
+          "total-timeout": "Codex 官方模型测试超时",
+          "unsupported": "Codex 官方 CLI 测试不可用"
         }
       },
       "details": "配置档案详情",
@@ -768,7 +789,28 @@
         "environmentVariableInvalid": "请输入有效的环境变量名。",
         "required": "此字段为必填项。",
         "positiveInteger": "请输入 1 到 10,000,000 之间的整数。",
-        "save": "保存配置档案"
+        "save": "保存配置档案",
+        "namePlaceholder": "例如：我的 NewAPI",
+        "providerKindPlaceholder": "例如：openai-compatible",
+        "providerIdPlaceholder": "例如：deepseek",
+        "endpointPlaceholder": "https://your-api-endpoint.com",
+        "endpointV1Placeholder": "https://your-api-endpoint.com/v1",
+        "sonnetModel": "Sonnet 模型（可选）",
+        "opusModel": "Opus 模型（可选）",
+        "haikuModel": "Haiku 模型（可选）",
+        "subagentModel": "子 Agent 模型（可选）",
+        "reasoningEffort": "推理强度（可选）",
+        "reasoningEfforts": {
+          "default": "使用模型默认值",
+          "minimal": "最小",
+          "low": "低",
+          "medium": "中",
+          "high": "高",
+          "xhigh": "超高"
+        },
+        "contextWindowOptional": "上下文窗口（可选）",
+        "modelPlaceholder": "例如：{{model}}",
+        "maxContextSizePlaceholder": "例如：131072"
       },
       "import": {
         "title": "导入当前配置",
@@ -798,11 +840,52 @@
           "conflict": "存在冲突",
           "unsupported": "不支持",
           "blocked": "已阻止"
-        }
+        },
+        "switchLabel": "激活 {{name}}",
+        "currentLabel": "当前已激活供应商：{{name}}"
       },
       "errors": {
         "operation": "Provider 操作失败"
-      }
+      },
+      "addCustom": "新增自定义供应商",
+      "codexAccounts": {
+        "title": "Codex 官方账号",
+        "hint": "加密保存多个登录快照，切换时替换 Codex 当前的 auth.json，不改动模型和供应商配置。",
+        "saveCurrent": "保存当前账号",
+        "add": "新增账号",
+        "empty": "还没有保存账号。可保存当前登录，或新增另一份 auth.json。",
+        "current": "当前使用",
+        "unknownAccount": "未读取到账号标识",
+        "switch": "切换",
+        "delete": "删除 {{name}}",
+        "saveTitle": "保存当前 Codex 账号",
+        "importTitle": "新增 Codex 账号",
+        "label": "账号名称",
+        "labelExample": "例如：工作账号",
+        "authJson": "auth.json 内容",
+        "securityHint": "认证数据会加密保存在本地应用数据中，保存后不再回显。切换时只替换 Codex 的 auth.json。",
+        "saved": "Codex 账号已保存",
+        "switched": "已切换到 {{name}}",
+        "deleteTitle": "删除已保存账号？",
+        "deleteMessage": "删除 {{name}} 的加密快照？当前使用的账号不能删除。",
+        "errors": {
+          "AGENT_CODEX_ACCOUNT_LABEL_INVALID": "请输入 1 到 80 个字符的账号名称。",
+          "AGENT_CODEX_ACCOUNT_AUTH_INVALID": "auth.json 内容无效，或未包含 Codex 访问令牌。",
+          "AGENT_CODEX_ACCOUNT_AUTH_TOO_LARGE": "auth.json 内容过大。",
+          "AGENT_CODEX_ACCOUNT_CURRENT_MISSING": "没有找到当前 Codex auth.json。",
+          "AGENT_CODEX_ACCOUNT_CURRENT_INVALID": "无法读取当前 Codex auth.json。",
+          "AGENT_CODEX_ACCOUNT_ENCRYPTION_UNAVAILABLE": "系统安全加密不可用，认证数据未保存。",
+          "AGENT_CODEX_ACCOUNT_LIMIT_REACHED": "已达到账号保存数量上限。",
+          "AGENT_CODEX_ACCOUNT_NOT_FOUND": "该账号已不存在。",
+          "AGENT_CODEX_ACCOUNT_SWITCH_FAILED": "账号切换失败，已恢复此前的 Codex 登录。",
+          "AGENT_CODEX_ACCOUNT_ACTIVE_DELETE_REFUSED": "请先切换到其他账号，再删除当前账号。",
+          "AGENT_CODEX_ACCOUNT_REQUEST_INVALID": "账号操作请求无效。",
+          "AGENT_CODEX_ACCOUNT_VAULT_INVALID": "加密账号库已损坏或无法读取。",
+          "AGENT_CODEX_ACCOUNT_OPERATION_FAILED": "Codex 账号操作失败，认证详情未被暴露。"
+        }
+      },
+      "rename": "改名",
+      "renameTitle": "改名供应商"
     },
     "providerMigration": {
       "noticeTitle": "{{count}} 个 Provider 可以迁移",
@@ -888,7 +971,23 @@
       "antigravityNotRunningDesc": "请保持 Antigravity 运行，AgentsHub 将从当前已登录会话读取额度，然后重试。",
       "customProviderTitle": "正在使用自定义 Provider",
       "customProviderDesc": "当前默认 Provider 是第三方端点，配额数据仅对官方订阅可用。请前往「供应商与模型」页查看当前 Provider。",
-      "retry": "重试"
+      "retry": "重试",
+      "remainingPercent": "剩余 {{remaining}}%",
+      "remainingProgressLabel": "{{metric}}：剩余 {{remaining}}%",
+      "dailyWindow": "每日额度",
+      "monthlyWindow": "月额度",
+      "billingCycle": "账单周期额度",
+      "providerQuota": "供应商额度",
+      "featuresGroup": "功能额度",
+      "modelsGroup": "模型额度",
+      "quotaRemainingOf": "剩余 {{remaining}} / {{total}} {{unit}}",
+      "unlimited": "无限",
+      "unknownValue": "未上报",
+      "providerNoQuota": "供应商未上报额度。",
+      "cachedStale": "缓存额度 · 刷新失败",
+      "cachedUpdating": "缓存额度 · 正在更新",
+      "showAllMetrics": "再显示 {{count}} 项",
+      "showFewerMetrics": "收起"
     },
     "overview": "概览",
     "providerAndModel": "供应商与模型",
@@ -926,7 +1025,24 @@
       "openPetFolder": "打开 Pet 目录",
       "importSkin": "导入皮肤",
       "loadFailed": "无法加载外观数据。",
-      "invalidItems": "已忽略 {{count}} 个无效的外观项目。"
+      "invalidItems": "已忽略 {{count}} 个无效的外观项目。",
+      "installedPets": "本地 Pet（{{count}}）",
+      "petStore": "Awesome Codex Pet",
+      "petStoreDescription": "来自 awesome-codex-pet 官方目录。",
+      "searchPets": "搜索 Pet、作者或分类...",
+      "searchPetsAction": "搜索 Pet",
+      "noStorePets": "没有找到匹配的 Pet。",
+      "petStoreLoadFailed": "Pet 商店加载失败",
+      "installPet": "安装 Pet",
+      "petInstalled": "已安装",
+      "editPet": "编辑 {{name}}",
+      "editPetTitle": "编辑 Pet 信息",
+      "petName": "名称",
+      "petDescription": "描述",
+      "openPetPath": "打开 {{name}} 所在目录",
+      "petStorePage": "第 {{page}} / {{total}} 页",
+      "previousPage": "上一页",
+      "nextPage": "下一页"
     },
     "assets": "资产",
     "skills": "Skills",
@@ -1117,7 +1233,119 @@
     "handoffLaunchFailedAfterCopy": "未能打开目标 Agent，但续接上下文仍已复制，可手动粘贴继续。",
     "copyHandoffContext": "复制续接上下文",
     "handoffContextCopied": "续接上下文已复制。",
-    "copyAndOpenAgent": "复制上下文并打开 {{agent}}"
+    "copyAndOpenAgent": "复制上下文并打开 {{agent}}",
+    "piModels": {
+      "addProvider": "添加供应商",
+      "listLabel": "Pi 供应商",
+      "empty": "暂未检测到供应商。",
+      "emptyTitle": "未选择供应商",
+      "emptyHint": "在左侧选择一个供应商，或添加自定义供应商来扩展 Pi 的模型目录。",
+      "currentDefault": "默认",
+      "customTag": "自定义",
+      "modelsCount": "{{count}} 个模型",
+      "credentialReady": "凭据已配置",
+      "credentialMissing": "缺少凭据",
+      "credentialSet": "设置凭据",
+      "platformEndpoint": "平台默认端点",
+      "platformDefault": "平台默认",
+      "thinkingLevel": "默认思考强度",
+      "apiType": "API 协议",
+      "endpointLabel": "服务端点",
+      "configurationSource": "配置来源",
+      "credentialLabel": "凭据来源",
+      "credentialSources": {
+        "auth": "Pi auth.json",
+        "environment": "环境变量",
+        "provider-config": "供应商配置",
+        "missing": "未配置"
+      },
+      "sourceBuiltIn": "Agent 内置 · 官方目录",
+      "sourceCustom": "自定义 · models.json",
+      "providerSection": "供应商信息",
+      "modelsSection": "模型",
+      "maxTokens": "最大输出 {{size}}",
+      "addModel": "添加模型",
+      "removeProvider": "移除供应商",
+      "removeModel": "移除模型",
+      "editModel": "编辑模型",
+      "testModel": "测试模型",
+      "testModelConfirmTitle": "运行模型测试",
+      "testModelConfirmMessage": "向 {{model}} 发送一次最小测试请求？此操作可能消耗供应商额度。",
+      "removeProviderTitle": "移除自定义供应商",
+      "removeProviderMessage": "从 Pi 移除“{{provider}}”及其全部自定义模型？此操作只修改 ~/.pi/agent/models.json。",
+      "removeModelTitle": "移除自定义模型",
+      "removeModelMessage": "从该供应商移除“{{model}}”？此操作只修改 ~/.pi/agent/models.json。",
+      "noModels": "还没有模型。添加一个模型后该供应商才可用。",
+      "reasoning": "推理",
+      "contextWindow": "{{size}} 上下文",
+      "setDefault": "设为默认",
+      "errors": {
+        "operation": "操作失败"
+      },
+      "form": {
+        "providerTitle": "添加自定义供应商",
+        "editProviderTitle": "编辑自定义供应商",
+        "modelTitle": "添加模型",
+        "editModelTitle": "编辑自定义模型",
+        "credentialTitle": "设置供应商凭据",
+        "providerId": "供应商 ID",
+        "providerIdInvalid": "仅支持小写字母、数字、连字符、点和下划线",
+        "baseUrl": "Base URL",
+        "endpointInvalid": "请输入合法的 http(s) URL",
+        "api": "API 类型",
+        "firstModel": "首个模型 ID",
+        "modelId": "模型 ID",
+        "modelName": "显示名称（可选）",
+        "contextWindow": "上下文窗口（可选）",
+        "maxTokens": "最大输出 Token（可选）",
+        "reasoning": "推理模型",
+        "contextInvalid": "请输入正整数",
+        "credentialMode": "凭据方式",
+        "credentialModes": {
+          "managed": "保存 API Key",
+          "env": "环境变量",
+          "none": "暂不设置"
+        },
+        "apiKey": "API Key",
+        "envKey": "环境变量名",
+        "envKeyInvalid": "环境变量名不合法",
+        "secretWriteOnly": "将以仅所有者可读权限保存到 Pi 的 auth.json，PromptHub 不会读回。",
+        "required": "必填",
+        "create": "创建",
+        "saveCredential": "保存凭据"
+      }
+    },
+    "usagePopover": {
+      "title": "Agent 额度",
+      "subtitle": "订阅用量实时概览",
+      "cached": "缓存数据",
+      "agentLabel": "{{agent}} 额度",
+      "refresh": "刷新额度",
+      "showDetails": "展开 {{agent}} 额度详情",
+      "hideDetails": "收起 {{agent}} 额度详情",
+      "progressLabel": "{{agent}}，{{metric}}：剩余 {{remaining}}%"
+    },
+    "localSessionIndexDescription": "将脱敏后的会话元数据缓存在本机，用于加快搜索和分页；正文仍从 Agent 原始文件按需读取，不会上传。",
+    "transcriptFirstPage": "第一页消息",
+    "createRuleFileTitle": "创建 {{fileName}}？",
+    "selectRuleProject": "选择项目",
+    "createRuleFileDescription": "{{agentName}} 尚无此规则文件。是否在声明的位置创建？",
+    "createRuleFile": "创建 {{fileName}}",
+    "creatingRuleFile": "正在创建 {{fileName}}...",
+    "createRuleFileFailed": "无法创建规则文件，请重试。",
+    "handoffPreviewExpired": "续接预览已过期或发生变化，请重新生成预览后再试。",
+    "showConversationInFolder": "在文件夹中显示",
+    "openConversationProjectFolder": "打开项目目录",
+    "conversationContextMenu": "会话操作",
+    "confirmDeleteConversationTitle": "删除会话？",
+    "confirmDeleteConversationMessage": "这会永久删除“{{title}}”的原生会话数据（{{size}}），且无法撤销。",
+    "sessionSizeUnknown": "大小未知",
+    "sortConversations": "会话排序",
+    "newestConversations": "最近更新",
+    "oldestConversations": "最早更新",
+    "largestConversations": "占用最大",
+    "smallestConversations": "占用最小",
+    "transcriptLatest": "最新消息"
   },
   "rules": {
     "title": "Rules",
@@ -1232,7 +1460,10 @@
     "versionShowMore": "查看更多 ({{count}})",
     "versionShowLess": "收起",
     "versionSelectToCompare": "选择一个快照，与当前草稿进行对比。",
-    "loadingSidebar": "正在加载规则侧边栏"
+    "loadingSidebar": "正在加载规则侧边栏",
+    "conflictPromptHubVersion": "PromptHub 托管版本",
+    "conflictManagedSourceHint": "PromptHub 内部副本",
+    "conflictExternalSourceHint": "磁盘上的文件"
   },
   "folder": {
     "new": "新建文件夹",
@@ -2330,7 +2561,9 @@
       "noteTitle": "原型说明",
       "noteDesc": "这个页面当前故意使用 mock 结构驱动。目标不是先接真实数据，而是先把未来可扩展的导航和工作区骨架看清楚，再决定如何迁移现有 Prompt / Skill 主界面。"
     },
-    "desktopModuleMcpDesc": "MCP 服务、市场模板和 Agent 分发目标"
+    "desktopModuleMcpDesc": "MCP 服务、市场模板和 Agent 分发目标",
+    "agentHistoryAcceleration": "加速 Agent 历史搜索",
+    "agentHistoryAccelerationDesc": "在本机缓存脱敏后的会话元数据，加快历史搜索和分页；对话正文仍保留在各 Agent 的原始文件中。"
   },
   "import": {
     "clipboardTitle": "从剪切板导入 Prompt",
@@ -2448,7 +2681,8 @@
     "disabled": "已停用",
     "enable": "启用",
     "disable": "停用",
-    "continueEditing": "继续编辑"
+    "continueEditing": "继续编辑",
+    "reloadPromptHub": "重新加载 PromptHub"
   },
   "skill": {
     "title": "Skill",
@@ -2488,7 +2722,7 @@
     "batchFailed": "失败",
     "batchPreviewing": "解析中",
     "batchPreview": "预览",
-    "batchInstall": "安装 {{count}} 项",
+    "batchInstall": "批量安装",
     "batchFailures": "失败项",
     "batchSummaryDetail": "已安装 {{succeeded}}，失败 {{failed}}，待审查 {{reviewRequired}}",
     "batchImportSummary": "已导入 {{succeeded}}，失败 {{failed}}",
@@ -2500,7 +2734,6 @@
     "selectAll": "全选",
     "deselectAll": "取消全选",
     "selected": "已选择",
-    "batchInstall": "批量安装",
     "installing": "安装中...",
     "uninstall": "卸载",
     "export": "导出",
@@ -3324,7 +3557,10 @@
     "searchSkill": "搜索 Skill...",
     "partiallyImportedBadge": "部分已导入",
     "selectSkill": "选择 {{name}}",
-    "noDeployablePlatforms": "当前没有可用的 Skill 分发目标。"
+    "noDeployablePlatforms": "当前没有可用的 Skill 分发目标。",
+    "addSkillToAgent": "添加 Skill",
+    "loadingPromptHubCloudStore": "正在加载 PromptHub Cloud 商店版本...",
+    "formatPromptHubCloudPackage": "PromptHub 商店 package v1"
   },
   "error": {
     "sha512Desc": "SHA512 校验失败。\n这通常是由于 CDN 缓存不一致或网络劫持导致的。\n文件可能已下载完成，您可以尝试手动安装。"
@@ -3801,7 +4037,13 @@
     },
     "saveEnvValues": "保存环境变量",
     "savingEnvValues": "正在保存...",
-    "envValue": "环境变量值"
+    "envValue": "环境变量值",
+    "managedByPromptHub": "由 PromptHub 管理",
+    "agentMcpFilterAll": "{{count}} 个 MCP",
+    "agentMcpFilterManaged": "{{count}} 个已管理",
+    "agentMcpFilterExternal": "{{count}} 个外部",
+    "agentMcpFilterEnabled": "{{count}} 个已启用",
+    "agentMcpFilterDisabled": "{{count}} 个已停用"
   },
   "plugin": {
     "title": "Plugins",
@@ -4201,7 +4443,24 @@
     "distributeToSelectedAgents": "分发到已选 Agent",
     "distributing": "正在分发...",
     "distributionTargetHint": "AgentsHub 会把这个 Plugin 包写入每个已选 Agent 配置的 Plugin 目录。",
-    "distributionSuccess": "已分发到 {{count}} 个 Agent 目标。"
+    "distributionSuccess": "已分发到 {{count}} 个 Agent 目标。",
+    "addPluginToAgent": "添加 Plugin",
+    "noPluginsForAgent": "暂无 Plugin",
+    "noPluginsAvailable": "暂无可添加的 Plugin",
+    "agentPluginInstallUnsupported": "此 Agent 暂不支持安装 Plugin",
+    "installNetworkError": "Plugin 下载失败，请前往“设置 > 网络设置”检查代理模式后重试。",
+    "installSourceError": "无法访问 Plugin 来源。仓库地址可能无效、已删除或需要权限，请检查地址和访问权限后重试。",
+    "installPackageError": "Plugin 包未通过校验。manifest、包大小或文件路径不符合要求，请更换来源或向商店条目维护者反馈。",
+    "installDuplicateError": "这个 Plugin 已经安装，可前往“我的 Plugin”管理。",
+    "installStorageError": "PromptHub 无法在本地保存 Plugin，请检查磁盘空间和目录权限后重试。",
+    "installGitError": "PromptHub 无法通过 Git 下载 Plugin，请确认 Git 可用且当前网络能访问该来源。",
+    "installUnexpectedError": "无法完成此 Plugin 操作。原因：{{reason}}。请根据原因处理后重试。",
+    "installRefreshError": "Plugin 操作已完成，但列表刷新失败。请手动刷新页面确认当前状态。",
+    "batchInstallFirstFailure": "{{summary}}。首个失败原因：{{reason}}",
+    "installMyPluginToAgentHint": "从我的 Plugins 中选择一个或多个 Plugin，并安装到 {{agent}}。",
+    "selectPluginsToAgentHint": "选择一个或多个 Plugin 安装到这个 Agent。",
+    "alreadyOnAgent": "已安装到这个 Agent",
+    "installSelectedToAgent": "安装已选的 {{count}} 个 Plugin"
   },
   "generation": {
     "workbench": "生图工作台",
@@ -4273,6 +4532,28 @@
     "closeLightbox": "关闭大图预览",
     "previousImage": "上一张图片",
     "nextImage": "下一张图片",
-    "selectImage": "选择图片 {{index}}"
+    "selectImage": "选择图片 {{index}}",
+    "inspector": "生图检查器",
+    "historyWorks": "历史作品",
+    "historyEmpty": "暂无生成历史。",
+    "historyBatchLabel": "{{title}}，已完成 {{done}}/{{total}} 张",
+    "historyLimit": "仅显示最近 {{count}} 个批次",
+    "referenceUnavailable": "当前模型不可用",
+    "newDraftEmpty": "选择 Prompt 和模型，开始一个新批次。",
+    "selectedPreview": "已选中生成图片 {{index}}",
+    "galleryOptions": "画廊选项",
+    "referenceCount": "{{count}} 张参考图",
+    "referenceSelectionCount": "已选择 {{count}} / {{max}} 张",
+    "addLocalReferences": "添加本地图片",
+    "choosePromptReferences": "从 Prompt 选择",
+    "referenceLimitReached": "最多选择 {{max}} 张参考图",
+    "dropReferenceImages": "将 PNG、JPEG 或 WebP 图片拖到这里",
+    "referenceItem": "参考图 {{index}}：{{name}}",
+    "referenceSourcePrompt": "Prompt 媒体",
+    "referenceSourceLocal": "本地图片",
+    "removeReference": "移除 {{name}}",
+    "selectPromptReference": "从 {{prompt}} 选择 {{name}}",
+    "showMorePromptReferences": "显示更多 Prompt 图片",
+    "referenceUploadFailed": "无法添加这张参考图"
   }
 }

@@ -2,6 +2,7 @@ import Database from "./adapter";
 import { v4 as uuidv4 } from "uuid";
 import type {
   Prompt,
+  PromptSummary,
   CreatePromptDTO,
   UpdatePromptDTO,
   SearchQuery,
@@ -54,7 +55,7 @@ interface PromptVersionRow {
 }
 
 export class PromptDB {
-  constructor(private db: Database.Database) {}
+  constructor(protected readonly db: Database.Database) {}
 
   /**
    * Create Prompt
@@ -93,10 +94,10 @@ export class PromptDB {
       data.notes || null,
       null,
       0,
-        0,
-        0,
-        now,
-        now,
+      0,
+      0,
+      now,
+      now,
     );
 
     // Create initial version
@@ -127,6 +128,50 @@ export class PromptDB {
     );
     const rows = stmt.all() as PromptRow[];
     return rows.map((row) => this.rowToPrompt(row));
+  }
+
+  /**
+   * Get all Prompts as lightweight list summaries.
+   *
+   * Projects only the fields needed by list / search / kanban / gallery views
+   * and deliberately avoids reading the large text columns
+   * (user_prompt, system_prompt, notes, last_ai_response) from the rows,
+   * keeping the IPC / HTTP list payload small.
+   *
+   * 获取所有 Prompt 的轻量列表投影：只读列表视图需要的字段，
+   * 刻意不读大文本列，缩小列表主路径的传输体积。
+   */
+  getAllMeta(): PromptSummary[] {
+    const stmt = this.db.prepare(
+      `SELECT
+        id, owner_user_id, visibility, title, description, prompt_type,
+        tags, folder_id, parent_id, sort_order, images, videos,
+        is_favorite, is_pinned, usage_count, source, current_version,
+        created_at, updated_at
+       FROM prompts ORDER BY updated_at DESC`,
+    );
+    const rows = stmt.all() as Array<{
+      id: string;
+      owner_user_id: string | null;
+      visibility: string;
+      title: string;
+      description: string | null;
+      prompt_type: PromptType | null;
+      tags: string | null;
+      folder_id: string | null;
+      parent_id: string | null;
+      sort_order: number;
+      images: string | null;
+      videos: string | null;
+      is_favorite: number;
+      is_pinned: number;
+      usage_count: number;
+      source: string | null;
+      current_version: number;
+      created_at: number;
+      updated_at: number;
+    }>;
+    return rows.map((row) => this.rowToPromptSummary(row));
   }
 
   /**
@@ -268,7 +313,9 @@ export class PromptDB {
         systemPromptEn: data.systemPromptEn,
       }),
       ...(data.userPrompt !== undefined && { userPrompt: data.userPrompt }),
-      ...(data.userPromptEn !== undefined && { userPromptEn: data.userPromptEn }),
+      ...(data.userPromptEn !== undefined && {
+        userPromptEn: data.userPromptEn,
+      }),
       ...(data.variables !== undefined && { variables: data.variables }),
       ...(data.tags !== undefined && { tags: data.tags }),
       ...(data.folderId !== undefined && { folderId: data.folderId }),
@@ -519,17 +566,18 @@ export class PromptDB {
     this.db
       .prepare(
         `INSERT OR REPLACE INTO prompts (
-          id, visibility, title, description, prompt_type, system_prompt, system_prompt_en, user_prompt,
+          id, owner_user_id, visibility, title, description, prompt_type, system_prompt, system_prompt_en, user_prompt,
           user_prompt_en, variables, tags, folder_id, parent_id, sort_order, images, videos, is_favorite, is_pinned,
           current_version, usage_count, source, notes, last_ai_response, created_at, updated_at
         ) VALUES (
-          @id, @visibility, @title, @description, @prompt_type, @system_prompt, @system_prompt_en, @user_prompt,
+          @id, @owner_user_id, @visibility, @title, @description, @prompt_type, @system_prompt, @system_prompt_en, @user_prompt,
           @user_prompt_en, @variables, @tags, @folder_id, @parent_id, @sort_order, @images, @videos, @is_favorite, @is_pinned,
           @current_version, @usage_count, @source, @notes, @last_ai_response, @created_at, @updated_at
         )`,
       )
       .run({
         "@id": prompt.id,
+        "@owner_user_id": prompt.ownerUserId ?? null,
         "@visibility": prompt.visibility ?? "private",
         "@title": prompt.title,
         "@description": prompt.description ?? null,
@@ -589,15 +637,19 @@ export class PromptDB {
    * 获取所有唯一的标签
    */
   getAllTags(): string[] {
-    const rows = this.db.prepare(`SELECT tags FROM prompts WHERE tags IS NOT NULL AND tags != '[]'`).all() as { tags: string }[];
+    const rows = this.db
+      .prepare(
+        `SELECT tags FROM prompts WHERE tags IS NOT NULL AND tags != '[]'`,
+      )
+      .all() as { tags: string }[];
     const tagSet = new Set<string>();
-    
+
     for (const row of rows) {
       try {
         const tags = JSON.parse(row.tags);
         if (Array.isArray(tags)) {
           for (const tag of tags) {
-            if (typeof tag === 'string' && tag.trim()) {
+            if (typeof tag === "string" && tag.trim()) {
               tagSet.add(tag.trim());
             }
           }
@@ -606,7 +658,7 @@ export class PromptDB {
         // ignore invalid json
       }
     }
-    
+
     // Sort case-insensitively
     return Array.from(tagSet).sort((a, b) => a.localeCompare(b));
   }
@@ -617,12 +669,14 @@ export class PromptDB {
    */
   renameTag(oldTag: string, newTag: string): void {
     if (!oldTag || !newTag || oldTag === newTag) return;
-    
+
     const txn = this.db.transaction(() => {
       // Find all prompts containing the old tag
       // LIKE '%"oldTag"%' is a fast initial filter
-      const rows = this.db.prepare(`SELECT id, tags FROM prompts WHERE tags LIKE ?`).all(`%"${oldTag}"%`) as { id: string, tags: string }[];
-      
+      const rows = this.db
+        .prepare(`SELECT id, tags FROM prompts WHERE tags LIKE ?`)
+        .all(`%"${oldTag}"%`) as { id: string; tags: string }[];
+
       const updateStmt = this.db.prepare(`
         UPDATE prompts 
         SET tags = ?, current_version = current_version + 1, updated_at = ?
@@ -638,7 +692,9 @@ export class PromptDB {
           if (Array.isArray(tags) && tags.includes(oldTag)) {
             // Replace oldTag with newTag.
             // If newTag already exists in the array, just remove oldTag (to avoid duplicates)
-            const newTags = Array.from(new Set(tags.map(t => t === oldTag ? newTag : t)));
+            const newTags = Array.from(
+              new Set(tags.map((t) => (t === oldTag ? newTag : t))),
+            );
             updateStmt.run(JSON.stringify(newTags), now, row.id);
             hasUpdates = true;
           }
@@ -647,7 +703,7 @@ export class PromptDB {
         }
       }
     });
-    
+
     txn();
   }
 
@@ -657,10 +713,12 @@ export class PromptDB {
    */
   deleteTag(tag: string): void {
     if (!tag) return;
-    
+
     const txn = this.db.transaction(() => {
-      const rows = this.db.prepare(`SELECT id, tags FROM prompts WHERE tags LIKE ?`).all(`%"${tag}"%`) as { id: string, tags: string }[];
-      
+      const rows = this.db
+        .prepare(`SELECT id, tags FROM prompts WHERE tags LIKE ?`)
+        .all(`%"${tag}"%`) as { id: string; tags: string }[];
+
       const updateStmt = this.db.prepare(`
         UPDATE prompts 
         SET tags = ?, current_version = current_version + 1, updated_at = ?
@@ -673,7 +731,7 @@ export class PromptDB {
         try {
           const tags = JSON.parse(row.tags);
           if (Array.isArray(tags) && tags.includes(tag)) {
-            const newTags = tags.filter(t => t !== tag);
+            const newTags = tags.filter((t) => t !== tag);
             updateStmt.run(JSON.stringify(newTags), now, row.id);
           }
         } catch (e) {
@@ -681,14 +739,18 @@ export class PromptDB {
         }
       }
     });
-    
+
     txn();
   }
 
   /**
    * Move a prompt under another prompt, or reorder it within the same level.
    */
-  movePrompt(promptId: string, newParentId: string | null, newOrder: number): void {
+  movePrompt(
+    promptId: string,
+    newParentId: string | null,
+    newOrder: number,
+  ): void {
     if (!Number.isFinite(newOrder) || newOrder < 0) {
       throw new Error("Prompt order must be a non-negative number");
     }
@@ -722,7 +784,10 @@ export class PromptDB {
       const targetSiblingIds = this.getPromptSiblingIds(targetParentId).filter(
         (id) => id !== promptId,
       );
-      const targetIndex = Math.min(Math.trunc(newOrder), targetSiblingIds.length);
+      const targetIndex = Math.min(
+        Math.trunc(newOrder),
+        targetSiblingIds.length,
+      );
       targetSiblingIds.splice(targetIndex, 0, promptId);
       this.rewritePromptSiblingOrder(
         targetParentId,
@@ -735,7 +800,10 @@ export class PromptDB {
     txn();
   }
 
-  private assertValidPromptParent(promptId: string, parentId: string | null): void {
+  private assertValidPromptParent(
+    promptId: string,
+    parentId: string | null,
+  ): void {
     if (parentId === null) {
       return;
     }
@@ -854,6 +922,55 @@ export class PromptDB {
       source: row.source,
       notes: row.notes,
       lastAiResponse: row.last_ai_response,
+      createdAt: new Date(row.created_at).toISOString(),
+      updatedAt: new Date(row.updated_at).toISOString(),
+    };
+  }
+
+  /**
+   * Convert database row to PromptSummary (list projection)
+   * 数据库行转 PromptSummary（列表投影）
+   */
+  private rowToPromptSummary(row: {
+    id: string;
+    owner_user_id: string | null;
+    visibility: string;
+    title: string;
+    description: string | null;
+    prompt_type: PromptType | null;
+    tags: string | null;
+    folder_id: string | null;
+    parent_id: string | null;
+    sort_order: number;
+    images: string | null;
+    videos: string | null;
+    is_favorite: number;
+    is_pinned: number;
+    usage_count: number;
+    source: string | null;
+    current_version: number;
+    created_at: number;
+    updated_at: number;
+  }): PromptSummary {
+    return {
+      id: row.id,
+      ownerUserId: row.owner_user_id ?? undefined,
+      visibility: (row.visibility as ResourceVisibility) ?? "private",
+      title: row.title,
+      description: row.description,
+      promptType: row.prompt_type || "text",
+      tags: JSON.parse(row.tags || "[]"),
+      folderId: row.folder_id,
+      parentId: row.parent_id,
+      order: row.sort_order,
+      images: JSON.parse(row.images || "[]"),
+      videos: JSON.parse(row.videos || "[]"),
+      isFavorite: row.is_favorite === 1,
+      isPinned: row.is_pinned === 1,
+      usageCount: row.usage_count,
+      source: row.source,
+      version: row.current_version,
+      currentVersion: row.current_version,
       createdAt: new Date(row.created_at).toISOString(),
       updatedAt: new Date(row.updated_at).toISOString(),
     };

@@ -5,9 +5,6 @@ import type {
   AgentLaunchResult,
   AgentManagementBackup,
   AgentManagementBackupRestoreResult,
-  AgentCliDiagnostic,
-  AgentCliLifecyclePlan,
-  AgentCliLifecycleResult,
   AgentAppearanceOverview,
   AgentDesktopThemeSummary,
   AgentDefinitionListRequest,
@@ -15,6 +12,8 @@ import type {
   AgentDefinitionOpenRequest,
   AgentDefinitionOpenResult,
   AgentPetSummary,
+  AgentPetStorePage,
+  AgentPetStoreQuery,
   AgentProviderProfileExport,
   AgentProviderProfilePublic,
   AgentProviderMigrationPreview,
@@ -25,7 +24,9 @@ import type {
   AgentProviderActivationPlan,
   AgentProviderConnectionTestRequest,
   AgentProviderConnectionTestResult,
+  AgentProviderCurrentConnectionTestRequest,
   AgentProviderCurrentState,
+  AgentProviderCurrentModelTestRequest,
   AgentProviderImportCurrentRequest,
   AgentProviderImportPreview,
   AgentProviderModelTestCancelRequest,
@@ -33,6 +34,11 @@ import type {
   AgentProviderModelTestResult,
   AgentProviderPreviewRequest,
   AgentModelConfiguration,
+  AgentPiCustomModelInput,
+  AgentPiCustomModelUpdateInput,
+  AgentPiCustomProviderInput,
+  AgentPiCustomProviderUpdateInput,
+  AgentPiWriteResult,
   AgentSessionDetail,
   AgentSessionDetailPageInput,
   AgentSessionIndexCancelRequest,
@@ -42,6 +48,7 @@ import type {
   AgentSessionIndexSetEnabledRequest,
   AgentSessionListResult,
   AgentConversationActionResult,
+  AgentConversationDeleteResult,
   AgentConversationExportRequest,
   AgentConversationExportSaveResult,
   AgentConversationHandoffPreview,
@@ -50,9 +57,14 @@ import type {
   AgentConversationResumeRequest,
   ContinueAgentConversationRequest,
   AgentUsageQuota,
+  AgentCodexAccountSummary,
+  AgentCodexAccountActivationResult,
+  ImportAgentCodexAccountRequest,
+  AgentUsageQueryOptions,
   SkillLocalFileEntry,
   SkillLocalFileTreeEntry,
   UpdateAgentModelInput,
+  UpdateAgentPetInput,
   UpdateAgentModelResult,
   UpsertAgentConversationMetadataInput,
   CreateAgentProviderProfileRequest,
@@ -64,12 +76,6 @@ import type {
 export const agentApi = {
   launch: (agentId: string): Promise<AgentLaunchResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.AGENT_LAUNCH, agentId),
-  diagnoseCli: (agentId: string): Promise<AgentCliDiagnostic> =>
-    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CLI_DIAGNOSE, agentId),
-  planCliUpdate: (agentId: string): Promise<AgentCliLifecyclePlan> =>
-    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CLI_UPDATE_PLAN, agentId),
-  applyCliUpdate: (planId: string): Promise<AgentCliLifecycleResult> =>
-    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CLI_UPDATE_APPLY, planId),
   listConfigFiles: (agentId: string): Promise<SkillLocalFileTreeEntry[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.AGENT_CONFIG_FILES_LIST, agentId),
   readConfigFile: (
@@ -108,6 +114,53 @@ export const agentApi = {
     input: UpdateAgentModelInput,
   ): Promise<UpdateAgentModelResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.AGENT_MODEL_CONFIG_SET, input),
+  addPiProvider: (
+    input: AgentPiCustomProviderInput & { agentId: "pi" },
+  ): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_PROVIDER_ADD, input),
+  importCurrentPiProvider: (input: {
+    agentId: "pi";
+  }): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_PROVIDER_IMPORT_CURRENT, input),
+  updatePiProvider: (
+    input: AgentPiCustomProviderUpdateInput & { agentId: "pi" },
+  ): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_PROVIDER_UPDATE, input),
+  removePiProvider: (input: {
+    agentId: "pi";
+    providerId: string;
+  }): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_PROVIDER_REMOVE, input),
+  addPiModel: (input: {
+    agentId: "pi";
+    providerId: string;
+    model: AgentPiCustomModelInput;
+  }): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_MODEL_ADD, input),
+  updatePiModel: (input: {
+    agentId: "pi";
+    providerId: string;
+    model: AgentPiCustomModelUpdateInput;
+  }): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_MODEL_UPDATE, input),
+  removePiModel: (input: {
+    agentId: "pi";
+    providerId: string;
+    modelId: string;
+  }): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_MODEL_REMOVE, input),
+  testPiModel: (input: {
+    agentId: "pi";
+    providerId: string;
+    modelId: string;
+  }): Promise<AgentProviderModelTestResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_MODEL_TEST, input),
+  setPiCredential: (input: {
+    agentId: "pi";
+    providerId: string;
+    secret: string;
+  }): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_CREDENTIAL_SET, input),
   listSessions: (
     agentId: string,
     limit = 50,
@@ -146,12 +199,8 @@ export const agentApi = {
     ipcRenderer.invoke(IPC_CHANNELS.AGENT_CONVERSATION_METADATA_UPDATE, input),
   deleteConversation: (
     request: AgentConversationResumeRequest,
-  ): Promise<AgentConversationMetadata> =>
+  ): Promise<AgentConversationDeleteResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.AGENT_CONVERSATION_DELETE, request),
-  restoreConversation: (
-    request: AgentConversationResumeRequest,
-  ): Promise<AgentConversationMetadata> =>
-    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CONVERSATION_RESTORE, request),
   resumeConversation: (
     request: AgentConversationResumeRequest,
   ): Promise<AgentConversationActionResult> =>
@@ -202,8 +251,25 @@ export const agentApi = {
         handler,
       );
   },
-  getUsage: (agentId: string): Promise<AgentUsageQuota> =>
-    ipcRenderer.invoke(IPC_CHANNELS.AGENT_USAGE_GET, agentId),
+  getUsage: (
+    agentId: string,
+    options?: AgentUsageQueryOptions,
+  ): Promise<AgentUsageQuota> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_USAGE_GET, agentId, options),
+  listCodexAccounts: (): Promise<AgentCodexAccountSummary[]> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CODEX_ACCOUNTS_LIST),
+  saveCurrentCodexAccount: (label: string): Promise<AgentCodexAccountSummary> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CODEX_ACCOUNT_SAVE_CURRENT, label),
+  importCodexAccount: (
+    request: ImportAgentCodexAccountRequest,
+  ): Promise<AgentCodexAccountSummary> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CODEX_ACCOUNT_IMPORT, request),
+  activateCodexAccount: (
+    id: string,
+  ): Promise<AgentCodexAccountActivationResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CODEX_ACCOUNT_ACTIVATE, id),
+  deleteCodexAccount: (id: string): Promise<void> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_CODEX_ACCOUNT_DELETE, id),
   listProviderProfiles: (options?: {
     platformId?: string;
     includeArchived?: boolean;
@@ -217,6 +283,10 @@ export const agentApi = {
     request: ImportAgentProviderSourceRequest,
   ): Promise<AgentProviderProfilePublic> =>
     ipcRenderer.invoke(IPC_CHANNELS.AGENT_PROVIDER_SOURCE_IMPORT, request),
+  importPiProviderSource: (
+    request: ImportAgentProviderSourceRequest,
+  ): Promise<AgentPiWriteResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PI_PROVIDER_SOURCE_IMPORT, request),
   ensureOfficialProviderProfile: (
     platformId: string,
   ): Promise<AgentProviderProfilePublic> =>
@@ -277,6 +347,17 @@ export const agentApi = {
     request: AgentProviderConnectionTestRequest,
   ): Promise<AgentProviderConnectionTestResult> =>
     ipcRenderer.invoke(IPC_CHANNELS.AGENT_PROVIDER_TEST_CONNECTION, request),
+  testCurrentProviderConnection: (
+    request: AgentProviderCurrentConnectionTestRequest,
+  ): Promise<AgentProviderConnectionTestResult> =>
+    ipcRenderer.invoke(
+      IPC_CHANNELS.AGENT_PROVIDER_TEST_CURRENT_CONNECTION,
+      request,
+    ),
+  testCurrentProviderModel: (
+    request: AgentProviderCurrentModelTestRequest,
+  ): Promise<AgentProviderModelTestResult> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_PROVIDER_TEST_CURRENT_MODEL, request),
   testProviderModel: (
     request: AgentProviderModelTestRequest,
   ): Promise<AgentProviderModelTestResult> =>
@@ -350,6 +431,30 @@ export const agentApi = {
   getAgentPetPreview: (agentId: string, petId: string): Promise<string> =>
     ipcRenderer.invoke(
       IPC_CHANNELS.AGENT_APPEARANCE_PET_PREVIEW,
+      agentId,
+      petId,
+    ),
+  updateAppearancePet: (input: UpdateAgentPetInput): Promise<AgentPetSummary> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_APPEARANCE_UPDATE_PET, input),
+  listAppearancePetStore: (
+    query: AgentPetStoreQuery,
+  ): Promise<AgentPetStorePage> =>
+    ipcRenderer.invoke(IPC_CHANNELS.AGENT_APPEARANCE_PET_STORE_LIST, query),
+  installAppearancePetFromStore: (
+    agentId: string,
+    petId: string,
+  ): Promise<AgentPetSummary> =>
+    ipcRenderer.invoke(
+      IPC_CHANNELS.AGENT_APPEARANCE_PET_STORE_INSTALL,
+      agentId,
+      petId,
+    ),
+  getAppearancePetStorePreview: (
+    agentId: string,
+    petId: string,
+  ): Promise<string> =>
+    ipcRenderer.invoke(
+      IPC_CHANNELS.AGENT_APPEARANCE_PET_STORE_PREVIEW,
       agentId,
       petId,
     ),

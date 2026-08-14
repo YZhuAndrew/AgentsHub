@@ -1,6 +1,7 @@
 import type {
   AgentIdentityPreference,
   AgentIdentityPreferences,
+  AutoSyncHistoryEntry,
   BuiltinAgentOverrideConfig,
   CustomAgentConfig,
   NetworkProxySettings,
@@ -155,6 +156,7 @@ export interface SettingsState {
   enableNotifications: boolean;
   showCopyNotification: boolean;
   showSaveNotification: boolean;
+  localSessionIndexEnabled: boolean;
   tagFilterMode: TagFilterMode;
   promptTagCatalog: string[];
   language: SupportedLanguage;
@@ -179,6 +181,7 @@ export interface SettingsState {
   selfHostedSyncOnStartup: boolean;
   selfHostedSyncOnStartupDelay: number;
   selfHostedAutoSyncInterval: number;
+  autoSyncHistory: AutoSyncHistoryEntry[];
   s3StorageEnabled: boolean;
   s3Endpoint: string;
   s3Region: string;
@@ -270,6 +273,7 @@ export interface SettingsState {
   setShortcutMode: (key: string, mode: "global" | "local") => void;
   setShowCopyNotification: (enabled: boolean) => void;
   setShowSaveNotification: (enabled: boolean) => void;
+  setLocalSessionIndexEnabled: (enabled: boolean) => void;
   setTagFilterMode: (mode: TagFilterMode) => void;
   addPromptTagCatalogEntry: (tag: string) => void;
   renamePromptTagCatalogEntry: (oldTag: string, newTag: string) => void;

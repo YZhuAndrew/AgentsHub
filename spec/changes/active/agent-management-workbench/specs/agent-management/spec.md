@@ -82,7 +82,17 @@ Each managed Agent MUST expose installation detection, executable version where 
 
 ### `FR-AGENT-003`: Per-Agent Provider Profiles And Model Mapping
 
-The user MUST be able to create, edit, duplicate, archive, import, export, test, and activate Provider Profiles for supported Agents. A Provider Profile MUST support platform-specific provider protocol, endpoint, model mappings, environment values, and validated non-secret configuration.
+The user MUST be able to create, edit, rename, duplicate, import, copy a text export, test, activate, and delete Provider Profiles for supported Agents. The Provider Profile detail action bar MUST expose the focused actions Rename, Create copy, Copy text, and Delete; it MUST NOT expose archive as a parallel lifecycle action. A Provider Profile MUST support platform-specific provider protocol, endpoint, model mappings, environment values, and validated non-secret configuration.
+
+#### Scenario: Focused Provider Profile actions
+
+- Given a custom Provider Profile is selected
+- When the user opens its detail actions
+- Then rename changes only the profile display name
+- And create copy produces a separately identified profile
+- And copy text writes the credential-free portable representation to the clipboard
+- And delete retains the existing destructive confirmation
+- And no archive action is shown
 
 #### Scenario: Duplicate display names
 
@@ -245,7 +255,11 @@ failure.
 
 ### `FR-AGENT-010`: Session Browser And Resume
 
-For platforms with verified session formats, the system MUST support opt-in metadata indexing, search, read-only transcript viewing, project association, and a platform-specific resume command. Source sessions remain platform-owned.
+For platforms with verified session formats, the system MUST support
+application-configurable metadata indexing, search, read-only transcript
+viewing, project association, and a platform-specific resume command. The
+application preference is enabled by default under `FR-AGENT-112`; source
+sessions remain platform-owned.
 
 #### Scenario: Source transcript disappears
 
@@ -261,6 +275,8 @@ For platforms with verified session formats, the system MUST support opt-in meta
 - When the user opens Kimi Sessions
 - Then PromptHub reads the bounded index instead of recursively scanning the data root
 - And loads state and transcript content only for bounded candidate pages or the selected session
+- And excludes default `New Session` shells that have no `lastPrompt`
+- And retains the contained `agents/main/wire.jsonl` as the exact transcript source while reporting the full session-directory footprint removed by permanent delete
 - And provides `kimi --session <id>` as the resume action
 - And never edits session files or exposes credential files
 
@@ -383,7 +399,15 @@ Full backup and Agent-selective export MUST include Provider Profiles, model map
 
 ### `FR-AGENT-014`: CLI Lifecycle Management
 
-For supported Agents, the system SHOULD provide CLI installation status, installed/latest version, update capability, executable path, package manager/source, and diagnostics. Automatic install or update MUST require explicit confirmation.
+For evidence-backed Agents, the main process MAY retain bounded CLI executable, version, installation-source and lifecycle services as internal infrastructure. The general Agent workspace MUST NOT expose a generic CLI diagnostics menu, standalone diagnostics modal, or renderer-callable diagnostic/update contract. Any future platform-specific install or update experience requires its own verified requirement, explicit confirmation and rollback contract before it can become user-facing.
+
+#### Scenario: Keep the internal probe out of the Agent workspace
+
+- Given an Agent has a verified CLI descriptor
+- When the user opens the Agent overflow menu
+- Then no generic CLI diagnostics command or modal is shown
+- And the renderer preload does not expose diagnostic, update-plan or update-apply methods
+- And the bounded main-process probe remains available for explicitly designed internal or future platform-specific workflows
 
 #### Scenario: Custom executable path
 
@@ -392,10 +416,10 @@ For supported Agents, the system SHOULD provide CLI installation status, install
 - Then adapter-specific path resolution can still locate it
 - And the UI reports the resolved source rather than only a boolean
 
-#### Scenario: Confirm and verify an OpenCode CLI update
+#### Scenario: Preserve the dormant OpenCode update safety contract
 
 - Given the installed OpenCode CLI is healthy and its current executable and semantic version are known
-- When the user requests an update
+- When a future verified platform-specific update flow invokes the internal lifecycle service
 - Then PromptHub shows a short-lived review plan containing the fixed official command and detected install source
 - And no command runs until the same renderer explicitly confirms that plan
 - And apply rechecks the executable and version before running the command without a shell
@@ -404,26 +428,43 @@ For supported Agents, the system SHOULD provide CLI installation status, install
 - And replayed, expired, foreign-renderer, mutated or stale plans fail without running an update
 - And command output, environment values, credentials and raw errors never cross IPC
 
-#### Scenario: Update an npm-managed Codex CLI
+#### Scenario: Preserve the dormant npm-managed Codex update safety contract
 
 - Given the active Codex executable resolves to an npm or Node version-manager installation
 - And the matching `npm` executable is available through the main-process command resolver
-- When the user reviews and confirms an update
+- When a future verified platform-specific update flow invokes the internal lifecycle service
 - Then PromptHub runs only the canonical `npm install -g @openai/codex@latest` argument array without a shell
 - And it rechecks the active Codex executable and version before mutation
 - And it verifies that the same active executable reports a new or unchanged semantic version
 - And a partial failure uses the captured prior version with `npm install -g @openai/codex@<version>` and verifies restoration
 - And Homebrew, standalone, system, unknown or ambiguous installations remain non-updatable because no exact rollback contract is claimed
 
-#### Scenario: Update an npm-managed Qwen Code CLI
+#### Scenario: Preserve the dormant npm-managed Qwen Code update safety contract
 
 - Given the active Qwen Code executable resolves to an npm or Node version-manager installation
 - And the matching `npm` executable is available through the main-process command resolver
-- When the user reviews and confirms an update
+- When a future verified platform-specific update flow invokes the internal lifecycle service
 - Then PromptHub runs only `npm install -g @qwen-code/qwen-code@latest` without a shell
 - And it verifies the same active executable after the command
 - And any changed or unhealthy post-state triggers exact-version npm recovery
 - And standalone, Homebrew, source, system and ambiguous installations remain diagnostic-only
+
+### `FR-AGENT-120`: Internal CLI Maintenance Boundary
+
+The generic Agent workspace MUST treat CLI probing and lifecycle machinery as
+internal infrastructure, not as a standalone user feature. It MUST retain
+Refresh and Edit Agent in the overflow menu while omitting CLI Diagnostics, and
+it MUST NOT expose generic diagnostic or update operations through renderer
+preload or IPC. Retained main-process services MUST preserve their existing
+bounded command, timeout, output and rollback controls.
+
+#### Scenario: Open Agent actions for a CLI-backed platform
+
+- Given a detected Agent has a verified CLI descriptor
+- When the user opens its overflow menu
+- Then Refresh and Edit Agent remain available
+- And CLI Diagnostics is absent
+- And no hidden renderer-callable diagnostic or update channel remains
 
 ### `FR-AGENT-015`: Usage And Quota Visibility
 
@@ -706,6 +747,9 @@ MUST be reversible to `openai`.
 
 Every Agent workspace tab MUST render edge-to-edge within the workspace pane: no outer page margin, no centered max-width canvas, and no floating rounded card as the primary surface. Each tab MUST fix a compact toolbar row (title, counts, primary actions) at the top and scroll only inside its content region. List-plus-detail surfaces MUST use a two-pane master-detail layout. Skills, MCP, Rules, and Plugins MUST remain direct top-level tabs without a generic Assets parent, segmented control, or secondary navigation. The Maintenance tab MUST be retired into the workspace header overflow menu. Overview navigation cells MUST navigate directly to the owning domain tab.
 
+The Overview path-details section MUST be expanded by default so resolved paths
+and their open-folder actions are visible without an extra disclosure step.
+
 #### Scenario: Edge-to-edge tab content
 
 - Given any Agent workspace tab is active
@@ -797,7 +841,16 @@ The usage contract MUST describe provider quotas as an ordered list of metrics (
 - Given Kimi Code holds a valid OAuth credential
 - When the Overview loads
 - Then the banner shows the weekly quota and the rolling five-hour window as separate metrics
-- And the membership level is shown as the plan label
+- And the membership enum is shown as its public plan name (`Moderato`, `Allegretto`, `Allegro`, or `Vivace`) rather than a raw `LEVEL_*` value
+
+#### Scenario: Refresh an expired Kimi access token
+
+- Given Kimi Code's current credential file contains an expired access token and a usable refresh token
+- When PromptHub requests Kimi quota
+- Then PromptHub uses Kimi Code's official OAuth refresh contract before querying usage
+- And serializes the refresh with Kimi Code's native lock path, re-reads credentials after acquiring the lock, and atomically persists a rotated token with private file permissions
+- And invalid refresh credentials remain an explicit expired state while transport or persistence failures remain unavailable
+- And no access token, refresh token, provider response body, or raw error enters renderer IPC, native menus, logs, or PromptHub persistence
 
 #### Scenario: Copilot credit quota
 
@@ -809,9 +862,10 @@ The usage contract MUST describe provider quotas as an ordered list of metrics (
 
 - Given Antigravity is running with a signed-in desktop session
 - When the Overview loads
-- Then PromptHub reads plan and monthly prompt credits from `GetUserStatus`
-- And reads the Gemini and third-party model groups' weekly and five-hour pools from `RetrieveUserQuotaSummary`
-- And each reset pool renders as its own remaining-quota ring while only monthly prompt credits render as a progress bar
+- Then PromptHub reads the plan identity from `GetUserStatus`
+- And reads the Gemini and third-party model groups' weekly and five-hour baseline pools from `RetrieveUserQuotaSummary`
+- And each reset pool renders as its own remaining-quota ring
+- And legacy `monthlyPromptCredits` or `availablePromptCredits` status fields are not presented as baseline total quota or AI credit balance
 - And no OAuth token or CSRF token leaves the main process or appears in logs, IPC, persistence, or errors
 
 #### Scenario: Antigravity signed in but desktop app is not running
@@ -829,8 +883,8 @@ The usage contract MUST describe provider quotas as an ordered list of metrics (
 
 - Given an adapter returns both window and quota metrics
 - When the banner renders
-- Then reset windows render as rings in adapter-defined order
-- And only quotas with numeric used and total amounts render as bars
+- Then finite 5-hour, daily and weekly reset windows render as rings in semantic period order
+- And monthly, billing-cycle, lifetime and provider-defined quotas render as bars
 
 ### `FR-AGENT-028`: Skill Asset Cards And Actions In The Agent Workspace
 
@@ -1001,6 +1055,13 @@ than executing a command or writing platform state. Provider switching, usage,
 credential management and plugin package installation MUST remain independently
 planned until their native contracts have dedicated adapters and tests.
 
+When the official version 2 `<root>/../plugins/installed_plugins.json` registry
+exists, the workspace MUST project its user-scoped installed packages into the
+shared Plugin inventory as read-only assets. It MUST bound registry reads,
+resolve package real paths below the plugin data root, deduplicate packages,
+and exclude project-scoped, missing, malformed, oversized, or escaping entries.
+It MUST NOT read or write `agent.db`, credentials, or native lifecycle state.
+
 #### Scenario: Manage Oh My Pi assets
 
 - Given Oh My Pi is enabled in the built-in registry
@@ -1008,6 +1069,8 @@ planned until their native contracts have dedicated adapters and tests.
 - Then it shows the native root, `skills/`, `RULES.md`, `mcp.json`, sibling
   `../plugins`, and the allowlisted config files
 - And the user can target the global MCP file or project `.omp/mcp.json`
+- And a valid user-scoped native plugin registry is shown as read-only Plugin
+  inventory without installation or update controls
 - And the UI does not invent provider, usage, or plugin-install support
 
 #### Scenario: Browse Oh My Pi history safely
@@ -1686,6 +1749,22 @@ confirmation before destructive changes. The Agent workspace MUST NOT create a
 second asset store, invent mutations for unsupported platforms, or silently
 navigate away before an operation is complete.
 
+The shared inventory toolbar MUST localize every counter and filter in all
+supported locales. It MUST NOT display a raw Agent asset path beside the
+filters; filesystem paths remain available on the relevant asset card, detail
+view, or explicit open-folder action where they provide actionable context.
+Each Skills, MCP and Plugins toolbar MUST expose one right-aligned, plus-icon
+primary action using the same component anatomy. The labels MUST be localized
+as Add Skill, Add MCP and Add Plugin, while each action continues into its
+owning workflow rather than introducing a generic mutation path. Chinese and
+Traditional Chinese Plugin surfaces MUST retain `Plugin` as the stable product
+term instead of mixing it with a translated alias.
+
+The search field, filter strip, refresh control and Add action MUST remain on
+one toolbar row. A long localized filter strip MUST use bounded horizontal
+overflow instead of wrapping the Add action onto a second row; refresh and Add
+MUST remain fixed at the toolbar's right edge in every asset domain.
+
 #### Scenario: Manage MCP from an Agent
 
 - Given an Agent has configured MCP entries and PromptHub-managed MCP servers
@@ -1702,6 +1781,10 @@ navigate away before an operation is complete.
 - Then target and library Plugin entries are selectable and show their detail
 - And the user can import a target package, distribute a library package,
   open its folder or remove a distribution through owning Plugin operations
+- And removing an Agent distribution or deleting a My Plugins package requires
+  an explicit destructive confirmation before the canonical mutation runs
+- And an externally installed target package without PromptHub distribution
+  ownership offers import/open actions but no unsafe filesystem delete action
 - And the view refreshes from the canonical Plugin store after a successful
   operation
 
@@ -1713,6 +1796,23 @@ navigate away before an operation is complete.
   card grid
 - And an action cannot mutate another Agent target unless the user explicitly
   chooses it in the owning domain's target picker
+
+#### Scenario: Localized compact asset toolbar
+
+- Given the user opens Skills, MCP, or Plugins in a non-English locale
+- When the shared asset toolbar renders its counts and filters
+- Then every label uses the active locale instead of an English fallback
+- And the toolbar does not expose the selected Agent's raw filesystem path
+- And its right edge contains the domain's localized Add action with the same
+  plus-icon button anatomy used by the other two asset domains
+- And long localized filters scroll within their own bounded strip instead of
+  moving Refresh or Add onto another row
+- And Add Skill, Add MCP, and Add Plugin open Agent-scoped library pickers over
+  the current workspace instead of navigating to a standalone manager
+- And Add MCP remains visible when the current Agent has no verified target,
+  but reports that boundary without creating or guessing a target
+- And cards and detail views may still show a relevant source path for an
+  explicit inspect or open-folder workflow
 
 ### `FR-AGENT-061`: Explicit Claw Family Taxonomy
 
@@ -1889,27 +1989,24 @@ be silently associated by directory basename or fuzzy path matching.
 
 ### `FR-AGENT-067`: Conversation Management CRUD
 
-PromptHub MUST support create/discover, read, update, delete and restore for
-the managed conversation projection. Creation occurs through verified native
+PromptHub MUST support create/discover, read, update and delete for the managed
+conversation projection. Creation occurs through verified native
 discovery or a completed cross-Agent continuation; blank synthetic histories
 MUST NOT be created. Updates MAY change only PromptHub-owned title, project,
-tags, note, favorite and archive metadata. Normal delete MUST be reversible
-and MUST prevent immediate rescan reappearance. Native transcript deletion
-MUST be a separate adapter-owned action and MUST NOT use a generic file delete.
+tags, note, favorite and archive metadata. Archive is the reversible
+non-destructive state. Conversation metadata MUST NOT expose soft-delete or
+restore state. The visible delete action follows `FR-AGENT-100`: it is an
+adapter-owned permanent native delete, followed by hard deletion of the
+PromptHub metadata row, and MUST NOT use a generic file delete. Conversation
+History MUST NOT expose a generic metadata-edit dialog or present PromptHub
+annotations as native Agent rename controls.
 
-#### Scenario: Edit without changing native history
+#### Scenario: Keep metadata editing out of History actions
 
 - Given an indexed native conversation is available
-- When the user changes its title, project, tags and note
-- Then the catalog shows the PromptHub-owned values
+- When the user opens its toolbar or row context menu
+- Then no generic metadata-edit action is shown
 - And the external transcript bytes remain unchanged
-
-#### Scenario: Delete and restore a managed conversation
-
-- Given a native conversation is present
-- When the user deletes it from PromptHub and later refreshes its source
-- Then a local tombstone keeps it out of the active list
-- And restoring it makes the same conversation visible without recreating native data
 
 #### Scenario: Gate native deletion
 
@@ -1950,6 +2047,13 @@ injection is supported, or open the target Agent without mutating the clipboard.
 - When the user selects Codex, reviews the context and confirms
 - Then PromptHub launches Codex in that project with the reviewed context
 - And the Claude Code conversation remains unchanged
+
+#### Scenario: Confirm the reviewed snapshot after a live transcript update
+
+- Given the source Agent receives another message while the handoff preview is open
+- When the user confirms the already reviewed preview
+- Then PromptHub launches the exact bounded payload shown in that preview
+- And it does not silently rebuild the payload from the newer live transcript
 
 #### Scenario: Degrade to launch only
 
@@ -2131,6 +2235,12 @@ and Plugins MUST retain package artwork when available with the plug fallback.
 Domain-owned actions and state MUST remain unchanged; visual unification MUST
 NOT invent unsupported actions or create another asset state source.
 
+Card height and footer position MUST remain identical when titles, descriptions,
+source labels, statuses or metadata counts differ. Each text region MUST be
+bounded by the shared anatomy: long values are truncated or clamped inside
+their own slot instead of increasing card height, while the complete asset
+remains available through the card detail or explicit open action.
+
 The Agent workspace product term MUST render as `Plugins` in every locale,
 matching the adjacent `Skills` and `MCP` taxonomy. Other descriptive Plugin
 copy may remain localized.
@@ -2142,6 +2252,8 @@ copy may remain localized.
 - Then every asset card has an icon, title/status row, bounded description,
   source row, metadata chips and an aligned icon-action footer
 - And the shared regions use the same dimensions and spacing across domains
+- And additional text or metadata cannot move the card footer or change the
+  card's outer height
 - And each action still invokes only its owning Skill, MCP or Plugin workflow
 
 #### Scenario: Keep Plugins as a stable product term
@@ -2189,6 +2301,23 @@ message page size.
 - And a main-owned cursor loads subsequent visible pages until the true end
 - And the UI does not present the conversation as empty or permanently
   truncated
+
+#### Scenario: Read current Codex response-item messages
+
+- Given a current Codex rollout stores visible user and assistant messages as
+  top-level `response_item` records with `payload.type = message`
+- When the user opens that conversation in History
+- Then PromptHub renders its bounded text content and derives the list title
+  from the first visible user message
+- And developer, reasoning, tool and image payloads remain excluded
+- And the compatible legacy `event_msg` format remains readable
+
+#### Scenario: Continue through a large Pi transcript
+
+- Given a Pi or Oh My Pi JSONL transcript extends beyond the initial bounded read
+- When the user advances beyond the currently loaded message pages
+- Then PromptHub requests source-bound cursor pages on demand until the native file ends
+- And the viewer does not show a permanent limited-preview notice for content that remains loadable
 
 #### Scenario: Keep paginated reads bounded and stable
 
@@ -2492,6 +2621,15 @@ verified official default MUST omit or disable restore instead of inventing a
 provider, model or credential contract. Manual custom Profile creation remains
 available independently.
 
+The native configuration MUST be presented as a normal selectable card rather
+than a rail-selected row, and its sanitized provider, protocol, endpoint,
+model, and credential-ownership fields MUST be visibly grouped. Because the
+native file remains owned by the Agent, this projection MUST stay read-only and
+MUST explain that boundary in the workspace. The primary management action
+MUST create an independent PromptHub Profile from the sanitized projection and
+open that Profile in the existing editable right-pane editor; it MUST NOT turn
+the Agent-owned file into a renderer-editable document or expose credentials.
+
 #### Scenario: Show a custom Claude configuration before any Profile exists
 
 - Given Claude Code is installed and its native settings configure a custom
@@ -2512,6 +2650,17 @@ available independently.
 - And native configuration remains unchanged until the user confirms the
   existing activation preview
 - And cancelling the preview leaves the Agent native configuration unchanged
+
+#### Scenario: Turn the native summary into an editable Profile
+
+- Given an Agent has a native provider configuration but no editable PromptHub
+  Profile for it
+- When the user chooses to manage the native configuration
+- Then the workspace previews the sanitized import and requires confirmation
+- And confirmation creates an independent Profile and opens it in the existing
+  right-pane editor
+- And the Agent-owned native configuration remains unchanged until a later
+  reviewed activation
 
 ### `FR-AGENT-087`: Project-Scoped Native Resume And Dense Transcript Layout
 
@@ -2550,9 +2699,9 @@ current Agent through its verified native resume contract, or hand the
 conversation to a different detected Agent. Target Agent and project selectors
 MUST remain hidden until the user chooses cross-Agent continuation. The target
 selector MUST NOT hide a detected Agent merely because it lacks a PromptHub-
-verified CLI prompt-injection contract. Metadata editing and removal
-MUST remain in the overflow menu, while export MUST have a distinct icon action
-with Markdown and JSON choices.
+verified CLI prompt-injection contract. Verified permanent deletion MAY remain
+in the overflow menu, while export MUST have a distinct icon action with
+Markdown and JSON choices. Conversation metadata editing MUST NOT be exposed.
 
 The main-process continuation service MUST select one evidence-backed handoff
 transport for the target Agent. A verified interactive CLI target MAY receive
@@ -2662,3 +2811,1312 @@ configuration.
 - When PromptHub renders a direct Agent Provider editor without that proxy
 - Then those controls are omitted unless the selected Agent adapter can write
   and verify the same native behavior independently
+
+### `FR-AGENT-090`: Agent Config Editor Isolation
+
+The native Config Files workspace MUST treat the bounded file inventory as its
+read/write allowlist. An existing file that is neither declared by the Agent
+adapter nor returned by bounded discovery MUST NOT become readable or writable
+through a caller-supplied relative path.
+
+Changing the selected Agent MUST isolate inventory, selected-file content and
+in-flight asynchronous results by source identity. PromptHub MUST ask for
+confirmation before a user-initiated Agent switch discards unsaved config
+changes.
+
+Provider Profile credentials remain governed by their existing credential
+ownership and reveal controls. This requirement does not remove the explicit
+eye-button reveal behavior from the Provider editor.
+
+#### Scenario: Reject an undiscovered existing file
+
+- Given an editable file exists below an Agent root but outside declared paths
+  and bounded discovery directories
+- When a caller addresses the file directly through config read or write IPC
+- Then PromptHub returns `AGENT_CONFIG_FILE_NOT_DISCOVERED`
+- And the existing file remains unchanged
+
+#### Scenario: Switch between equal relative paths safely
+
+- Given two Agents each expose `config.toml`
+- When the user switches Agents while either Agent has an in-flight list or read
+- Then only the newly selected Agent inventory and content can render
+- And an older completion cannot overwrite the new source state
+
+#### Scenario: Protect unsaved config edits
+
+- Given the active Agent config editor has unsaved changes
+- When the user selects another Agent
+- Then PromptHub asks whether to discard the changes
+- And cancellation keeps the current Agent and editor state
+
+### `FR-AGENT-091`: Focused Appearance Sub-Workspaces
+
+The Appearance tab MUST separate desktop skins and Pets into two focused
+sub-workspaces selected from a compact left-side icon navigation rail. The rail
+MUST remain inside the Appearance tab and MUST NOT add more top-level Agent
+tabs. Pets MUST appear before desktop skins in this rail. Each destination MUST
+show its own item count and preserve a stable selection while Appearance
+remains mounted.
+
+The desktop-skin destination MUST be the default. It alone owns native
+appearance status, restore, restart permission, skin import, skin inventory and
+the skin directory action. The Pets destination alone owns Pet import, Pet
+inventory and the Pet directory action. A destination MUST NOT render the
+other destination's cards or actions, and invalid-item feedback MUST use only
+the selected destination's invalid count.
+
+#### Scenario: Switch from skins to Pets without mixed controls
+
+- Given Appearance has one installed skin and two valid Pets
+- When the user selects Pets from the Appearance navigation rail
+- Then the skin card, native appearance controls and skin import action are not rendered
+- And the two Pet cards, Pet import action and Pet directory action are rendered
+- And returning to desktop skins restores the skin workspace without reloading the Agent
+
+### `FR-AGENT-092`: Managed Pet Inventory And Allowlisted Catalog
+
+The Pets sub-workspace MUST provide a responsive installed inventory with at
+least three columns when the available content width permits. Every installed
+Pet MUST expose its v1 or v2 sprite contract, exact managed path, preview,
+metadata edit, export, path-open and delete actions. Metadata edits MUST
+preserve unknown manifest fields and MUST use atomic replacement. The preview
+MUST be the dominant card content rather than a small identity icon. The exact
+managed path MUST remain available to the path-open action but MUST NOT occupy
+the visible card body.
+
+The workspace MUST also provide a catalog sourced only from the hardcoded
+official `legeling/awesome-codex-pet` project and MUST identify that destination
+as `Awesome Codex Pet` in every supported locale. Catalog search and paging
+MUST be bounded. Editing the search field MUST NOT fetch or filter the catalog;
+only an explicit search-button action or Enter submission commits the query.
+A newer submitted query MUST be allowed to supersede an older in-flight query.
+Catalog cards MUST reuse the same Agent asset-card shell,
+spacing, typography and quick-action layout used by Skills, MCP and Plugins,
+while their Pet-specific content body MUST use a large bounded preview, MUST
+keep long titles, descriptions and metadata inside the card, and MUST NOT
+render the catalog identifier as source-path copy. Their image source MUST
+prefer the project's published
+`codexpet.top/assets/previews/<pet-id>/webp/idle.webp` preview and MUST fall back
+to the validated package spritesheet rather than a guessed repository path.
+Valid preview bytes MUST be reused from a bounded persistent cache across
+catalog refreshes and application restarts. Stale, invalid or excess cache
+entries MUST be removed without blocking catalog use.
+Catalog, manifest, sprite and preview responses MUST enforce timeouts and byte
+limits, MUST reject redirects or paths outside the two hardcoded official asset
+prefixes, and MUST NOT execute upstream installers or telemetry.
+Installing an item MUST stage and validate the package before reusing the
+existing Pet import transaction. Installed Pets remain filesystem-owned under
+the selected Codex root and remain outside PromptHub backup and sync.
+
+#### Scenario: Manage and install Pets without changing ownership
+
+- Given two installed Pets and one valid catalog Pet
+- When the user edits an installed Pet and installs the catalog Pet
+- Then the edited `pet.json` preserves its unknown fields and is atomically replaced
+- And the catalog package is validated before appearing in the installed inventory
+- And every card uses the shared Agent asset-card measurements, gives the Pet preview primary visual weight and shows the sprite contract version
+- And the catalog destination is labelled `Awesome Codex Pet` without card text overflow
+- And the catalog preview loads from the published gallery or the validated package fallback
+- And a valid cached preview is reused without another upstream image request
+- And every installed card can open its exact directory
+- And no Pet bytes are copied into PromptHub durable storage
+
+### `FR-AGENT-093`: Bounded Agent Quotas In The Menu Bar
+
+On macOS, the PromptHub menu bar MUST expose a tray-anchored rendered quota
+popover for every Agent whose usage adapter is verified and enabled. Each
+summary MUST identify the Agent with its existing product artwork, display the
+most constrained remaining percentage using tabular numerals and a progress
+indicator, and expose all returned metrics with localized labels, remaining
+percentages and reset times.
+Plan metadata and provider states such as missing credentials, expired access
+or unavailable usage MUST remain explicit rather than becoming fake zeroes.
+
+The popover MUST reuse the same main-process usage service as the Agent
+workspace. Opening the popover MUST render the current renderer cache
+immediately and MUST NOT wait on provider network calls. Refresh work MUST be deduplicated,
+bounded to at most two provider requests at once, timed out by the owning
+adapter, and isolated so one provider failure cannot remove other provider
+results. A failed refresh MUST preserve the last rendered snapshot, and
+rendered copy or logs MUST NOT expose credentials or raw provider errors.
+
+#### Scenario: Open a populated quota popover without blocking
+
+- Given cached quota snapshots exist for ChatGPT and Claude Code
+- When the user primary-clicks the PromptHub menu bar icon
+- Then a tray-anchored popover immediately shows both Agent summaries and their metric details
+- And no intermediate Agent Quotas menu item is required on macOS
+- And provider identity and plan precede a named metric, compact tabular remaining value, slim progress and reset time
+- And a background refresh may replace the snapshot after it completes
+- And no menu action waits synchronously for that refresh
+
+#### Scenario: Keep ordinary tray actions available
+
+- Given PromptHub is running on macOS
+- When the user secondary-clicks the PromptHub menu bar icon
+- Then the native action menu opens without a duplicate Agent Quotas command
+- And quick add, Agent management, settings, update and quit actions remain available
+
+#### Scenario: Open quotas before the first snapshot exists
+
+- Given PromptHub has started but one or more verified quota adapters have not completed their first request
+- When the user opens the Agent quota popover
+- Then every verified Agent remains visible in stable registry order with an explicit loading state
+- And each completed adapter replaces only its own loading row without waiting for slower providers
+- And the rendered surface never collapses the whole inventory into one anonymous loading row
+
+#### Scenario: Degrade one provider without losing the others
+
+- Given one Agent adapter rejects while another returns a valid quota snapshot
+- When PromptHub refreshes the quota popover
+- Then the failed Agent receives a bounded unavailable state
+- And the valid Agent remains visible with its metrics
+- And no rejected error text or credential material reaches the popover
+
+#### Scenario: Reuse and release the quota popover
+
+- Given the quota popover has already been created
+- When the user opens it again from the same tray icon
+- Then PromptHub repositions and reuses the existing renderer window rather than creating another process surface
+- And losing focus hides the popover without discarding cached quota presentation
+- And destroying the tray or quitting PromptHub closes the owned popover window
+
+### `FR-AGENT-094`: Dense And Safe Conversation Pagination
+
+The Agent conversation detail header MUST render continuation, export and
+metadata actions as a lightweight row without an additional rounded card shell.
+Selected session rows MUST retain an explicit readable foreground color in light
+and dark themes and MUST NOT rely on saturated primary text/background pairs.
+
+Transcript pagination MUST clamp a page request to loaded entries and MUST follow
+at most eight advancing native cursors when a page contains only duplicate or
+empty records. A cursor that does not advance MUST terminate loading. The detail
+view MUST never render a blank page solely because a cursor response was empty;
+it MUST show the nearest page containing loaded entries instead. Transcript
+bodies remain platform-owned and are never persisted by this renderer fix.
+
+#### Scenario: Skip duplicate cursor records
+
+- Given the current page ends at the loaded transcript boundary
+- When the next native cursor repeats known entries and supplies an advancing cursor
+- Then the renderer follows the cursor within the bounded hop limit
+- And the requested page shows the first newly loaded entry instead of an empty view
+
+#### Scenario: Prevent stale empty pages
+
+- Given a cursor returns no new entries and no advancing cursor
+- When the user requests the next message page
+- Then the renderer stays on or clamps to the last page containing entries
+- And the transcript never presents an empty page caused by pagination state
+
+### `FR-AGENT-095`: Unified Provider Workbench And Pi Native Import
+
+Every Agent Provider & Model view MUST use the same sidebar width, toolbar
+placement, provider-row anatomy, detail header, metadata-row treatment and
+section surfaces. Platform adapters MAY expose different fields and actions,
+but they MUST NOT replace the shared visual hierarchy with an Agent-specific
+page composition.
+
+Pi MUST expose an import action in the shared sidebar toolbar. The action MUST
+list PromptHub providers, allow one compatible chat model to be selected, and
+import the selection into Pi's native `models.json` catalog. When the selected
+PromptHub model has a configured credential, the credential MUST be written to
+Pi's native `auth.json` without crossing the renderer boundary.
+
+The Pi import MUST validate the provider id, endpoint, protocol and model,
+reject duplicate or unsupported entries before writing, create backups, detect
+concurrent modification, and restore both native files after any partial write
+failure. Cancelled or invalid imports MUST perform zero native writes.
+
+#### Scenario: Provider tabs share one visual hierarchy
+
+- Given Claude Code and Pi expose different native provider adapters
+- When the user opens Provider & Model for either Agent
+- Then both views use the shared sidebar, toolbar, list-row and detail-section primitives
+- And only platform-specific data and commands differ
+
+#### Scenario: Import a PromptHub provider into Pi
+
+- Given a PromptHub chat provider uses a Pi-supported protocol
+- And the user selects one compatible model in Pi's import dialog
+- When the import is confirmed
+- Then the provider and model are written to Pi's native catalog
+- And any configured credential is written only by the main process
+- And the refreshed Pi provider list exposes the imported provider
+
+#### Scenario: Import rollback is complete
+
+- Given the Pi catalog write succeeds but the credential write fails
+- When the combined import reports failure
+- Then both `models.json` and `auth.json` match their pre-import contents
+- And the renderer receives only a stable public error code
+
+### `FR-AGENT-096`: Pi Current Provider Import Parity
+
+Pi MUST expose the same current-configuration import action and PromptHub-source
+import action in the shared Provider toolbar. Importing the current Pi
+configuration MUST create an editable same-id override for the currently active
+built-in provider without copying, deleting or returning its credential and
+without replacing Pi's built-in model catalog.
+
+The action MUST be unavailable when Pi has no configured provider or the current
+provider is already custom. Main MUST resolve the current provider and model from
+native configuration, validate both against the built-in catalog, then use the existing
+backup, digest, atomic-write, re-read verification and rollback pipeline.
+
+#### Scenario: Make the current built-in Pi provider editable
+
+- Given Pi's current provider comes from the built-in catalog
+- When the user confirms the current-configuration import
+- Then PromptHub writes a behavior-preserving same-id provider override to `models.json`
+- And the built-in models and existing credential remain available
+- And the refreshed provider detail exposes the custom editing controls
+
+#### Scenario: Reject an unavailable current import
+
+- Given Pi has no current built-in provider or already has a custom override
+- When the Provider toolbar is rendered or a stale request reaches main
+- Then the action is disabled or rejected before any native write
+
+### `FR-AGENT-097`: Semantic And Composable Agent Quotas
+
+The Agent usage contract MUST describe each provider quota by typed scope,
+period and value semantics rather than by a renderer-specific `window` or
+`quota` chart kind. Provider adapters MUST normalize finite values to remaining
+percentage and, when available, remaining/limit amounts. Unlimited and unknown
+values MUST remain explicit and MUST NOT be dropped or fabricated as `0%`.
+
+Overview and menu-bar quota surfaces MUST consume one shared presentation model
+and semantic visualization selector. Finite 5-hour, daily and weekly windows
+MUST use a compact ring regardless of whether the provider reports percentages
+or absolute amounts. Monthly/billing-cycle/lifetime totals and provider-defined
+quotas MUST use a horizontal remaining bar. Grouping, ordering, visible density
+and expansion MUST derive from scope, period and metric cardinality rather than
+the Agent id. This semantic rule supersedes the provider `window`/`quota`
+mapping in `FR-AGENT-027`; its verified adapter and credential boundaries remain
+in force.
+
+#### Scenario: Compose short, weekly and monthly quotas
+
+- Given an Agent reports account, model-group or feature quotas across 5-hour, weekly and monthly periods
+- When the Overview renders the quota summary
+- Then metrics are grouped by typed scope and ordered from shorter to longer periods
+- And finite 5-hour, daily and weekly windows use compact rings that can compose side by side
+- And absolute monthly or total quotas use horizontal bars with remaining amount and total
+
+#### Scenario: Keep Antigravity baseline and overage credits separate
+
+- Given Antigravity reports grouped five-hour and weekly baseline windows through `RetrieveUserQuotaSummary`
+- And `GetUserStatus` also contains legacy or internal prompt-credit counters
+- When PromptHub normalizes Antigravity usage
+- Then only the grouped baseline windows become quota metrics
+- And `GetUserStatus` contributes plan identity without fabricating an account total
+- And AI credit overage balance remains absent until a separately verified provider field and contract are implemented
+
+#### Scenario: Preserve Kimi weekly and rolling quota without fabricating the shared monthly total
+
+- Given the current Kimi Code usage response reports weekly and rolling limits as `remaining` plus `limit`
+- And the rolling window uses a proto-style time unit such as `300 TIME_UNIT_MINUTE`
+- When PromptHub normalizes Kimi usage
+- Then the weekly allowance and 5-hour rolling window remain visible with their provider reset times
+- And legacy `used` plus `limit` responses remain compatible
+- But the cross-product Kimi membership monthly total is not derived from the unverified `totalQuota` field or from local usage estimates
+
+#### Scenario: Keep one value direction
+
+- Given a provider reports used percent, used/limit, remaining fraction or remaining/limit
+- When its adapter produces the shared usage contract
+- Then main normalizes the value to remaining percent before IPC
+- And ring arc, bar fill, numeric percentage, amount copy, warning tone and accessible label all describe remaining quota
+- And no surface combines percent used with an amount described as remaining
+
+#### Scenario: Keep provider provenance out of the primary quota surface
+
+- Given every supported quota currently comes from a provider adapter
+- When a successful quota summary renders
+- Then the surface shows the plan, quota values, reset times and refresh action
+- And it does not repeat a provider-reported provenance sentence
+- And an in-flight refresh is conveyed by the refresh control without exposing cache implementation copy
+- But stale state remains explicit when a failed refresh affects trust
+
+#### Scenario: Bound a large model inventory
+
+- Given a provider reports more than eight model-scoped quotas
+- When the Overview first renders
+- Then all account, model-group and feature metrics remain visible
+- And only the four most constrained individual-model metrics render initially with an explicit expand action
+- And expanding remains bounded to 64 sanitized metrics in an internal scroll region
+
+#### Scenario: Preserve unlimited, unknown and empty states
+
+- Given a provider reports an unlimited entitlement, a named quota without a trustworthy value, or an ok response with no metrics
+- When either quota surface renders
+- Then unlimited and unknown remain explicit non-progress states
+- And an empty ok response shows that the provider did not report a quota
+- And none of those states render a zero-length warning meter
+
+#### Scenario: Load without fabricated quota values
+
+- Given no cached quota snapshot exists for the selected Agent
+- When the initial request is pending
+- Then the surface shows neutral skeleton rows without percentages or Agent-specific fake periods
+- When a cached successful snapshot exists
+- Then its metrics remain in place during refresh and a failed refresh marks them stale instead of replacing them with an anonymous unavailable state
+
+### `FR-AGENT-098`: Expanded Evidence-Backed Native Model Configuration
+
+The shared Provider & Model workbench MUST support Claude Code, Codex,
+Antigravity, Grok, Pi, OpenCode, Qoder and every Claw-family platform that has a
+single evidence-backed native model target. Antigravity, Qoder, CoPaw, AutoClaw,
+QClaw and Hermes MUST use independent adapters for their current native formats;
+Claw family membership MUST remain presentation metadata and MUST NOT imply an
+OpenClaw-compatible file contract.
+
+Every adapter MUST expose one sanitized `AgentModelConfiguration`, update only
+the native model selector, preserve credentials and unrelated fields, reject
+malformed, oversized or symlinked files, detect concurrent modification, create
+a private backup, write atomically, re-read the native source and roll back on
+failure. Missing native files MAY be created only at a verified canonical path.
+
+NanoClaw MUST remain unavailable in the platform-level Provider Profile until a
+group target is selected explicitly. PromptHub MUST NOT mutate generated
+container configuration or silently apply one group's model to another.
+
+#### Scenario: Configure a newly supported global model target
+
+- Given Antigravity, Qoder, AutoClaw, QClaw or Hermes has a valid native config
+- When the user imports or activates a model-only Provider Profile
+- Then PromptHub updates only that platform's native model selector
+- And the refreshed shared workbench shows the selected model and sanitized provider metadata
+- And literal credentials and unrelated native settings remain byte-equivalent in meaning
+
+#### Scenario: Configure CoPaw's active Agent
+
+- Given CoPaw's global config identifies one active Agent workspace
+- And that workspace is contained beneath the CoPaw root
+- When the user activates a model profile
+- Then PromptHub updates that workspace's `active_model` provider/model pair
+- And it does not read or return the separate provider secret store
+
+#### Scenario: Refuse an ambiguous NanoClaw target
+
+- Given NanoClaw stores model configuration per Agent Group
+- When the platform-level Provider & Model capability is evaluated
+- Then it remains planned and disabled
+- And no group database row or materialized container file is changed
+
+### `FR-AGENT-099`: Discoverable Provider Commands Without Horizontal Overflow
+
+The shared Provider toolbar MUST render visible labels for current-configuration
+import and PromptHub-source import while retaining icons, accessible names and
+tooltips. The command area MAY grow vertically to fit localized labels but MUST
+NOT widen the fixed sidebar or truncate the commands into icon-only controls.
+
+Provider list rows MUST fit within the sidebar content box at every supported
+width. The sidebar MUST permit vertical scrolling for large inventories and
+MUST NOT expose horizontal scrolling caused by row width, margin, focus ring or
+localized text.
+
+#### Scenario: Use both import commands without guessing icons
+
+- Given the generic or Pi Provider workbench is open
+- When the toolbar renders
+- Then both import commands show icon and localized text
+- And keyboard and assistive-technology names remain available
+
+#### Scenario: Keep the provider sidebar on one axis
+
+- Given a native configuration row and provider profiles are present
+- When the sidebar is narrower than the detail pane
+- Then rows truncate internal metadata within their bounds
+- And the sidebar scroll width does not exceed its client width
+
+### `FR-AGENT-100`: Truthful Conversation Storage And Project Filters
+
+Every native conversation row MUST expose its adapter-reported per-session
+storage size when the adapter can calculate that value without attributing a
+shared database to one conversation. Unknown sizes MUST remain explicit rather
+than displaying the size of a shared store as if it belonged to one session.
+
+The project filter MUST merge registered PromptHub projects with exact project
+paths and labels reported by the loaded native sessions. Selecting a native
+project option MUST filter by exact normalized path; labels alone MUST NOT merge
+two different directories.
+
+The visible destructive action MUST permanently delete native content only
+through an adapter-owned operation. It MUST require a second confirmation and
+MUST re-resolve the session in the main process. Adapters without a verified
+session-scoped delete operation MUST NOT expose the destructive action, and no
+implementation may delete an arbitrary renderer-provided `sourcePath`.
+
+#### Scenario: Show Codex disk usage and native projects
+
+- Given loaded Codex sessions report distinct working directories and rollout files
+- When Conversation History renders
+- Then every Codex row shows the exact current rollout-file byte size
+- And the project selector lists each distinct working directory once
+- And selecting one directory shows only sessions with that exact path
+
+#### Scenario: Confirm and permanently delete a Codex session
+
+- Given a Codex rollout still resolves inside the configured Codex sessions or archived-sessions root
+- When the user chooses permanent delete and confirms the destructive dialog
+- Then the main process re-resolves and removes that exact rollout file
+- And PromptHub hard-deletes the corresponding local metadata row
+- And the deleted session disappears from the loaded history without a rescan
+- And canceling the dialog performs no IPC mutation
+
+#### Scenario: Reject an unverified delete target
+
+- Given a session comes from a shared database or an adapter without native delete support
+- When its action menu renders or a crafted delete IPC request is sent
+- Then no permanent-delete command is offered
+- And the main process returns a stable unsupported error without changing metadata or native files
+
+### `FR-AGENT-101`: Enter-Submitted Title And Project Search
+
+Conversation History MUST keep the editable search draft separate from the
+submitted query. Changing the input MUST NOT request, filter or reorder sessions.
+Pressing Enter outside an active IME composition MUST submit the trimmed query;
+submitting an empty query MUST restore the unfiltered session inventory.
+
+The submitted query MUST match only the effective displayed title, native title,
+project label or exact project path using case-insensitive literal containment.
+Transcript text, note, tag, model, redacted preview and session id MUST NOT create
+a match. Persistent-index and live-reader results MUST expose the same scope.
+
+#### Scenario: Compose without searching
+
+- Given Conversation History has loaded sessions
+- When the user types several characters without pressing Enter
+- Then no additional list request is sent
+- And the existing list remains visible and unfiltered
+
+#### Scenario: Submit a title or project query
+
+- Given a session title or project label/path contains the query
+- When the user presses Enter after composing the query
+- Then PromptHub requests one submitted search and shows the matching session
+- And loading more uses the same submitted query rather than the current draft
+
+#### Scenario: Exclude body-only matches and clear the query
+
+- Given a query exists only in transcript text, notes, tags, model metadata or a redacted preview
+- When the user submits it
+- Then that session is not returned as a search match
+- When the user clears the input and presses Enter
+- Then PromptHub restores the unfiltered inventory
+
+### `FR-AGENT-102`: Conversation Ordering And Native Rename Priority
+
+The second Conversation History selector MUST order the currently loaded
+conversation inventory rather than filter it by PromptHub metadata status. It
+MUST provide newest, oldest, largest and smallest ordering. Missing timestamps
+or per-session sizes MUST sort after known values in either direction, and ties
+MUST be deterministic. Newly loaded pages MUST be merged into the selected
+order without mutating the adapter result.
+
+The displayed title MUST prefer a non-empty PromptHub metadata override, then a
+non-empty Agent-native title, then the adapter's first visible user-message
+fallback, and finally the session id. Codex MUST read the latest valid
+`thread_name` for each safe session id from its bounded, read-only native
+`session_index.jsonl`; malformed, oversized or unsafe records MUST NOT replace
+the transcript fallback. Removing the status selector MUST NOT make archived
+metadata unreachable: native sessions remain visible and archived metadata is
+represented as row state rather than list exclusion. If a returned native
+session exists, the renderer MUST show it as a normal or archived session. The
+conversation domain MUST NOT expose removed state or a Restore action.
+
+#### Scenario: Sort loaded history without losing unknown sizes
+
+- Given loaded sessions have different timestamps, known sizes and an unknown size
+- When the user chooses largest, smallest, newest or oldest
+- Then known values appear in the requested order
+- And unknown values stay after known values with stable tie-breaking
+
+#### Scenario: Prefer an Agent-native renamed title
+
+- Given a Codex rollout starts with `<recommended_plugins>`
+- And the latest safe Codex index record names that session `Plugin review`
+- When Conversation History lists the rollout
+- Then the native title is `Plugin review` rather than the first user message
+- And a PromptHub title override still takes precedence when present
+
+### `FR-AGENT-103`: Latest Transcript Navigation And Row Context Actions
+
+Conversation History MUST provide an explicit latest-messages command whenever
+the selected transcript has later loaded pages or an advancing native cursor.
+Invoking it MUST follow cursor pages with a bounded number of reads and show the
+newest page reached in that invocation. If more cursor data remains, the command
+MUST stay available for another bounded invocation; duplicate or stalled cursors
+MUST NOT create an empty page or unbounded loop.
+
+Right-clicking a conversation row MUST select that row and open a contextual
+menu at a viewport-contained position. The menu MUST reuse the same verified
+actions as the selected-conversation toolbar: native continuation when
+available, cross-Agent continuation when targets exist, Markdown and JSON
+export, and adapter-gated permanent deletion. Permanent deletion MUST retain the
+existing second confirmation. The menu and toolbar MUST NOT expose conversation
+metadata editing. Escape, outside pointer input, window blur, resize or scroll
+MUST close the contextual menu without changing native or PromptHub data.
+
+#### Scenario: Jump from the oldest loaded page to the latest messages
+
+- Given the selected transcript starts on page one and has advancing cursors
+- When the user invokes latest messages
+- Then PromptHub performs only a bounded number of cursor reads
+- And shows the newest page reached without displaying an empty page
+
+#### Scenario: Use row actions without an edit dialog
+
+- Given a native session supports resume and verified permanent deletion
+- When the user right-clicks its history row
+- Then the row becomes selected and the menu offers continuation, both export formats and permanent deletion
+- And no metadata-edit action is present
+- And deletion still requires explicit confirmation
+
+### `FR-AGENT-104`: Contained Transcript Tables And Agent-Owned Tool Messages
+
+Markdown tables in user, assistant and tool transcript bodies MUST remain
+inside the message bubble and transcript viewport. Wide tables MUST use a local
+horizontal scroll region rather than increasing the bubble, transcript pane or
+window scroll width. The Markdown root and each chat bubble MUST be allowed to
+shrink within its flex row; raw transcript text and export content MUST remain
+unchanged.
+
+Tool calls and tool results are emitted by the Agent and MUST use the same
+left-aligned Agent-message structure as assistant messages: Agent avatar,
+bounded bubble and message body. A compact Tool role label MAY distinguish the
+record inside that bubble. Tool messages MUST NOT render as centered system
+notices. System/unknown events remain informational notices.
+
+#### Scenario: Contain a wide table in a user message
+
+- Given a user transcript entry contains a GFM table with long file paths
+- When the message bubble renders in a narrow transcript pane
+- Then the bubble stays within its row
+- And the table scrolls horizontally inside that bubble
+- And the transcript pane does not gain horizontal overflow
+
+#### Scenario: Render a tool result as an Agent message
+
+- Given the native transcript contains a Tool entry
+- When Conversation History renders that entry
+- Then it appears left-aligned with an Agent avatar and bounded message bubble
+- And its Tool label remains visible inside the bubble
+- And it is not styled as a centered system notice
+
+### `FR-AGENT-105`: Native Session And Project Location Actions
+
+The selected-conversation More menu and row context menu MUST expose two
+distinct filesystem actions. **Show in folder** MUST locate the Agent-owned
+native session file from the adapter-provided `sourcePath`; **Open project
+folder** MUST open the effective registered or native `projectPath`. The More
+menu MUST remain available independently of native-delete support. A missing
+path MUST leave its corresponding action visible but disabled, and MUST NOT be
+replaced by a guessed path.
+
+Both actions MUST use the existing validated main-process shell path handler.
+The renderer MUST NOT open, edit, delete or construct a parent path from the
+native session file. A failed or inaccessible path MUST preserve the current
+conversation and report the existing conversation-action failure state.
+
+#### Scenario: Locate both native resources
+
+- Given a conversation exposes a native session file and project directory
+- When the user chooses Show in folder or Open project folder
+- Then PromptHub sends the exact corresponding path through the safe shell handler
+- And the session file is selected in the platform file manager while the project directory is opened
+
+#### Scenario: Do not guess a missing source location
+
+- Given a conversation has a project directory but no native source file path
+- When the More or row context menu opens
+- Then Show in folder is visible but disabled
+- And Open project folder remains available
+
+### `FR-AGENT-106`: Claude Visible Transcript And Project Identity
+
+The Claude Code session adapter MUST expose only user-visible conversation
+records. Native `user` and `assistant` messages MAY contribute visible entries;
+Claude `tool_result` content MUST use the Tool role. Records marked `isMeta`,
+non-message native record types, empty content and generated local-command
+wrappers MUST NOT become transcript events or title fallbacks. A well-formed
+ignored native record MUST NOT increment the detail parse-error count.
+
+When a bounded Claude JSONL record supplies a safe absolute `cwd`, that exact
+path MUST be the session project identity and its basename MUST be the displayed
+project label. The encoded `projects/<key>/` directory name MAY be used only
+when no valid native project path exists. Live list, optional local index,
+project filter and native resume cwd MUST agree on this projection.
+
+#### Scenario: Hide Claude internal records
+
+- Given a Claude transcript contains meta command caveats, local-command system records, lifecycle records, visible user and assistant messages, and a tool result
+- When Conversation History reads the transcript
+- Then only the visible user, assistant and Tool entries are shown
+- And the visible user message supplies the fallback title
+- And the ignored valid records are not reported as parse errors
+
+#### Scenario: Display the real Claude project
+
+- Given Claude stores a session below an encoded project directory
+- And the session reports `/workspace/newpaper-repair` as its safe absolute cwd
+- When the live or indexed project selector is shown
+- Then the option label is `newpaper-repair`
+- And its identity and resume cwd remain `/workspace/newpaper-repair`
+- And the encoded directory key is not displayed
+
+### `FR-AGENT-107`: Gemini And Cursor Native Project Projection
+
+For Gemini sessions, PromptHub MUST read at most 4 KiB from the regular,
+non-symlink `.project_root` marker adjacent to the native `chats` directory.
+A null-free absolute marker value MUST become the exact project identity,
+display basename and native resume cwd in both live and indexed metadata. A
+missing, malformed, oversized or unsafe marker MUST fall back to the cache key
+without guessing a path.
+
+Gemini `info` and unknown native message types MUST be treated as valid hidden
+records rather than transcript Events or parse failures. Native `user` and
+`gemini` text remains visible as User and Assistant; a user record containing a
+function response and no visible user text MUST project as a Tool result.
+Gemini's non-empty bounded native `summary` MUST take title priority over the
+first visible User fallback. Malformed document syntax and non-object message
+rows remain parse errors.
+
+For Cursor sessions, PromptHub MUST NOT display an encoded project key when it
+can uniquely resolve that key to an existing directory beneath the configured
+home. Resolution MUST walk only actual non-symlink directory components, MUST
+be bounded, and MUST reject ambiguous, external, missing or oversized trees.
+A unique match MUST supply the exact project path, its basename label and the
+resume cwd. For an unresolved under-home key, PromptHub MAY remove only the
+uniquely verified existing directory prefix and display the remaining literal
+tail; it MUST retain a null path and MUST NOT split the tail into a guessed path.
+
+#### Scenario: Project a Gemini project marker and Tool result
+
+- Given a Gemini cache key `project-hash` has a safe `.project_root` containing `/workspace/PromptHub`
+- And its transcript contains `info`, User, Gemini and function-response records
+- When live or indexed History is loaded
+- Then the project is labeled `PromptHub` with the exact project path and resume cwd
+- And only User, Assistant and Tool entries are visible
+- And the valid hidden `info` row does not increment parse errors
+
+#### Scenario: Resolve a unique Cursor encoded project
+
+- Given Cursor stores a transcript below the encoded key for an existing project under the configured home
+- And exactly one non-symlink directory path matches that key
+- When Conversation History lists the session
+- Then the project label is the real directory basename
+- And project filtering and resume use the exact resolved path
+
+#### Scenario: Reject an ambiguous Cursor key
+
+- Given two existing directory paths under the configured home encode to the same Cursor key
+- When Conversation History lists the session
+- Then PromptHub does not choose either path
+- And it displays the unresolved literal tail with a null project path
+
+### `FR-AGENT-108`: Grok Build Subscription, Weekly Usage, And Session Size
+
+PromptHub MUST project Grok Build's official account subscription and shared
+weekly usage through the same Agent usage contract used by the other verified
+adapters. It MUST read only an official `auth.x.ai` credential from the bounded
+native `auth.json`, query the official Grok Build user and billing endpoints
+with a main-process-only bearer token, and MUST NOT expose credentials or
+account identity to the renderer, logs, tests, or stored quota cache.
+
+The native `subscriptionTier` MUST become the plan badge. The billing current
+period MUST become one account-scoped weekly metric using
+`creditUsagePercent`, the provider's period end as reset time, and the shared
+week-ring presentation. Missing, expired, rejected, malformed and unavailable
+responses MUST use the existing explicit usage states rather than guessed
+values. The existing 60-second in-memory cache and force-refresh behavior MUST
+apply, with at most two bounded provider requests per refresh.
+
+Each Grok history row MUST report the exact contained
+`chat_history.jsonl` real path and its byte size. PromptHub MUST NOT use the
+session directory, summary file, lock files, event logs or other runtime
+artifacts as the displayed conversation size.
+
+#### Scenario: Show Grok membership and weekly usage
+
+- Given Grok Build has a current official OAuth credential
+- And the user endpoint reports `XPremium`
+- And billing reports a seven-day current period with 15 percent used
+- When the Agent Overview loads usage
+- Then the plan badge reads `X Premium`
+- And the weekly ring shows 85 percent remaining with the provider reset time
+- And no credential or account identity reaches the renderer
+
+#### Scenario: Show exact Grok conversation size
+
+- Given a Grok session owns a contained `chat_history.jsonl`
+- When Conversation History lists that session
+- Then the row size equals that file's exact byte length
+- And “在文件夹中显示” targets that exact real file
+
+### `FR-AGENT-109`: Missing Agent Rule File Creation Gate
+
+The Agent-scoped `Rules` tab MUST distinguish a declared rule file that does
+not exist from a file that exists with empty content. A missing file MUST show
+a centered creation prompt with the Agent-declared file name and resolved
+target path. PromptHub MUST NOT create or open an empty editor for that target
+until the user explicitly confirms creation.
+
+The file name, rule id, platform identity and target path MUST come from the
+shared rule descriptor inventory. The renderer MUST NOT assume `AGENTS.md`,
+derive a replacement path or introduce an Agent-specific write path. Existing
+empty files MUST continue directly into the shared Rules editor. Descriptors
+that cannot be resolved after one bounded scan MUST retain the existing scoped
+retry state.
+
+#### Scenario: The declared file is missing
+
+- Given an installed Agent resolves to a rule descriptor with `exists: false`
+- When the user opens the Agent's `Rules` tab
+- Then the page shows the descriptor's exact file name and target path
+- And no rule read or write occurs before confirmation
+- When the user confirms creation
+- Then the existing Rules save contract creates an empty file for that rule id
+- And the shared Rules editor opens the newly created empty file
+
+#### Scenario: The declared file already exists but is empty
+
+- Given an Agent rule descriptor has `exists: true`
+- And reading the file returns empty content
+- When the user opens the Agent's `Rules` tab
+- Then the shared Rules editor opens with an empty draft
+- And the creation prompt is not shown
+
+#### Scenario: Agents use different canonical rule names
+
+- Given two installed Agents declare different rule files such as `GEMINI.md`
+  and `RULES.md`
+- When either missing target is shown or created
+- Then the prompt and write operation use that descriptor's own name, path and
+  rule id
+- And neither flow is rewritten to `AGENTS.md`
+
+### `FR-AGENT-110`: Truthful Footprint And Permanent Delete For Every Listed Session
+
+Every native conversation returned by a supported history adapter MUST expose a
+truthful non-negative footprint and an adapter-owned permanent-delete action.
+For file- or directory-backed sessions, the footprint MUST cover the native
+session payload removed by that action. For shared database stores, it MUST be
+the logical byte footprint of the matching session rows and MUST NOT be the
+size of the whole database. A session MUST NOT be listed as deletable until the
+main process can re-resolve its native identity without using a
+renderer-provided path.
+
+Permanent delete MUST require the existing second confirmation, re-resolve the
+session in the main process, remove the native session payload or native rows,
+and then remove only the matching PromptHub metadata. Multi-file sessions MUST
+delete their known transcript and metadata companions as one adapter-owned
+operation. Missing, ambiguous, symlinked, escaped or changed targets MUST fail
+closed without deleting an unrelated path. This requirement supersedes the
+earlier `FR-AGENT-100` allowance to leave listed adapters without deletion; a
+supported adapter that cannot yet prove these semantics MUST not claim the
+history capability as complete.
+
+#### Scenario: File-backed session reports and deletes its native footprint
+
+- Given a listed native session consists of one or more contained files
+- When PromptHub loads its metadata and the user confirms permanent delete
+- Then the row shows the summed byte footprint of the files owned by that session
+- And the main process re-resolves and removes those exact native files
+- And the row disappears without accepting a renderer-supplied deletion path
+
+#### Scenario: Shared-database session deletes only its rows
+
+- Given two sessions share one native SQLite database
+- When the user permanently deletes one session
+- Then its displayed size is its logical row payload rather than the database file size
+- And the adapter deletes the matching child rows and session row transactionally
+- And the other session and database remain intact
+
+#### Scenario: Reject a changed native target
+
+- Given a listed target is replaced by a symlink, escapes its configured root, or no longer resolves to the same native session
+- When permanent delete is invoked
+- Then the operation fails with a stable error
+- And no native file, directory, database row or PromptHub metadata is removed
+
+### `FR-AGENT-111`: Pi Compatible MCP Workspace Entry
+
+The installed `pi` Agent MUST expose the MCP tab as a partial compatibility
+capability. Its Agent summary MUST derive the primary user target from
+`<PI_CODING_AGENT_DIR>/mcp.json`, defaulting to `~/.pi/agent/mcp.json`, while
+the owning MCP domain continues to expose the existing Pi user, shared-adapter,
+and project target presets independently.
+
+PromptHub MUST describe this as compatible configuration management rather
+than native MCP runtime support. It MUST NOT merge Pi with Oh My Pi, install an
+MCP extension into Pi, or claim that the base Pi executable loads these files
+without an adapter. A missing target MUST still leave Add MCP available through
+the owning MCP workflow.
+
+#### Scenario: Open Pi MCP management
+
+- Given Pi is installed and its primary `mcp.json` does not exist
+- When the user opens the Pi Agent workspace
+- Then the MCP tab is enabled as a partial capability
+- And its primary path resolves to the Pi Agent root rather than the Oh My Pi root
+- When the user opens MCP
+- Then Add MCP remains available and the existing Pi-compatible target presets are used
+
+### `FR-AGENT-112`: System-Level History Acceleration And First-Page Navigation
+
+PromptHub MUST own local session metadata indexing as one application setting,
+enabled by default for a new or previously unset preference. The setting MUST
+be shown in App Settings rather than inside an individual Agent History panel.
+When enabled, opening a supported history MUST reconcile that source to enabled
+and run one bounded refresh automatically. When disabled, supported histories
+MUST use their live-reader fallback and MUST NOT start an index refresh.
+
+The History panel MUST NOT expose a per-Agent indexing toggle, manual refresh
+button or indexing implementation copy. Transcript pagination MUST place a
+first-page command before the previous-page command, mirroring the latest
+messages command on the right. The first-page command MUST be disabled on page
+one and MUST return to the already loaded first page without native I/O.
+
+#### Scenario: Apply the default application preference
+
+- Given the user has never changed history acceleration
+- When a supported Agent History opens
+- Then the application preference is enabled
+- And PromptHub enables and refreshes that source automatically
+- And no indexing control appears inside History
+
+#### Scenario: Disable history acceleration in App Settings
+
+- Given the user turns off history acceleration in App Settings
+- When a supported Agent History opens
+- Then PromptHub disables the source and uses bounded live reads
+- And no metadata refresh starts
+
+#### Scenario: Return directly to the first message page
+
+- Given the reader is on a later transcript page
+- When the leftmost first-page button is activated
+- Then page one is displayed from already loaded entries
+- And the button becomes disabled
+- And no additional native transcript page is read
+
+### `FR-AGENT-113`: Verified Project Rules And Expanded MCP Targets
+
+PromptHub MUST expose Cursor Rules through Cursor's documented project rule
+file rather than inventing a user-global file. A registered project MUST be
+able to manage `.cursor/rules/prompthub.mdc` independently from that project's
+`AGENTS.md`; a missing target MUST require explicit creation and an existing
+empty target MUST open normally.
+
+Qoder MUST expose its documented project-root `AGENTS.md` compatibility through
+the same project Rules workflow. If that target is already registered for
+another compatible Agent, Qoder MUST reuse it rather than create a duplicate
+managed record for the same path.
+
+PromptHub MUST expose verified MCP targets for OpenClaw, Qoder, Grok Build and
+Antigravity.
+OpenClaw MUST preserve unrelated `openclaw.json` data while managing
+`mcp.servers`; Qoder MUST support its user and documented project JSON targets;
+Grok MUST preserve unrelated TOML while writing `mcp_servers` with Grok's
+`headers` key; Antigravity MUST support its global and workspace JSON targets
+and write remote endpoints as `serverUrl`. Reasonix MAY expose its documented
+project `.mcp.json` compatibility, but its modern global `[[plugins]]` TOML
+remains native-owned until a lossless target adapter exists. Unsupported
+target-specific fields and transports MUST remain owned by the native Agent
+rather than being fabricated or discarded.
+
+#### Scenario: Manage a Cursor project rule
+
+- Given Cursor is installed and a PromptHub project is registered
+- When the user opens Cursor Rules and confirms creation
+- Then PromptHub manages `.cursor/rules/prompthub.mdc` for that project
+- And a sibling `AGENTS.md` registration remains independent
+
+#### Scenario: Apply MCP without damaging native settings
+
+- Given an OpenClaw, Qoder, Grok or Antigravity configuration has unrelated native fields
+- When PromptHub applies one supported MCP server
+- Then the supported entry is merged at the documented location
+- And unrelated fields and unmanaged servers remain intact
+
+#### Scenario: Reuse Qoder AGENTS.md compatibility
+
+- Given a registered project already manages its root `AGENTS.md`
+- When the user opens Qoder Rules for that project
+- Then the existing project rule opens in the shared editor
+- And PromptHub does not create a duplicate project rule record
+
+### `FR-AGENT-114`: Reuse Session Index Without Reblocking History
+
+PromptHub MUST reuse a completed supported-source metadata index while it is
+fresh and MUST NOT launch a full refresh on every History mount. Initial source
+enablement and stale metadata MAY start one background refresh after the first
+bounded session list settles. Reopening or switching back to the same Agent
+while that refresh is running MUST join the existing refresh rather than start
+another scan.
+
+Leaving History MUST NOT cancel an application-owned automatic refresh. Window
+destruction MUST still cancel it through the existing IPC sender lifecycle.
+The panel MUST keep an already loaded session list visible while a refresh
+revision is applied; only an Agent with no completed initial list may use the
+blocking loading state.
+
+#### Scenario: Reopen a freshly indexed History
+
+- Given a supported Agent has a successful index refreshed within the freshness window
+- When the user leaves and reopens its History
+- Then PromptHub lists cached metadata without starting another native scan
+- And the History panel does not return to a long blocking loading state
+
+#### Scenario: Leave while initial cache warmup runs
+
+- Given a supported Agent has no completed index and its first live list is visible
+- When automatic cache warmup starts and the user opens another Agent
+- Then the warmup continues as one application-owned request
+- And reopening the original Agent joins that request instead of restarting it
+
+#### Scenario: Apply a completed background refresh
+
+- Given History already displays cached or live session rows
+- When a stale background refresh completes
+- Then PromptHub reloads the bounded metadata page without hiding the existing rows
+
+### `FR-AGENT-115`: Install Agent Assets In Context
+
+The Add action in an Agent's MCP or Plugin workspace MUST keep the user in the
+current Agent workspace. It MUST open an in-context selection dialog, matching
+the existing Skill installation workflow, rather than navigating to the
+standalone MCP or Plugin manager.
+
+The MCP dialog MUST select one or more enabled entries from My MCP and apply
+them to the selected Agent's bounded target preset. Entries already present on
+that target MUST remain visible but unavailable for duplicate selection. The
+Plugin dialog MUST select one or more entries from My Plugins, choose copy or
+symlink installation, and distribute them only to enabled Plugin targets owned
+by the selected Agent. Successful installation MUST refresh the current asset
+inventory without changing the active app module or Agent tab.
+
+#### Scenario: Add MCP without leaving the Agent
+
+- Given an Agent has a writable MCP target and My MCP contains an enabled server
+- When the user selects Add MCP, chooses the server and confirms
+- Then PromptHub applies the server to that Agent target
+- And the MCP dialog closes after the current Agent inventory refreshes
+- And the standalone MCP manager is not opened
+
+#### Scenario: Add Plugins without leaving the Agent
+
+- Given an Agent has an enabled Plugin target and My Plugins contains packages
+- When the user selects Add Plugin, chooses packages and an install mode, then confirms
+- Then PromptHub distributes the packages only to the selected Agent targets
+- And the Plugin dialog closes after the current Agent inventory refreshes
+- And the standalone Plugin manager is not opened
+
+### `FR-AGENT-116`: Provider Terminology And Read-Only Native Configuration
+
+The Agent Provider & Model workspace MUST call user-managed entries providers
+in all user-visible labels, dialogs, empty states and activation copy. It MUST
+NOT call them profiles or configuration profiles. Internal compatibility type,
+database and IPC names MAY retain their existing Provider Profile identifiers.
+
+The workspace MUST NOT expose Import current configuration, Create editable
+profile or equivalent native-to-managed conversion commands. This applies to
+the shared Provider workspace and Pi's built-in provider catalog. The current
+native configuration remains visible as a read-only detected state, while Add
+provider and Import from PromptHub remain available.
+
+#### Scenario: Open an Agent with detected native configuration
+
+- Given PromptHub detects an Agent-owned native provider configuration
+- When the user opens Provider & Model
+- Then the native configuration is shown read-only
+- And no command imports or converts that native configuration
+- And the user may still add a provider or restore official configuration when supported
+
+### `FR-AGENT-117`: Clear Plugin Empty States And Network-Aware Market Downloads
+
+The Agent Plugin workspace MUST describe empty inventory without exposing
+target or distribution implementation terms. Add Plugin MUST open its
+in-context dialog even when My Plugins or writable targets are empty. Official
+market Git downloads MUST follow the effective proxy mode from Network
+Settings and MUST NOT bypass that mode with an installer-specific fallback.
+Download failures MUST be presented as a concise localized action that points
+back to Network Settings rather than raw IPC or Git diagnostics. Every Plugin
+install or import failure MUST state what failed, the likely failure category,
+and the next action. Source access, package validation, duplicate installation,
+local storage, Git availability, network/proxy and unexpected failures MUST use
+one shared renderer policy across market, local/source import, Agent deployment
+and batch-install surfaces. Unexpected details MUST be bounded and redact source
+URLs, local paths, IPC prefixes and internal error wrappers.
+
+#### Scenario: No Plugins are available
+
+- Given the current Agent has no My Plugins and no discovered Plugin packages
+- When the Plugin tab and Add Plugin dialog render
+- Then the workspace says only that no Plugins are available
+- And clicking Add Plugin opens the selection dialog without a target-error toast
+- And the dialog does not ask the user to understand targets or distribution
+
+#### Scenario: Plugins exist but the Agent cannot install them
+
+- Given My Plugins contains selectable packages
+- And the current Agent has no enabled Plugin destination
+- When Add Plugin opens
+- Then the dialog states that this Agent does not support Plugin installation
+- And package selection and confirmation remain disabled
+
+#### Scenario: Plugin download follows Network Settings
+
+- Given Network Settings selects system proxy, direct connection or a manual proxy
+- When Git downloads an official-market Plugin
+- Then the child process inherits the environment produced by that selected mode
+- And direct mode clears inherited proxy variables
+- And system mode restores the proxy environment captured at application startup
+- And manual mode applies only the configured proxy and bypass rules
+- And the Plugin installer does not silently switch modes or retry without proxy
+- And a proxy failure points the user to Network Settings without raw IPC,
+  temporary paths, command output or repository internals
+
+#### Scenario: Plugin failures explain the situation
+
+- Given a market, local, source, Agent deployment or batch Plugin operation fails
+- When PromptHub reports the failure
+- Then the message identifies the failure category and a corrective next step
+- And batch installation includes its aggregate counts and first explained failure
+- And a completed Agent deployment whose inventory refresh fails states that the
+  operation completed and asks the user to refresh before retrying installation
+- And source URLs, local paths, IPC prefixes, command output and internal wrappers
+  are not shown
+
+#### Scenario: Manage providers without profile terminology
+
+- Given the user opens a provider list, form, activation review or delete confirmation
+- When PromptHub renders user-facing copy
+- Then the managed entry is called a provider in the active locale
+- And internal Provider Profile identifiers are not shown as product terminology
+
+### `FR-AGENT-118`: Visual Provider Import And Agent-Aware Protocol Choice
+
+The PromptHub provider import dialog MUST show the existing themed provider
+icon for every source row and the inferred model-family icon for every model
+choice, with the existing Custom/Other fallback when no dedicated asset is
+available. It MUST use a bounded custom selector rather than a native text-only
+model menu.
+
+The dialog MUST expose a protocol selector whose options are derived from both
+the source provider API and the destination Agent's writable protocol
+capabilities. It MUST preselect the direct/recommended mapping and include the
+selected protocol in the import request. The main process MUST reject a stale,
+missing or destination-incompatible protocol instead of silently choosing a
+different one.
+
+#### Scenario: Import an OpenAI-compatible provider into Codex
+
+- Given PromptHub has an OpenAI-compatible provider with multiple chat models
+- When the user opens Import from PromptHub for Codex
+- Then the provider and each model display their matching local icons
+- And the protocol selector offers only Codex-compatible OpenAI Chat and OpenAI Responses choices
+- And OpenAI Chat is selected as the direct mapping for an OpenAI-protocol source
+- And importing persists the explicitly selected protocol
+
+#### Scenario: Import the same provider into Pi
+
+- Given the same PromptHub provider is selected for Pi
+- When the import dialog renders
+- Then protocol choices use Pi's native API names and capabilities
+- And a protocol that was valid for Codex but is not a Pi API value cannot be submitted
+
+### `FR-AGENT-119`: Provider Creation And Import Entry Placement
+
+The Provider & Model sidebar MUST place Import from PromptHub and Add custom
+provider together in the top action area, and both commands MUST use the add
+icon. The bottom of the sidebar MUST NOT retain a duplicate add command.
+
+Right-clicking anywhere inside the provider list MUST expose the same available
+commands. Desktop Agents expose both import and custom creation; runtimes that
+cannot import from the local PromptHub model service expose only custom
+creation. The context menu MUST reuse the same workflows and busy state as the
+visible toolbar commands.
+
+#### Scenario: Open provider actions from the list
+
+- Given the user is viewing a desktop Agent's provider list
+- When the user right-clicks a provider row or empty list space
+- Then the menu offers Import from PromptHub and Add custom provider
+- And either command opens the same dialog as its matching top action
+- And no add-provider action remains fixed to the bottom of the sidebar
+
+### `FR-AGENT-121`: Layered Inline Provider Editor
+
+The inline Add/Edit provider workspace MUST visually distinguish the page
+background, action header, form surface, sections and controls. The form MUST
+use one white/card-colored surface with section dividers rather than rendering
+every section as an independent nested card. Text inputs, secret inputs and
+custom dropdown triggers MUST share the same outlined control treatment and
+disabled state; the provider editor MUST NOT fall back to an operating-system
+native select menu. Every field group MUST use a single full-width column in
+the right pane; it MUST NOT leave a half-width control beside empty space. Form
+dropdowns MUST match their trigger width and use a restrained border, radius,
+shadow and selected state rather than a floating oversized menu treatment.
+
+Field labels, examples and placeholders MUST follow the corresponding
+CC Switch provider concepts where PromptHub already owns the same writable
+field: provider name, provider identifier, endpoint, model identifier, context
+size and API key. Examples MUST be specific to the destination Agent where the
+adapter has a known convention. This visual/content alignment MUST NOT invent
+new stored website, notes, icon, proxy or request-conversion fields.
+
+#### Scenario: Add a custom provider in the right pane
+
+- Given the user opens Add custom provider from Provider & Model
+- When the inline editor renders
+- Then the right pane has a muted page background and a distinct action header
+- And all form sections sit inside one bordered white form surface
+- And section headings, dividers and outlined controls create a visible hierarchy
+- And every input and dropdown trigger spans the available form width
+- And every dropdown opens a themed PromptHub listbox rather than a native menu
+- And the listbox aligns to its trigger without an oversized radius or shadow
+- And blank fields show actionable Agent-specific examples for endpoint, model and credentials
+- And the editor does not create a stack of decorative cards inside the form
+
+### `FR-AGENT-122`: Claude Code Native Model Routes
+
+The custom-provider editor for Claude Code MUST expose the model routes that
+Claude Code natively supports: the required primary model and optional Sonnet,
+Opus, Haiku and subagent models. These values MUST be stored as typed model
+mappings, included in activation planning and verification, and written to the
+matching Claude Code environment keys without exposing credentials.
+
+Importing the current Claude Code configuration MUST recover every supported
+route. Activating a profile MUST remove stale PromptHub-managed route values
+that are omitted by the selected profile while preserving unrelated native
+settings. Unknown routes, duplicate routes, parameters and invalid model ids
+MUST block activation.
+
+The editor MUST NOT add unsupported Fable, proxy, request-rewrite, website,
+icon or promotional metadata fields. Draft-time endpoint model discovery MUST
+not reuse the unrestricted renderer HTTP path or move write-only credentials
+out of the main process; it remains separately gated until a bounded main-only
+discovery contract exists.
+
+#### Scenario: Configure Claude role models
+
+- Given the user adds or edits a Claude Code custom provider
+- When the model section renders
+- Then the primary, Sonnet, Opus, Haiku and subagent model fields are available
+- And blank optional role fields are omitted from the saved model mappings
+- And activation writes each supplied route to its documented Claude Code key
+- And a later profile that omits a route removes that stale managed value
+- And unrelated settings and environment values remain unchanged
+
+### `FR-AGENT-124`: Codex Native Model Runtime Options
+
+The Codex custom-provider editor MUST expose the optional model reasoning effort
+and context window values that Codex currently documents in `config.toml`.
+Reasoning effort MUST accept only `minimal`, `low`, `medium`, `high` or `xhigh`
+and MUST be available only for the Responses path or the native OpenAI path.
+Context window MUST be a positive bounded integer. Both values MUST travel with
+the primary model mapping so profile import, activation, verification and later
+profile switching use one source of truth.
+
+Importing native Codex configuration MUST recover valid values. Activating a
+profile MUST write supplied values and remove stale PromptHub-managed values
+when the selected profile omits them, while preserving unrelated TOML comments,
+tables and settings. Invalid, unknown or misplaced mapping parameters MUST block
+activation.
+
+The editor MUST NOT copy CC Switch's legacy `disable_response_storage` field,
+global `goals` feature toggle, proxy conversion or promotional metadata into the
+provider profile. OpenAI-auth reuse and command-backed authentication remain
+separate security-sensitive contracts rather than cosmetic form toggles.
+
+#### Scenario: Configure Codex model runtime options
+
+- Given the user adds or edits a Codex provider
+- When the model section renders
+- Then optional reasoning effort and context window controls are available
+- And blank values preserve the Codex model defaults
+- And saved values are stored on the primary model mapping
+- And activation writes `model_reasoning_effort` and `model_context_window`
+- And selecting a profile without either value removes the stale managed keys
+- And unrelated `config.toml` content remains unchanged
+
+### `FR-AGENT-123`: Provider List Activation And Native Provider Testing
+
+The Provider & Model sidebar MUST expose activation as a compact switch on
+every managed provider row. The provider verified against the Agent's current
+native state MUST show a checked, non-destructive switch; selecting an inactive
+switch MUST enter the existing review, atomic apply, verification and rollback
+workflow. The detail pane MUST NOT retain a second activation command.
+
+The read-only current native provider, including an official platform-managed
+provider, MUST expose the same connection and explicit model-test surfaces as a
+stored provider. Testing MUST derive an ephemeral sanitized target from the
+Agent's current native configuration. It MUST NOT create a stored provider,
+persist credentials, activate a provider or write the Agent configuration.
+Platform-native subscription or OAuth transports that cannot be probed directly
+MUST return a truthful unsupported result rather than pretending that a remote
+connection succeeded.
+
+Codex's official OpenAI transport is probeable through the installed Codex CLI.
+Its connection check MUST use the CLI's native login-status command against the
+selected Codex root without sending a model request. Its explicit model test
+MUST use an ephemeral, user-config-free, rule-free, read-only `codex exec` run
+with the selected official model. The probe MUST NOT persist a session, expose
+authentication output or mutate `config.toml`; cancellation and bounded timeout
+failures MUST remain typed and redacted.
+
+#### Scenario: Activate another provider from the list
+
+- Given one provider is verified as current and another provider is inactive
+- When the user selects the inactive provider's switch
+- Then PromptHub opens the existing activation review for that provider
+- And only the current provider's switch remains checked until verification succeeds
+- And no duplicate activation button appears in the detail pane
+
+#### Scenario: Test the current official provider
+
+- Given an Agent has a detected official platform-managed native provider
+- When the user runs connection or model testing from its detail pane
+- Then PromptHub tests an ephemeral projection of that current provider
+- And no Provider Profile row, secret reference or Agent file is created or changed
+- And an official Codex connection check validates the CLI login without consuming model quota
+- And an official Codex model test uses an isolated ephemeral request only after confirmation
+- And an unprobeable native transport is reported as unsupported
+
+### `FR-AGENT-125`: Codex Official Account Snapshot Switching
+
+For Codex's built-in OpenAI provider, PromptHub MUST let the user save the
+current official login, import another complete `auth.json` as a write-only
+account snapshot, list sanitized account summaries and switch the active
+account by replacing the single native `~/.codex/auth.json`. PromptHub MUST NOT
+append an account array or otherwise change Codex's native authentication
+schema.
+
+Account snapshots MUST be encrypted at rest in a main-process-only PromptHub
+store. The renderer may receive only a user label, masked account identifier,
+timestamps and active state. Switching MUST preserve an unsaved current login,
+write the selected snapshot atomically with owner-only permissions, re-read and
+verify it, and restore the exact previous file on failure. It MUST NOT modify
+`config.toml`, Provider Profiles, models, MCP, sessions or unrelated Codex
+state. An active snapshot MUST NOT be deletable.
+
+#### Scenario: Switch between saved official accounts
+
+- Given the current official Codex login and another valid saved account
+- When the user switches to the saved account
+- Then the current login is retained as an encrypted snapshot if necessary
+- And the selected snapshot replaces `~/.codex/auth.json` atomically
+- And the replacement is re-read and verified before success is reported
+- And `config.toml` and all other Codex files remain unchanged
+
+#### Scenario: Reject invalid or unsafe authentication input
+
+- Given malformed JSON, an oversized payload or a payload without an official access token
+- When the user tries to add an account
+- Then no account metadata, ciphertext or Codex file is changed
+- And no token or raw authentication JSON appears in the returned error

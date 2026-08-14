@@ -127,6 +127,8 @@ CREATE TABLE IF NOT EXISTS skills (
   source_branch TEXT,
   source_directory TEXT,
   canonical_skill_path TEXT,
+  logical_name TEXT,
+  variant_key TEXT,
   local_repo_path TEXT,
   directory_fingerprint TEXT,
   icon_url TEXT,
@@ -348,7 +350,6 @@ CREATE TABLE IF NOT EXISTS agent_conversation_metadata (
   note TEXT,
   is_favorite INTEGER NOT NULL DEFAULT 0 CHECK(is_favorite IN (0, 1)),
   archived_at INTEGER,
-  deleted_at INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   UNIQUE(agent_id, session_id)
@@ -369,6 +370,17 @@ CREATE TABLE IF NOT EXISTS agent_conversation_handoffs (
   error_code TEXT,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS canonical_resources (
+  resource_type TEXT NOT NULL,
+  resource_id TEXT NOT NULL,
+  schema_version INTEGER NOT NULL,
+  revision INTEGER NOT NULL,
+  content_hash TEXT NOT NULL,
+  manifest_path TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(resource_type, resource_id)
 );
 `;
 
@@ -414,6 +426,8 @@ CREATE INDEX IF NOT EXISTS idx_generation_batches_status ON generation_batches(s
 CREATE INDEX IF NOT EXISTS idx_generation_batches_source ON generation_batches(source_prompt_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_generation_outputs_batch ON generation_outputs(batch_id, slot_index);
 CREATE INDEX IF NOT EXISTS idx_generation_outputs_favorite ON generation_outputs(favorite, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_canonical_resources_type_updated
+  ON canonical_resources(resource_type, updated_at DESC, resource_id);
 CREATE INDEX IF NOT EXISTS idx_agent_provider_profiles_platform
   ON agent_provider_profiles(platform_id, archived, updated_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_provider_profiles_active_name
@@ -438,7 +452,7 @@ CREATE INDEX IF NOT EXISTS idx_agent_session_index_source_status
 CREATE INDEX IF NOT EXISTS idx_agent_conversation_metadata_agent_updated
   ON agent_conversation_metadata(agent_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_conversation_metadata_project
-  ON agent_conversation_metadata(project_id, deleted_at, updated_at DESC);
+  ON agent_conversation_metadata(project_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_conversation_handoffs_source
   ON agent_conversation_handoffs(
     source_agent_id,
