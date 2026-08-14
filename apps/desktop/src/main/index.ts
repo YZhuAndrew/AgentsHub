@@ -42,11 +42,11 @@ import {
   getShowTrayIconSetting,
 } from "./settings/settings-readers";
 import { readLanguageSetting } from "./settings/language-setting";
+import { resolveInitialBounds } from "./window-state";
 import {
-  resolveInitialBounds,
-  saveWindowState,
-  type WindowState,
-} from "./window-state";
+  attachWindowStateCapture,
+  flushWindowStateSave,
+} from "./window-state-capture";
 import { createMenu } from "./menu";
 import {
   registerShortcuts,
@@ -149,13 +149,6 @@ let closeAction: "ask" | "minimize" | "exit" = "ask";
 // 是否正在等待用户选择关闭行为
 let pendingCloseAction = false;
 let isDebugMode = false;
-
-// ── Window geometry persistence ─────────────────────────────────────────────
-// Tracks the last non-maximized bounds so a quit while maximized still records
-// the user's normal window size, plus the pending (debounced) save timer.
-let windowStateTracker: WindowState | null = null;
-let windowStateSaveTimer: ReturnType<typeof setTimeout> | null = null;
-const WINDOW_STATE_SAVE_DEBOUNCE_MS = 500;
 
 async function applyStoredNetworkProxySettings(
   db: Database.Database,
@@ -370,87 +363,6 @@ if (!gotTheLock) {
   });
 }
 
-// ── Window geometry capture ─────────────────────────────────────────────────
-
-/**
- * Read the current bounds/maximized flag from the live window, preferring the
- * tracked normal (non-maximized) bounds when the window is maximized so that
- * an un-maximize still returns to the user's chosen size. Returns null if the
- * window or DB is unavailable.
- */
-function collectWindowState(win: BrowserWindow): WindowState | null {
-  if (win.isDestroyed()) return null;
-  const maximized = win.isMaximized();
-  const tracked = windowStateTracker;
-  if (maximized && tracked) {
-    return {
-      width: tracked.width,
-      height: tracked.height,
-      x: tracked.x,
-      y: tracked.y,
-      maximized: true,
-    };
-  }
-  const { width, height, x, y } = win.getBounds();
-  return { width, height, x, y, maximized };
-}
-
-/**
- * Schedule a debounced write of the current window state to the settings table.
- * Debouncing coalesces a burst of resize/move events into a single write.
- */
-function scheduleWindowStateSave(win: BrowserWindow): void {
-  if (!appDb) return;
-  const next = collectWindowState(win);
-  if (!next) return;
-  windowStateTracker = next;
-  if (windowStateSaveTimer) {
-    clearTimeout(windowStateSaveTimer);
-  }
-  windowStateSaveTimer = setTimeout(() => {
-    windowStateSaveTimer = null;
-    if (appDb) {
-      const current = collectWindowState(win);
-      if (current) saveWindowState(appDb, current);
-    }
-  }, WINDOW_STATE_SAVE_DEBOUNCE_MS);
-}
-
-/**
- * Flush the latest window state immediately, cancelling any pending debounced
- * write. Called during quit, before the database is closed.
- */
-function flushWindowStateSave(win: BrowserWindow): void {
-  if (windowStateSaveTimer) {
-    clearTimeout(windowStateSaveTimer);
-    windowStateSaveTimer = null;
-  }
-  if (!appDb) return;
-  const current = collectWindowState(win);
-  if (current) saveWindowState(appDb, current);
-}
-
-/**
- * Attach the listeners that keep `windowStateTracker` and the persisted state
- * in sync. Called once after the window is created.
- */
-function attachWindowStateCapture(win: BrowserWindow): void {
-  win.on("resize", () => {
-    // Ignore the transient sizes reported while maximized/minimized — we keep
-    // the last normal bounds via `windowStateTracker` instead.
-    if (!win.isMaximized() && !win.isMinimized()) {
-      scheduleWindowStateSave(win);
-    }
-  });
-  win.on("move", () => {
-    if (!win.isMaximized() && !win.isMinimized()) {
-      scheduleWindowStateSave(win);
-    }
-  });
-  win.on("maximize", () => scheduleWindowStateSave(win));
-  win.on("unmaximize", () => scheduleWindowStateSave(win));
-}
-
 async function createWindow() {
   // Ensure single window
   // 确保应用只有一个主窗口
@@ -506,18 +418,12 @@ async function createWindow() {
     show: false,
   });
 
-  // Seed the tracker with the bounds the window actually opened with so the
-  // first save (and a quit before any resize) records something sensible.
-  // 用窗口实际打开时的几何初始化追踪器，确保首次保存/退出前有合理值。
-  windowStateTracker = collectWindowState(mainWindow);
-
-  // Restore the maximized state before the window becomes visible to avoid a
-  // visible resize flash. Capture listeners persist geometry as it changes.
-  // 在窗口可见前恢复最大化状态，避免可见的尺寸跳动。
-  if (restoredBounds?.maximized) {
-    mainWindow.maximize();
-  }
-  attachWindowStateCapture(mainWindow);
+  // Seed the geometry tracker, restore the maximized state before the window
+  // becomes visible (to avoid a resize flash), and attach the capture listeners.
+  // 在窗口可见前恢复最大化状态、初始化几何追踪器并挂载监听。
+  attachWindowStateCapture(mainWindow, () => appDb, {
+    maximize: restoredBounds?.maximized ?? false,
+  });
 
   // Handle window ready-to-show: check if we should minimize on launch
   mainWindow.once("ready-to-show", () => {
@@ -2113,7 +2019,7 @@ app.on("before-quit", () => {
   // last position/size/maximized state is available on the next launch.
   // 在关闭数据库前落盘最新窗口几何，确保下次启动可恢复。
   if (mainWindow && !mainWindow.isDestroyed()) {
-    flushWindowStateSave(mainWindow);
+    flushWindowStateSave(mainWindow, () => appDb);
   }
   closeDatabase();
 });
