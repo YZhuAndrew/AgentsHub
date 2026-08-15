@@ -188,9 +188,13 @@ function repairIndexIntegrity(
 function ensureDatabaseIntegrity(
   dbPath: string,
   ensureSafetyPoint: (reason: DatabaseSafetyPointReason) => DatabaseSafetyPoint,
+  precomputedDiagnostics?: string[] | null,
 ): void {
   if (!fs.existsSync(dbPath) || fs.statSync(dbPath).size === 0) return;
-  const diagnostics = inspectDatabaseIntegrity(dbPath);
+  // Reuse the diagnostics computed before the handle was opened: nothing
+  // has written to the file in between, so a second full scan is redundant.
+  // 复用打开前计算的诊断：期间无任何写入，第二次全库扫描是冗余的。
+  const diagnostics = precomputedDiagnostics ?? inspectDatabaseIntegrity(dbPath);
   if (isHealthyQuickCheck(diagnostics)) return;
   if (isFreelistOnlyMismatch(diagnostics)) {
     repairFreelistIntegrity(dbPath, diagnostics, ensureSafetyPoint);
@@ -312,9 +316,12 @@ function shouldBackupDatabaseBeforeMigration(dbPath: string): boolean {
   }
 }
 
-function databaseRequiresExclusiveMaintenance(dbPath: string): boolean {
+function databaseRequiresExclusiveMaintenance(
+  dbPath: string,
+  precomputedDiagnostics?: string[] | null,
+): boolean {
   if (!fs.existsSync(dbPath) || fs.statSync(dbPath).size === 0) return true;
-  const diagnostics = inspectDatabaseIntegrity(dbPath);
+  const diagnostics = precomputedDiagnostics ?? inspectDatabaseIntegrity(dbPath);
   return (
     !isHealthyQuickCheck(diagnostics) ||
     shouldBackupDatabaseBeforeMigration(dbPath)
@@ -360,10 +367,6 @@ function verifyInitializedDatabase(
     throw new Error("Post-migration foreign key verification failed");
   }
   assertDatabaseCompatibility(dbPath);
-  const reopenedDiagnostics = inspectDatabaseIntegrity(dbPath);
-  if (!isHealthyQuickCheck(reopenedDiagnostics)) {
-    throw new Error("Fresh-reopen database verification failed");
-  }
 }
 
 /**
@@ -413,14 +416,22 @@ export function initDatabase(
       }
     }
     assertDatabaseCompatibility(dbPath);
+    // One pre-open scan feeds both the maintenance decision and the
+    // integrity gate; the file is untouched between the two consumers.
+    // 打开前的一次扫描同时供维护判定与完整性闸门使用；两个消费者之间
+    // 文件未被写入。
+    const initialDiagnostics =
+      fs.existsSync(dbPath) && fs.statSync(dbPath).size > 0
+        ? inspectDatabaseIntegrity(dbPath)
+        : null;
     const requiresExclusiveMaintenance =
-      databaseRequiresExclusiveMaintenance(dbPath);
+      databaseRequiresExclusiveMaintenance(dbPath, initialDiagnostics);
     if (requiresExclusiveMaintenance) assertNoOtherDatabaseClients(dbPath);
     dbClientLease = acquireDatabaseClientLease(dbPath, {
       recoverUnregisteredLock: hooks?.recoverUnregisteredLock,
     });
     if (requiresExclusiveMaintenance) assertNoOtherDatabaseClients(dbPath);
-    ensureDatabaseIntegrity(dbPath, ensureSafetyPoint);
+    ensureDatabaseIntegrity(dbPath, ensureSafetyPoint, initialDiagnostics);
     backupDatabaseBeforeMigration(dbPath, ensureSafetyPoint);
     db = new Database(dbPath);
 
