@@ -94,6 +94,27 @@ export function sortSkillPlatformsByPreference(
   });
 }
 
+/**
+ * Drop platforms reported as installed from an existing selection. Returns
+ * the same Set reference when nothing needs pruning so React state updates
+ * bail out for unchanged selections.
+ */
+function pruneInstalledPlatforms(
+  selection: Set<string>,
+  status: Record<string, boolean>,
+): Set<string> {
+  let pruned: Set<string> | null = null;
+  for (const platformId of selection) {
+    if (status[platformId]) {
+      if (pruned === null) {
+        pruned = new Set(selection);
+      }
+      pruned.delete(platformId);
+    }
+  }
+  return pruned ?? selection;
+}
+
 export function useSkillPlatform(
   skill: Skill | null | undefined,
   installMode: SkillInstallMode,
@@ -137,44 +158,62 @@ export function useSkillPlatform(
     setDetectedPlatforms(detected);
   }, [runtimeCapabilities.skillPlatformIntegration]);
 
-  const refreshInstallStatus = useCallback(async () => {
-    if (!skill || !runtimeCapabilities.skillPlatformIntegration) {
-      setInstallStatus({});
-      setInstallDetails({});
-      setSelectedPlatforms(new Set());
-      return;
-    }
-    const details =
-      typeof window.api.skill.getMdInstallStatusDetails === "function"
-        ? await window.api.skill.getMdInstallStatusDetails(skill.id)
-        : Object.fromEntries(
-            Object.entries(
-              await window.api.skill.getMdInstallStatus(skill.id),
-            ).map(([platformId, installed]) => [
-              platformId,
-              { installed: Boolean(installed) },
-            ]),
-          );
-    const status = Object.fromEntries(
-      Object.entries(details).map(([platformId, installStatus]) => [
-        platformId,
-        installStatus.installed,
-      ]),
-    );
-    setInstallDetails(details);
-    setInstallStatus(status);
-    setSelectedPlatforms(new Set());
-    await loadDeployedStatus({ force: true });
-  }, [loadDeployedStatus, runtimeCapabilities.skillPlatformIntegration, skill]);
+  // Refreshes must survive store object-identity churn for the same skill:
+  // the renderer store replaces skill objects on unrelated writes (repo sync,
+  // safety report saves), and re-keying the refresh on the object cleared the
+  // user's in-progress platform selection. The skill id is the stable key.
+  const refreshInstallStatus = useCallback(
+    async (targetSkillId: string) => {
+      if (!runtimeCapabilities.skillPlatformIntegration) {
+        setInstallStatus({});
+        setInstallDetails({});
+        return;
+      }
+      const details =
+        typeof window.api.skill.getMdInstallStatusDetails === "function"
+          ? await window.api.skill.getMdInstallStatusDetails(targetSkillId)
+          : Object.fromEntries(
+              Object.entries(
+                await window.api.skill.getMdInstallStatus(targetSkillId),
+              ).map(([platformId, installed]) => [
+                platformId,
+                { installed: Boolean(installed) },
+              ]),
+            );
+      const status = Object.fromEntries(
+        Object.entries(details).map(([platformId, installStatus]) => [
+          platformId,
+          installStatus.installed,
+        ]),
+      );
+      setInstallDetails(details);
+      setInstallStatus(status);
+      // Keep the selection but drop platforms that became installed so a
+      // selection only ever contains currently-uninstalled platforms.
+      setSelectedPlatforms((previous) =>
+        pruneInstalledPlatforms(previous, status),
+      );
+      await loadDeployedStatus({ force: true });
+    },
+    [loadDeployedStatus, runtimeCapabilities.skillPlatformIntegration],
+  );
 
   useEffect(() => {
     void loadPlatforms();
   }, [loadPlatforms]);
 
+  const skillId = skill?.id ?? null;
+
   useEffect(() => {
-    if (!skill) return;
-    void refreshInstallStatus();
-  }, [refreshInstallStatus, skill]);
+    if (!skillId) {
+      setInstallStatus({});
+      setInstallDetails({});
+      setSelectedPlatforms(new Set());
+      return;
+    }
+    setSelectedPlatforms(new Set());
+    void refreshInstallStatus(skillId);
+  }, [refreshInstallStatus, skillId]);
 
   const availablePlatforms = useMemo(
     () =>
@@ -271,7 +310,8 @@ export function useSkillPlatform(
         }
       }
 
-      await refreshInstallStatus();
+      await refreshInstallStatus(skill.id);
+      setSelectedPlatforms(new Set());
       return {
         successCount,
         totalCount: platformIds.length,
@@ -294,7 +334,7 @@ export function useSkillPlatform(
     async (platformId: string) => {
       if (!runtimeCapabilities.skillPlatformIntegration || !skill) return;
       await window.api.skill.uninstallMd(skill.id, platformId);
-      await refreshInstallStatus();
+      await refreshInstallStatus(skill.id);
     },
     [refreshInstallStatus, runtimeCapabilities.skillPlatformIntegration, skill],
   );

@@ -7,7 +7,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 
 | State | Count |
 | --- | ---: |
-| Active | 49 |
+| Active | 50 |
 | Archived | 213 |
 | Legacy | 1 |
 
@@ -57,6 +57,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `rules-issue-193-missing-project-reconciliation` | active | `spec/changes/active/rules-issue-193-missing-project-reconciliation/` |
 | `self-hosted-skill-sync-reliability` | active | `spec/changes/active/self-hosted-skill-sync-reliability/` |
 | `skill-batch-import-zip-and-multi-url` | active | `spec/changes/active/skill-batch-import-zip-and-multi-url/` |
+| `skill-detail-distribution-selection-stability` | active | `spec/changes/active/skill-detail-distribution-selection-stability/` |
 | `skill-uninstall-lifecycle` | active | `spec/changes/active/skill-uninstall-lifecycle/` |
 | `skills-issue-194-shared-global-target` | active | `spec/changes/active/skills-issue-194-shared-global-target/` |
 | `sync-issue-191-safety-report-contract` | active | `spec/changes/active/sync-issue-191-safety-report-contract/` |

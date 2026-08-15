@@ -521,6 +521,19 @@ function updateSafetySummary(
   else summary.blocked += 1;
 }
 
+/**
+ * Safety reports are small, serializable objects. Replacing the stored skill
+ * object for an unchanged report re-renders every skill subscriber for no
+ * data change, so an equal report keeps the current object identity.
+ */
+function isSameSafetyReport(
+  current: SkillSafetyReport | null | undefined,
+  next: SkillSafetyReport,
+): boolean {
+  if (!current) return false;
+  return JSON.stringify(current) === JSON.stringify(next);
+}
+
 async function saveSafetyReportToState(
   set: SkillStoreSet,
   skillId: string,
@@ -529,9 +542,12 @@ async function saveSafetyReportToState(
 ): Promise<void> {
   await window.api.skill.saveSafetyReport(skillId, report);
   set((state) => ({
-    skills: state.skills.map((item) =>
-      item.id === skillId ? { ...item, safetyReport: report } : item,
-    ),
+    skills: state.skills.map((item) => {
+      if (item.id !== skillId) return item;
+      return isSameSafetyReport(item.safetyReport, report)
+        ? item
+        : { ...item, safetyReport: report };
+    }),
   }));
   scheduleAllSaveSync(syncReason);
 }

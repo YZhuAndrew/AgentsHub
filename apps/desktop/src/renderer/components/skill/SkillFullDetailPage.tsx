@@ -512,8 +512,23 @@ export function SkillFullDetailPage({
     selectedSkill?.id,
   ]);
 
+  // Auto-scan inputs are captured as primitives: the whole `selectedSkill`
+  // object gets a new identity whenever the store persists this very report,
+  // which turned the scan → save cycle into an endless rescan loop.
+  const autoScanSkillId = selectedSkill?.id ?? null;
+  const autoScanSkillName = selectedSkill?.name ?? "";
+  const autoScanSourceUrl = selectedSkill?.source_url ?? null;
+  const autoScanContentUrl = selectedSkill?.content_url ?? null;
+  const autoScanLocalRepoPath = selectedSkill?.local_repo_path ?? null;
+  const autoScanContentFallback =
+    selectedSkill?.instructions || selectedSkill?.content || "";
+  // Keying on the effective content (not the resolved string alone) keeps the
+  // scan stable while the repo-sync effect resolves the same content from
+  // disk that the DB already stores.
+  const autoScanContent = resolvedSkillMdContent || autoScanContentFallback;
+
   useEffect(() => {
-    if (!selectedSkill || !autoScanInstalledSkills || isAgentDetail) {
+    if (!autoScanSkillId || !autoScanInstalledSkills || isAgentDetail) {
       return;
     }
 
@@ -523,21 +538,18 @@ export function SkillFullDetailPage({
       setIsScanningSafety(true);
       try {
         const report = await window.api.skill.scanSafety({
-          name: selectedSkill.name,
-          content:
-            resolvedSkillMdContent ||
-            selectedSkill.instructions ||
-            selectedSkill.content,
-          sourceUrl: selectedSkill.source_url,
-          contentUrl: selectedSkill.content_url,
-          localRepoPath: selectedSkill.local_repo_path,
+          name: autoScanSkillName,
+          content: autoScanContent,
+          sourceUrl: autoScanSourceUrl,
+          contentUrl: autoScanContentUrl,
+          localRepoPath: autoScanLocalRepoPath,
           aiConfig: getSafetyScanAIConfig(aiModels),
         });
         if (!cancelled) {
           setSafetyReport(report);
           // Persist to DB + update store
           try {
-            await saveSafetyReport(selectedSkill.id, report);
+            await saveSafetyReport(autoScanSkillId, report);
           } catch (err) {
             console.warn("Failed to persist auto-scan safety report:", err);
           }
@@ -560,10 +572,15 @@ export function SkillFullDetailPage({
     };
   }, [
     aiModels,
+    autoScanContent,
+    autoScanContentUrl,
     autoScanInstalledSkills,
-    resolvedSkillMdContent,
-    selectedSkill,
+    autoScanLocalRepoPath,
+    autoScanSkillId,
+    autoScanSkillName,
+    autoScanSourceUrl,
     isAgentDetail,
+    saveSafetyReport,
   ]);
   const {
     availablePlatforms,
