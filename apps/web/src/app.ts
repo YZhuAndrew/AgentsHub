@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { compress } from "hono/compress";
 import { FolderDB, PromptDB, SkillDB } from "@prompthub/db";
 import rootPackage from "../../../package.json";
 import { getServerDatabase } from "./database.js";
@@ -33,6 +34,11 @@ export function createApp(): Hono {
 
   app.use("*", logger());
   app.use("*", securityHeaders());
+  // Text responses (JSON APIs, static JS/CSS/HTML) are gzipped per
+  // Accept-Encoding; non-text formats are skipped by the middleware.
+  // 文本响应（JSON API、静态 JS/CSS/HTML）按 Accept-Encoding 做 gzip；
+  // 非文本格式由中间件自动跳过。
+  app.use("*", compress());
   app.onError(errorHandler);
 
   app.route("/api/auth", authRoutes);

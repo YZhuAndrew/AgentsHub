@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { createAppMock, existsSyncMock, readFileMock, serveMock } = vi.hoisted(() => ({
+const { createAppMock, existsSyncMock, readFileMock, serveMock, statMock } = vi.hoisted(() => ({
   createAppMock: vi.fn(),
   existsSyncMock: vi.fn<(path: string) => boolean>(),
   readFileMock: vi.fn<(path: string) => Promise<Uint8Array>>(),
   serveMock: vi.fn(),
+  statMock: vi.fn<(path: string) => Promise<{ size: number; mtimeMs: number }>>(),
 }));
 
 vi.mock('@hono/node-server', () => ({
@@ -17,6 +18,7 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:fs/promises', () => ({
   readFile: readFileMock,
+  stat: statMock,
 }));
 
 vi.mock('./config.js', () => ({
@@ -40,6 +42,8 @@ describe('web server entry bootstrap', () => {
     existsSyncMock.mockReset();
     readFileMock.mockReset();
     serveMock.mockReset();
+    statMock.mockReset();
+    statMock.mockResolvedValue({ size: 16, mtimeMs: 1700000000000 });
   });
 
   it('starts the server even when client assets are missing', async () => {

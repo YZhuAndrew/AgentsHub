@@ -180,6 +180,23 @@ async function getFileSize(userId: string, kind: MediaKind, fileName: string): P
   }
 }
 
+// Existence checks only need the stat result; reading the file content here
+// made a boolean endpoint cost a full media-file read (uploads up to 20 MB).
+// 存在性检查只需要 stat；读取整个文件会让一个布尔端点付出最多 20MB 的
+// 媒体文件读取成本。
+async function fileExists(userId: string, kind: MediaKind, fileName: string): Promise<boolean> {
+  try {
+    const { filePath } = await resolveMediaPath(userId, kind, fileName);
+    const fileStat = await stat(filePath);
+    return fileStat.isFile();
+  } catch (routeError) {
+    if ((routeError as NodeJS.ErrnoException).code === 'ENOENT') {
+      return false;
+    }
+    throw routeError;
+  }
+}
+
 async function deleteMediaFile(userId: string, kind: MediaKind, fileName: string): Promise<boolean> {
   try {
     const { filePath } = await resolveMediaPath(userId, kind, fileName);
@@ -321,7 +338,7 @@ function registerMediaRoutes(kind: MediaKind): void {
     const actor = getAuthUser(c);
     let exists: boolean;
     try {
-      exists = (await readExistingFile(actor.userId, kind, c.req.param('filename'))) !== null;
+      exists = await fileExists(actor.userId, kind, c.req.param('filename'));
     } catch (routeError) {
       if (isInvalidMediaFileNameError(routeError)) {
         return invalidMediaFileNameResponse(c, routeError);
