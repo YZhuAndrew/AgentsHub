@@ -145,33 +145,42 @@ export default defineConfig(async () => ({
     sourcemap: process.env.NODE_ENV === "development",
     rollupOptions: {
       output: {
-        // Manual chunks for better code splitting and caching
-        // 手动分块以获得更好的代码分割和缓存
-        manualChunks: {
-          // Core React libraries
-          // React 核心库
-          "react-vendor": ["react", "react-dom"],
-          // UI/Animation libraries
-          // UI/动画库
-          "ui-vendor": [
-            "@dnd-kit/core",
-            "@dnd-kit/sortable",
-            "@dnd-kit/utilities",
-          ],
-          // Markdown rendering libraries
-          // Markdown 渲染库
-          "markdown-vendor": [
-            "react-markdown",
-            "remark-gfm",
-            "rehype-highlight",
-            "rehype-sanitize",
-          ],
-          // i18n libraries
-          // 国际化库
-          "i18n-vendor": ["i18next", "react-i18next"],
-          // Icon library (large)
-          // 图标库（较大）
-          icons: ["lucide-react"],
+        // Manual chunks for better code splitting and caching.
+        // Function form is required for react/jsx-runtime: its commonjs
+        // interop module uses virtual ids that the object form does not
+        // match, and Rollup then merges that wrapper into markdown-vendor,
+        // dragging the whole markdown stack onto the startup critical path.
+        // 手动分块以获得更好的代码分割与缓存。react/jsx-runtime 必须用
+        // 函数式匹配：它的 commonjs interop 模块是对象式匹配不到的虚拟
+        // id，否则会被 Rollup 并入 markdown-vendor，把整个 markdown 栈
+        // 拖进首屏关键路径。
+        manualChunks(id: string) {
+          if (id.includes("react/jsx-runtime")) {
+            return "react-vendor";
+          }
+          if (!id.includes("node_modules")) {
+            return undefined;
+          }
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) {
+            return "react-vendor";
+          }
+          if (/[\\/]node_modules[\\/]@dnd-kit[\\/]/.test(id)) {
+            return "ui-vendor";
+          }
+          if (
+            /[\\/]node_modules[\\/](react-markdown|remark-gfm|rehype-highlight|rehype-sanitize)[\\/]/.test(
+              id,
+            )
+          ) {
+            return "markdown-vendor";
+          }
+          if (/[\\/]node_modules[\\/](i18next|react-i18next)[\\/]/.test(id)) {
+            return "i18n-vendor";
+          }
+          if (/[\\/]node_modules[\\/]lucide-react[\\/]/.test(id)) {
+            return "icons";
+          }
+          return undefined;
         },
       },
     },

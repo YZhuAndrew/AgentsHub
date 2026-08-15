@@ -1005,8 +1005,10 @@ function App() {
             );
           }
         }
-        await fetchPrompts();
-        await fetchFolders();
+        // Prompts and folders come from independent stores; load them in
+        // parallel instead of paying two sequential round trips.
+        // prompts 与 folders 来自独立 store，并行加载避免两次串行往返。
+        await Promise.all([fetchPrompts(), fetchFolders()]);
         logWhenDebugEnabled("✅ App initialized");
 
         // IMPORTANT: We MUST NOT auto-execute performRecovery here. Historically
