@@ -35,6 +35,11 @@ Root cause for both reported defects was renderer update/identity churn on the S
 - `tsc --noEmit` green; ESLint green on touched files; Prettier clean.
 - Full desktop suite result: see tasks.md verification checklist.
 
+## Release
+
+- Shipped in v0.8.2 (tag `v0.8.2`, run 31884342315, promoted to latest
+  2026-08-15); fix commit `aa00c90c`.
+
 ## Stable Docs Sync
 
 - No stable `spec/knowledge` or `spec/rules` boundary changed: this is a renderer behavior fix within existing distribution and safety contracts.

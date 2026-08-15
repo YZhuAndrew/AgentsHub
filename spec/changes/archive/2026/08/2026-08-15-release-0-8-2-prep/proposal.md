@@ -2,9 +2,10 @@
 
 ## Phase And Status
 
-- Phase: implement
-- Status: in-progress
-- Primary requirement: `FR-REL-082-001`
+- Phase: archived
+- Status: shipped in v0.8.2 (2026-08-15, release record: spec/releases/0.8.2.md)
+- Primary requirements: `FR-REL-082-001` through `FR-REL-082-003`
+- Related shipped work: `skill-detail-distribution-selection-stability` (aa00c90c)
 - Exit condition: all shipped distributions align on 0.8.2, the bilingual CHANGELOG entry and release record are published, and the v0.8.2 stable release supersedes v0.8.1 as latest.
 
 ## Why

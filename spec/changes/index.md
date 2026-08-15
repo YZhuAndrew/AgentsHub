@@ -7,8 +7,8 @@ file manually. Run the generator after adding, moving, or archiving a change.
 
 | State | Count |
 | --- | ---: |
-| Active | 51 |
-| Archived | 213 |
+| Active | 49 |
+| Archived | 215 |
 | Legacy | 1 |
 
 ## Active
@@ -51,14 +51,12 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `prompt-workspace-completion` | active | `spec/changes/active/prompt-workspace-completion/` |
 | `r2-direct-downloads` | active | `spec/changes/active/r2-direct-downloads/` |
 | `readme-screenshots-v0-5-6` | active | `spec/changes/active/readme-screenshots-v0-5-6/` |
-| `release-0-8-2-prep` | active | `spec/changes/active/release-0-8-2-prep/` |
 | `republish-0-5-9-20260714` | active | `spec/changes/active/republish-0-5-9-20260714/` |
 | `risk-aware-verification-harness` | active | `spec/changes/active/risk-aware-verification-harness/` |
 | `rules-agent-source-matrix` | active | `spec/changes/active/rules-agent-source-matrix/` |
 | `rules-issue-193-missing-project-reconciliation` | active | `spec/changes/active/rules-issue-193-missing-project-reconciliation/` |
 | `self-hosted-skill-sync-reliability` | active | `spec/changes/active/self-hosted-skill-sync-reliability/` |
 | `skill-batch-import-zip-and-multi-url` | active | `spec/changes/active/skill-batch-import-zip-and-multi-url/` |
-| `skill-detail-distribution-selection-stability` | active | `spec/changes/active/skill-detail-distribution-selection-stability/` |
 | `skill-uninstall-lifecycle` | active | `spec/changes/active/skill-uninstall-lifecycle/` |
 | `skills-issue-194-shared-global-target` | active | `spec/changes/active/skills-issue-194-shared-global-target/` |
 | `sync-issue-191-safety-report-contract` | active | `spec/changes/active/sync-issue-191-safety-report-contract/` |
@@ -283,6 +281,8 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `2026-08-14-unify-skill-platform-visibility` | archived | `spec/changes/archive/2026/08/2026-08-14-unify-skill-platform-visibility/` |
 | `2026-08-15-canonical-workspace-reconcile-performance` | archived | `spec/changes/archive/2026/08/2026-08-15-canonical-workspace-reconcile-performance/` |
 | `2026-08-15-release-0-8-1-prep` | archived | `spec/changes/archive/2026/08/2026-08-15-release-0-8-1-prep/` |
+| `2026-08-15-release-0-8-2-prep` | archived | `spec/changes/archive/2026/08/2026-08-15-release-0-8-2-prep/` |
+| `2026-08-15-skill-detail-distribution-selection-stability` | archived | `spec/changes/archive/2026/08/2026-08-15-skill-detail-distribution-selection-stability/` |
 | `2026-08-15-storage-inventory-symlink-containment` | archived | `spec/changes/archive/2026/08/2026-08-15-storage-inventory-symlink-containment/` |
 
 ## Legacy

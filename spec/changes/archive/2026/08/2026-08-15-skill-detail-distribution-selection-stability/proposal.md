@@ -2,8 +2,8 @@
 
 ## Phase And Status
 
-- Phase: implement
-- Status: in-progress
+- Phase: archived
+- Status: shipped in v0.8.2 (2026-08-15, release record: spec/releases/0.8.2.md)
 - Primary requirement: `FR-SDSS-001`
 - Exit condition: Skill detail users can select distribution targets and keep that selection while background refreshes run, and the preview tab scrolls without periodic stutter caused by renderer update loops.
 
