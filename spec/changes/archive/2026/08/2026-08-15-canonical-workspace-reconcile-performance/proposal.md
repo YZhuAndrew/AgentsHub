@@ -2,8 +2,8 @@
 
 ## Phase And Status
 
-- Phase: implement
-- Status: in-progress
+- Phase: archived
+- Status: shipped in v0.8.1 (2026-08-15, release record: spec/releases/0.8.1.md)
 - Primary requirements: `FR-RECON-001` through `FR-RECON-003`
 - Related issues: none filed yet (user-reported slow startup and Skills-page
   freeze on 2026-08-15, dev build 0.8.0 + symlink containment working tree)

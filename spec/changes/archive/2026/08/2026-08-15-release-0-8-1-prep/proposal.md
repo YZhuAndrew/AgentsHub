@@ -2,8 +2,8 @@
 
 ## Phase And Status
 
-- Phase: implement
-- Status: in-progress
+- Phase: archived
+- Status: shipped in v0.8.1 (2026-08-15, release record: spec/releases/0.8.1.md)
 - Primary requirements: `FR-REL-081-001` through `FR-REL-081-003`
 - Related shipped work: `storage-inventory-symlink-containment` (49418ce0),
   `canonical-workspace-reconcile-performance` (124c2644)

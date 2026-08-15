@@ -2,8 +2,8 @@
 
 ## Phase And Status
 
-- Phase: converge
-- Status: implementation-complete
+- Phase: archived
+- Status: shipped in v0.8.1 (2026-08-15, release record: spec/releases/0.8.1.md)
 - Primary requirements: `FR-SYMLINK-001` through `FR-SYMLINK-006`
 - Related issues: none filed yet (user-reported startup lockout, 2026-08-14)
 - Related shipped work: `release-0-8-0-prep` commit `78b4c4bf` (upgrade-backup
