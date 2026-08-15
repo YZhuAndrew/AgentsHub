@@ -57,12 +57,6 @@ interface FolderRowMeta {
   visibility: 'private' | 'shared';
 }
 
-interface PromptRowMeta {
-  id: string;
-  owner_user_id: string | null;
-  visibility: 'private' | 'shared';
-}
-
 function ensureDir(targetPath: string): void {
   fs.mkdirSync(targetPath, { recursive: true });
 }
@@ -368,7 +362,7 @@ function writePromptWorkspaceSnapshot(
   promptsDir: string,
   folderMap: Map<string, Folder>,
   prompts: Prompt[],
-  promptDb: PromptDB,
+  versionsByPromptId: Map<string, PromptVersion[]>,
 ): { versionCount: number } {
   const takenPromptPaths = new Set<string>();
   let versionCount = 0;
@@ -383,7 +377,7 @@ function writePromptWorkspaceSnapshot(
       'utf8',
     );
 
-    const versions = promptDb.getVersions(prompt.id).sort((left, right) => left.version - right.version);
+    const versions = (versionsByPromptId.get(prompt.id) ?? []).sort((left, right) => left.version - right.version);
 
     if (versions.length > 0) {
       const versionsDir = getPromptVersionDir(promptsDir, prompt.id);
@@ -590,26 +584,6 @@ function listAllFolders(db: Database.Database, folderDb: FolderDB): Folder[] {
     .filter((folder): folder is Folder => folder !== null);
 }
 
-function listAllPrompts(db: Database.Database, promptDb: PromptDB): Prompt[] {
-  const rows = db
-    .prepare('SELECT id, owner_user_id, visibility FROM prompts ORDER BY updated_at DESC')
-    .all() as PromptRowMeta[];
-
-  return rows
-    .map((row) => {
-      const prompt = promptDb.getById(row.id);
-      if (!prompt) {
-        return null;
-      }
-      return {
-        ...prompt,
-        ownerUserId: row.owner_user_id,
-        visibility: row.visibility,
-      } as Prompt;
-    })
-    .filter((prompt): prompt is Prompt => prompt !== null);
-}
-
 function updateFolderOwnership(db: Database.Database, folder: Folder): void {
   db.prepare('UPDATE folders SET owner_user_id = ?, visibility = ? WHERE id = ?').run(
     resolveOwnerUserId(db, folder.ownerUserId),
@@ -684,8 +658,17 @@ export function syncPromptWorkspaceFromDatabase(
 ): PromptWorkspaceSyncResult {
   const promptsDir = getPromptsDir();
   const folders = listAllFolders(db, folderDb);
-  const prompts = listAllPrompts(db, promptDb);
-  const promptVersions = prompts.flatMap((prompt) => promptDb.getVersions(prompt.id));
+  const prompts = promptDb.getAll();
+  // Fetch every prompt's versions exactly once and reuse the map in the
+  // write loop; re-querying per prompt doubled the version reads.
+  // 每个 prompt 的版本只查询一次并在写循环复用；此前逐 prompt 重复查询
+  // 使版本读取翻倍。
+  const versionsByPromptId = new Map<string, PromptVersion[]>();
+  const promptVersions = prompts.flatMap((prompt) => {
+    const versions = promptDb.getVersions(prompt.id);
+    versionsByPromptId.set(prompt.id, versions);
+    return versions;
+  });
   validatePromptWorkspaceSnapshotPaths(folders, prompts, promptVersions);
 
   const folderMap = new Map(folders.map((folder) => [folder.id, folder]));
@@ -693,7 +676,12 @@ export function syncPromptWorkspaceFromDatabase(
 
   try {
     writeFolderMetadataFiles(stagingDir, folders, folderMap);
-    const { versionCount } = writePromptWorkspaceSnapshot(stagingDir, folderMap, prompts, promptDb);
+    const { versionCount } = writePromptWorkspaceSnapshot(
+      stagingDir,
+      folderMap,
+      prompts,
+      versionsByPromptId,
+    );
     replacePromptWorkspace(promptsDir, stagingDir);
 
     return {

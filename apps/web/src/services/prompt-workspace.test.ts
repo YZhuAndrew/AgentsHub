@@ -86,6 +86,41 @@ describe('web prompt workspace storage', () => {
     }
   });
 
+  it('queries each prompt\'s versions exactly once per workspace sync', async () => {
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prompthub-web-workspace-query-'));
+
+    try {
+      configureTestEnv(dataDir);
+      const { db, folderDb, promptDb, workspaceModule } = await loadWorkspaceContext();
+      await createOwnerUser();
+
+      const folder = folderDb.create({ name: 'Sync Cost' });
+      const first = promptDb.create({ title: 'One', userPrompt: 'one', folderId: folder.id });
+      const second = promptDb.create({ title: 'Two', userPrompt: 'two', folderId: folder.id });
+      promptDb.update(first.id, { userPrompt: 'one v2' });
+
+      const getVersionsSpy = vi.spyOn(promptDb, 'getVersions');
+      const result = workspaceModule.syncPromptWorkspaceFromDatabase(db, promptDb, folderDb);
+
+      expect(result.promptCount).toBe(2);
+      // The sync previously fetched every prompt's versions twice (once for
+      // validation, once inside the write loop); the map-based prefetch must
+      // query each prompt exactly once.
+      // 此前每次同步会把每个 prompt 的版本查询两遍（校验一遍、写循环一遍）；
+      // 预取 Map 之后每个 prompt 必须只查询一次。
+      expect(getVersionsSpy).toHaveBeenCalledTimes(2);
+      expect(getVersionsSpy).toHaveBeenCalledWith(first.id);
+      expect(getVersionsSpy).toHaveBeenCalledWith(second.id);
+
+      const promptsDir = path.join(dataDir, 'data', 'prompts');
+      expect(fs.existsSync(path.join(promptsDir, 'sync-cost', 'one.md'))).toBe(true);
+      expect(fs.existsSync(path.join(promptsDir, 'sync-cost', 'two.md'))).toBe(true);
+    } finally {
+      closeDatabase();
+      fs.rmSync(dataDir, { recursive: true, force: true });
+    }
+  });
+
   it('exports prompts, folders, versions, and ownership metadata into workspace files', async () => {
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prompthub-web-workspace-test-'));
 
