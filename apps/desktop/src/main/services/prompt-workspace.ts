@@ -400,7 +400,7 @@ function writeFolderMetadataFiles(
     ensureDir(folderDir);
 
     const metadataPath = getFolderMetadataPath(folderDir);
-    fs.writeFileSync(metadataPath, JSON.stringify(folder, null, 2), "utf8");
+    writeFileIfChanged(metadataPath, JSON.stringify(folder, null, 2));
     expectedMetadataPaths.add(path.resolve(metadataPath));
   }
 
@@ -442,7 +442,7 @@ function buildFolderSegments(
 function getPromptParentDirectory(
   promptsDir: string,
   folderMap: Map<string, Folder>,
-  prompt: Prompt,
+  prompt: { folderId?: string | null },
 ): string {
   const folderSegments = buildFolderSegments(
     prompt.folderId ?? null,
@@ -451,14 +451,14 @@ function getPromptParentDirectory(
   return path.join(promptsDir, ...folderSegments);
 }
 
-function buildPromptFileName(prompt: Prompt): string {
+function buildPromptFileName(prompt: { title: string }): string {
   return `${slugify(prompt.title)}.md`;
 }
 
 function getPromptFilePath(
   promptsDir: string,
   folderMap: Map<string, Folder>,
-  prompt: Prompt,
+  prompt: { id: string; title: string; folderId?: string | null },
   takenPaths: Set<string>,
 ): string {
   const parentDir = getPromptParentDirectory(promptsDir, folderMap, prompt);
@@ -891,26 +891,37 @@ function pruneTrash(trashRoot: string): void {
   }
 }
 
+/**
+ * Write a text file only when its content actually differs. Skipping the
+ * write avoids fsync cost and mtime churn that file watchers and backup
+ * tools would otherwise amplify.
+ *
+ * 仅当内容变化时写入：跳过无变化写入可避免 fsync 开销与 mtime 抖动
+ * （后者会被文件监视与备份工具放大）。
+ */
+function writeFileIfChanged(filePath: string, contents: string): boolean {
+  try {
+    if (fs.readFileSync(filePath, "utf8") === contents) {
+      return false;
+    }
+  } catch {
+    // Missing or unreadable file → fall through to the write.
+  }
+  fs.writeFileSync(filePath, contents, "utf8");
+  return true;
+}
+
 function writePromptToDisk(
   workspaceDir: string,
-  promptsDir: string,
-  folderMap: Map<string, Folder>,
+  promptPath: string,
   prompt: Prompt,
   versions: PromptVersion[],
-  takenPromptPaths: Set<string>,
 ): { promptPath: string; versionCount: number } {
-  const promptPath = getPromptFilePath(
-    promptsDir,
-    folderMap,
-    prompt,
-    takenPromptPaths,
-  );
   ensureDir(path.dirname(promptPath));
 
-  fs.writeFileSync(
+  writeFileIfChanged(
     promptPath,
     `${formatFrontmatter(promptFrontmatter(prompt))}${formatPromptBody(prompt.systemPrompt, prompt.userPrompt)}`,
-    "utf8",
   );
 
   const sorted = [...versions].sort(
@@ -927,10 +938,9 @@ function writePromptToDisk(
     // Write current versions.
     // 写入当前版本文件。
     for (const version of sorted) {
-      fs.writeFileSync(
+      writeFileIfChanged(
         path.join(versionsDir, `${padVersion(version.version)}.md`),
         `${formatFrontmatter(versionFrontmatter(version))}${formatPromptBody(version.systemPrompt, version.userPrompt)}`,
-        "utf8",
       );
     }
 
@@ -1021,13 +1031,17 @@ export function syncPromptWorkspaceFromDatabase(
   let versionCount = 0;
 
   for (const prompt of prompts) {
-    const { promptPath, versionCount: vc } = writePromptToDisk(
-      workspaceDir,
+    const promptPath = getPromptFilePath(
       promptsDir,
       folderMap,
       prompt,
-      promptDb.getVersions(prompt.id),
       takenPromptPaths,
+    );
+    const { versionCount: vc } = writePromptToDisk(
+      workspaceDir,
+      promptPath,
+      prompt,
+      promptDb.getVersions(prompt.id),
     );
     expectedPromptPaths.add(path.resolve(promptPath));
     expectedPromptIds.add(prompt.id);
@@ -1066,6 +1080,119 @@ export function syncPromptWorkspaceFromDatabase(
     folderCount: folders.length,
     versionCount,
   };
+}
+
+/**
+ * Targeted DB → workspace sync for prompt-level mutations.
+ *
+ * Every prompt's `.md` is drift-checked against its desired content (one
+ * small read each, no write when identical), so the resulting tree equals
+ * what a full sync would produce regardless of path reassignment from
+ * title collisions or updated_at ordering. Only drifted prompts and the
+ * explicitly dirty ids get their version files rewritten, which is where
+ * the write amplification of the full sync is eliminated.
+ *
+ * Folder metadata files are not touched here: folder mutations go through
+ * the full sync.
+ *
+ * 定向同步：对所有 prompt 做 `.md` 内容漂移检测（每个仅一次小读，内容
+ * 一致则不写），保证结果树与全量同步构造性等价（覆盖标题碰撞与
+ * updated_at 顺序变化引起的路径重排）；仅漂移 prompt 与显式脏 id 会
+ * 重写版本文件——全量同步的写放大正是在这里被消除。folder 元数据不在
+ * 本路径维护（folder 变更走全量同步）。
+ */
+export function syncPromptWorkspaceForPrompts(
+  promptDb: PromptDB,
+  folderDb: FolderDB,
+  promptIds: string[],
+): void {
+  promptDb.publishCanonicalGraph();
+  const workspaceDir = getWorkspaceDir();
+  const promptsDir = getPromptsWorkspaceDir();
+  const folders = folderDb.getAll();
+  const prompts = promptDb.getAll();
+  const folderMap = new Map(folders.map((folder) => [folder.id, folder]));
+
+  ensureDir(promptsDir);
+
+  // Assign paths for every prompt in full-sync order (updated_at DESC) so
+  // collision suffixes land identically.
+  // 按全量同序（updated_at DESC）为全体 prompt 分配路径，碰撞后缀一致。
+  const takenPromptPaths = new Set<string>();
+  const promptPathById = new Map<string, string>();
+  const promptById = new Map<string, Prompt>();
+  const expectedPromptPaths = new Set<string>();
+  for (const prompt of prompts) {
+    const promptPath = getPromptFilePath(
+      promptsDir,
+      folderMap,
+      prompt,
+      takenPromptPaths,
+    );
+    promptPathById.set(prompt.id, promptPath);
+    promptById.set(prompt.id, prompt);
+    expectedPromptPaths.add(path.resolve(promptPath));
+  }
+
+  // Drift detection: any prompt whose desired .md is absent or differs from
+  // disk must be rewritten, dirty or not. This is what makes the targeted
+  // sync equivalent to the full sync by construction.
+  // 漂移检测：期望 .md 缺失或与磁盘不一致的 prompt 必须重写（无论是否
+  // 脏）。这是定向同步与全量构造性等价的关键。
+  const writeIds = new Set<string>(promptIds);
+  for (const prompt of prompts) {
+    const promptPath = promptPathById.get(prompt.id)!;
+    const desired = `${formatFrontmatter(promptFrontmatter(prompt))}${formatPromptBody(prompt.systemPrompt, prompt.userPrompt)}`;
+    let current: string | null = null;
+    try {
+      current = fs.readFileSync(promptPath, "utf8");
+    } catch {
+      // Missing file → drift.
+    }
+    if (current !== desired) {
+      writeIds.add(prompt.id);
+    }
+  }
+
+  for (const promptId of writeIds) {
+    const promptPath = promptPathById.get(promptId);
+    const prompt = promptById.get(promptId);
+    if (!promptPath || !prompt) {
+      // Prompt no longer exists; its files are handled by orphan cleanup.
+      // prompt 已不存在，其文件由孤立回收处理。
+      continue;
+    }
+    writePromptToDisk(
+      workspaceDir,
+      promptPath,
+      prompt,
+      promptDb.getVersions(promptId),
+    );
+  }
+
+  // Same orphan cleanup as the full sync.
+  // 与全量同步相同的孤立回收。
+  const existingPromptPaths = collectPromptFiles(promptsDir).map((filePath) =>
+    path.resolve(filePath),
+  );
+  for (const filePath of existingPromptPaths) {
+    if (expectedPromptPaths.has(filePath)) continue;
+    moveToTrash(getPromptCleanupPath(filePath));
+  }
+
+  for (const legacyDir of collectLegacyPromptDirs(promptsDir)) {
+    const legacyPromptPath = path.resolve(
+      path.join(legacyDir, PROMPT_FILE_NAME),
+    );
+    if (expectedPromptPaths.has(legacyPromptPath)) continue;
+    moveToTrash(legacyDir);
+  }
+
+  cleanupLegacyVersionDirs(
+    workspaceDir,
+    new Set(promptById.keys()),
+  );
+  pruneEmptyDirs(promptsDir);
 }
 
 /**
