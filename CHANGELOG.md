@@ -1,5 +1,22 @@
 ## [Unreleased]
 
+## [0.8.1] - 2026-08-15
+
+### 修复 / Fixes
+
+- 🚀 **修复启动缓慢与进入 Skills 页卡死（0.8.0 性能回退）**：0.8.0 的 canonical 工作区 reconcile 在每次数据库初始化时无条件删除并重建全部技能工作区目录（大型技能库下为数百 MB 的删除与重拷贝），并经未缓存的自定义 Agent 设置读取被批量安装状态检查成倍触发，导致启动数秒卡顿、进入 Skills 页后应用长时间无响应。现在工作区内容哈希与 bundle 一致时直接复用现有目录，reconcile 每进程至多执行一次，自定义 Agent 设置读取带 5 秒缓存并在设置更新时失效
+  - **Fixed slow startup and Skills-page freeze (v0.8.0 performance regression)**: the v0.8.0 canonical workspace reconcile unconditionally deleted and rebuilt every skill workspace tree on each database initialization (hundreds of MB of deletion and re-copying on large libraries) and was triggered multiplicatively through an uncached custom-agent settings read by the batch install-status check, causing multi-second startup stalls and an unresponsive Skills page. Workspaces whose recorded content hash matches the bundle are now reused as-is, reconcile runs at most once per process, and custom-agent settings reads are cached for 5 seconds with invalidation on settings updates
+- 🔗 **修复导入技能包含符号链接时启动被锁死（0.8.0 回归）**：导入技能包内的相对符号链接（常见 `AGENTS.md -> CLAUDE.md` 别名模式）会让 0.8.0 启动时的 canonical 权威发布永久失败，用户每次启动都被锁死；升级备份中重建的链接此前也无法恢复。现在存储清单把链接分类为 internal/escaping/dangling（仅解析失败 ENOENT 视为 dangling，环与权限错误保持 fail closed），受控链接在 canonical 投影中物化、在快照中按相对目标重建，逃逸链接继续拒绝
+  - **Fixed startup lockout for imported skills containing symlinks (v0.8.0 regression)**: intra-package relative symlinks in imported skill packages (the common `AGENTS.md -> CLAUDE.md` alias pattern) made the v0.8.0 startup canonical authority publication fail permanently, locking users out on every launch, and links recreated inside upgrade backups could not be restored. Storage inventories now classify links as internal/escaping/dangling (only realpath ENOENT counts as dangling; cycles and permission errors still fail closed), contained links are materialized in canonical projections and recreated with relative targets in snapshots, and escaping links remain refused
+
+> **macOS 安全说明**
+>
+> AgentsHub 是社区维护的 fork 构建，未配置 Apple Developer 签名。首次启动时 macOS Gatekeeper 可能拦截；如提示"已损坏"或"无法验证开发者"，请运行：
+>
+> ```bash
+> sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
+> ```
+
 ## [0.8.0] - 2026-08-14
 
 ### 新功能 / Features

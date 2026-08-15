@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,11 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 ## 更新日誌
 
 完整版本說明：**[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.1（2026-08-15，正式版）
+
+- 修復 0.8.0 效能回歸：canonical 工作區 reconcile 不再於每次資料庫初始化時無條件重建全部技能工作區，啟動恢復秒級可用，進入 Skills 頁不再卡死
+- 修復 0.8.0 回歸：匯入技能包含套件內相對符號連結（如 `AGENTS.md -> CLAUDE.md` 別名）不再鎖死啟動；受控連結在快照/投影中物化或按相對目標重建，逃逸連結保持拒絕
 
 ### v0.8.0（2026-08-14，正式版）
 

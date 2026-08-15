@@ -9,7 +9,7 @@ A local-first workspace for prompts, skills, and AI coding assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -327,6 +327,11 @@ Common global flags:
 ## Changelog
 
 Full changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.1 (2026-08-15, stable)
+
+- Fixed the v0.8.0 performance regression: the canonical workspace reconcile no longer rebuilds every skill workspace on each database initialization — startup is fast again and the Skills page no longer freezes
+- Fixed the v0.8.0 regression that locked out startup for imported skills containing intra-package relative symlinks (e.g. the `AGENTS.md -> CLAUDE.md` alias); contained links are materialized in projections or recreated with relative targets in snapshots, while escaping links stay refused
 
 ### v0.8.0 (2026-08-14, stable)
 

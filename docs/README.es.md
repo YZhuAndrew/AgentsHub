@@ -9,7 +9,7 @@ Un espacio de trabajo local-first para prompts, skills y assets de codificación
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,11 @@ Flags globales habituales:
 ## Registro de cambios
 
 Changelog completo: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.1 (2026-08-15, estable)
+
+- Corregida la regresión de rendimiento de v0.8.0: la reconciliación de espacios de trabajo canónicos ya no reconstruye todos los espacios de trabajo de skills en cada inicialización de la base de datos; el arranque vuelve a ser rápido y la página de Skills ya se se congela
+- Corregida la regresión de v0.8.0 que bloqueaba el arranque con skills importadas que contenían enlaces simbólicos relativos dentro del paquete (p. ej. el alias `AGENTS.md -> CLAUDE.md`); los enlaces contenidos se materializan en proyecciones o se recrean con destinos relativos en snapshots, y los enlaces que escapan siguen rechazándose
 
 ### v0.8.0 (2026-08-14, estable)
 

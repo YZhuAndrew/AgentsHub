@@ -9,7 +9,7 @@ Ein Local-First-Arbeitsbereich für Prompts, Skills und KI-Coding-Assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,11 @@ Häufige globale Flags:
 ## Änderungsprotokoll
 
 Vollständiges Changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.1 (2026-08-15, Stable)
+
+- Behoben: die v0.8.0-Leistungsregression — der Canonical-Workspace-Reconcile baut nicht mehr bei jeder Datenbankinitialisierung alle Skill-Workspaces neu auf; der Start ist wieder schnell und die Skills-Seite friert nicht mehr ein
+- Behoben: die v0.8.0-Regression, die den Start für importierte Skills mit paketinternen relativen Symlinks (z. B. dem `AGENTS.md -> CLAUDE.md`-Alias) blockierte; enthaltene Links werden in Projektionen materialisiert oder in Snapshots mit relativen Zielen neu erstellt, ausbrechende Links bleiben abgelehnt
 
 ### v0.8.0 (2026-08-14, Stable)
 

@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const expectedVersion = "0.8.0";
+const expectedVersion = "0.8.1";
 
 function readJson(relativePath) {
   return JSON.parse(

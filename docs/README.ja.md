@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.0_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -311,6 +311,11 @@ Skill のインポート、バージョンスナップショット、配布で�
 ## 変更履歴
 
 完全な変更履歴: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.1（2026-08-15、正式版）
+
+- 0.8.0 のパフォーマンス回帰を修正：canonical ワークスペースの reconcile がデータベース初期化のたびに全スキルワークスペースを無条件に再構築しなくなり、起動は高速に戻り、Skills ページがフリーズしなくなりました
+- 0.8.0 の回帰を修正：パッケージ内の相対シンボリックリンク（`AGENTS.md -> CLAUDE.md` 別名など）を含む取り込み済みスキルで起動がロックアウトされなくなりました。包含リンクは投影で実体化またはスナップショットで相対ターゲットとして再作成され、逸脱リンクは引き続き拒否されます
 
 ### v0.8.0（2026-08-14、正式版）
 
