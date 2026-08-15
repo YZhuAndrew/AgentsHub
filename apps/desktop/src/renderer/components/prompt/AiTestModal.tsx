@@ -3,6 +3,7 @@ import { createPortal, flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { PlayIcon, LoaderIcon, CopyIcon, CheckIcon, GitCompareIcon, ImageIcon, PlusIcon, DownloadIcon, BracesIcon, PaperclipIcon, XIcon, Maximize2Icon, Minimize2Icon } from 'lucide-react';
 import { CollapsibleThinking } from '../ui/CollapsibleThinking';
+import { MarkdownMemo } from '../ui/MarkdownMemo';
 import { chatCompletion, buildMessagesFromPrompt, multiModelCompare, AITestResult, generateImage, type ChatImageAttachment } from '../../services/ai';
 import { resolveScenarioModel } from '../../services/ai-defaults';
 import { useSettingsStore, type AIModelConfig, type AIProviderConfig } from '../../stores/settings.store';
@@ -12,8 +13,6 @@ import type { Prompt } from '@prompthub/shared/types';
 import { copyTextToClipboard } from './prompt-copy-utils';
 import { parsePromptVariables, replacePromptVariables } from './prompt-modal-utils';
 import { resolvePromptMarkdownHref } from './prompt-markdown-url';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
 import { resolveGeneratedImageUrl } from '../../utils/generated-image-url';
@@ -48,6 +47,13 @@ const SUPPORTED_AI_TEST_IMAGE_MIME_TYPES = new Set([
   'image/webp',
   'image/gif',
 ]);
+
+// Per-frame flushes make react-markdown's full re-parse cost quadratic in
+// response length; ~100ms keeps the stream live while bounding re-parse work.
+// 每帧 flush 会使 react-markdown 的全文重解析成本随响应长度平方增长；
+// 约 100ms 的节奏在保持流畅的同时限制重解析开销。
+const STREAM_FLUSH_INTERVAL_MS = 100;
+
 function getProviderDisplayName(
   model: AIModelConfig | null,
   providers: AIProviderConfig[],
@@ -112,10 +118,10 @@ export function AiTestModal({
   const [jsonSchemaContent, setJsonSchemaContent] = useState('');
   const singleContentBufferRef = useRef('');
   const singleThinkingBufferRef = useRef('');
-  const singleContentRafRef = useRef<number | null>(null);
-  const singleThinkingRafRef = useRef<number | null>(null);
+  const singleContentFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const singleThinkingFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const compareBuffersRef = useRef<Record<string, { response: string; thinkingContent: string }>>({});
-  const compareFlushRafRef = useRef<number | null>(null);
+  const compareFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
   const isOpenRef = useRef(isOpen);
@@ -286,47 +292,43 @@ export function AiTestModal({
     };
   }, [isOpen, onClose]);
 
-  const cancelSingleStreamRafs = useCallback(() => {
-    if (singleContentRafRef.current !== null) {
-      cancelAnimationFrame(singleContentRafRef.current);
-      singleContentRafRef.current = null;
+  const cancelSingleStreamFlushes = useCallback(() => {
+    if (singleContentFlushTimerRef.current !== null) {
+      clearTimeout(singleContentFlushTimerRef.current);
+      singleContentFlushTimerRef.current = null;
     }
-    if (singleThinkingRafRef.current !== null) {
-      cancelAnimationFrame(singleThinkingRafRef.current);
-      singleThinkingRafRef.current = null;
+    if (singleThinkingFlushTimerRef.current !== null) {
+      clearTimeout(singleThinkingFlushTimerRef.current);
+      singleThinkingFlushTimerRef.current = null;
     }
   }, []);
 
   const resetSingleStreamBuffers = useCallback(() => {
-    cancelSingleStreamRafs();
+    cancelSingleStreamFlushes();
     singleContentBufferRef.current = '';
     singleThinkingBufferRef.current = '';
-  }, [cancelSingleStreamRafs]);
+  }, [cancelSingleStreamFlushes]);
 
   const scheduleSingleContentFlush = useCallback((session?: number) => {
-    if (singleContentRafRef.current !== null) return;
-    singleContentRafRef.current = requestAnimationFrame(() => {
-      singleContentRafRef.current = null;
+    if (singleContentFlushTimerRef.current !== null) return;
+    singleContentFlushTimerRef.current = setTimeout(() => {
+      singleContentFlushTimerRef.current = null;
       if (session !== undefined && !canApplyAsyncResult(session)) {
         return;
       }
-      flushSync(() => {
-        setAiResponse(singleContentBufferRef.current);
-      });
-    });
+      flushSync(() => setAiResponse(singleContentBufferRef.current));
+    }, STREAM_FLUSH_INTERVAL_MS);
   }, [canApplyAsyncResult]);
 
   const scheduleSingleThinkingFlush = useCallback((session?: number) => {
-    if (singleThinkingRafRef.current !== null) return;
-    singleThinkingRafRef.current = requestAnimationFrame(() => {
-      singleThinkingRafRef.current = null;
+    if (singleThinkingFlushTimerRef.current !== null) return;
+    singleThinkingFlushTimerRef.current = setTimeout(() => {
+      singleThinkingFlushTimerRef.current = null;
       if (session !== undefined && !canApplyAsyncResult(session)) {
         return;
       }
-      flushSync(() => {
-        setThinkingContent(singleThinkingBufferRef.current);
-      });
-    });
+      flushSync(() => setThinkingContent(singleThinkingBufferRef.current));
+    }, STREAM_FLUSH_INTERVAL_MS);
   }, [canApplyAsyncResult]);
 
   const flushCompareBuffers = useCallback(() => {
@@ -347,22 +349,20 @@ export function AiTestModal({
   }, []);
 
   const scheduleCompareFlush = useCallback((session?: number) => {
-    if (compareFlushRafRef.current !== null) return;
-    compareFlushRafRef.current = requestAnimationFrame(() => {
-      compareFlushRafRef.current = null;
+    if (compareFlushTimerRef.current !== null) return;
+    compareFlushTimerRef.current = setTimeout(() => {
+      compareFlushTimerRef.current = null;
       if (session !== undefined && !canApplyAsyncResult(session)) {
         return;
       }
-      flushSync(() => {
-        flushCompareBuffers();
-      });
-    });
+      flushSync(() => flushCompareBuffers());
+    }, STREAM_FLUSH_INTERVAL_MS);
   }, [canApplyAsyncResult, flushCompareBuffers]);
 
   const resetCompareBuffers = useCallback(() => {
-    if (compareFlushRafRef.current !== null) {
-      cancelAnimationFrame(compareFlushRafRef.current);
-      compareFlushRafRef.current = null;
+    if (compareFlushTimerRef.current !== null) {
+      clearTimeout(compareFlushTimerRef.current);
+      compareFlushTimerRef.current = null;
     }
     compareBuffersRef.current = {};
   }, []);
@@ -685,7 +685,7 @@ export function AiTestModal({
         setAiResponse(result.content);
         setThinkingContent(result.thinkingContent || null);
       } else {
-        cancelSingleStreamRafs();
+        cancelSingleStreamFlushes();
         setAiResponse(singleContentBufferRef.current || result.content);
         setThinkingContent(singleThinkingBufferRef.current || result.thinkingContent || null);
       }
@@ -698,7 +698,7 @@ export function AiTestModal({
       if (!canApplyAsyncResult(singleSession)) {
         return;
       }
-      cancelSingleStreamRafs();
+      cancelSingleStreamFlushes();
       setAiResponse(`${t('common.error')}: ${error instanceof Error ? error.message : t('common.error')}`);
     } finally {
       if (canApplyAsyncResult(singleSession)) {
@@ -918,13 +918,11 @@ export function AiTestModal({
 
     return (
       <div className="text-[15px] leading-relaxed markdown-content space-y-3 break-words">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
+        <MarkdownMemo
+          content={content}
           rehypePlugins={rehypePlugins}
           components={markdownComponents}
-        >
-          {content}
-        </ReactMarkdown>
+        />
       </div>
     );
   };

@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import { memo, type ComponentProps } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
@@ -8,6 +8,16 @@ import { resolvePromptMarkdownHref } from "../prompt/prompt-markdown-url";
 interface AgentConversationMarkdownProps {
   content: string;
 }
+
+// Stable module-level plugin identities so memoized transcript entries are
+// not invalidated between panel re-renders.
+// 模块级 plugin 常量：避免面板重渲染使 memo 化的会话条目失效。
+const REMARK_PLUGINS: ComponentProps<typeof ReactMarkdown>["remarkPlugins"] = [
+  remarkGfm,
+];
+const REHYPE_PLUGINS: ComponentProps<
+  typeof ReactMarkdown
+>["rehypePlugins"] = [rehypeSanitize];
 
 type MarkdownAnchorProps = ComponentProps<"a"> & { node?: unknown };
 type MarkdownImageProps = ComponentProps<"img"> & { node?: unknown };
@@ -87,18 +97,21 @@ const markdownComponents: ComponentProps<typeof ReactMarkdown>["components"] = {
   ),
 };
 
-export function AgentConversationMarkdown({
-  content,
-}: AgentConversationMarkdownProps) {
-  return (
-    <div className="agent-conversation-markdown min-w-0 max-w-full break-words text-[13px] leading-5">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeSanitize]}
-        components={markdownComponents}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
-  );
-}
+// Transcripts render one instance per visible message; memo keeps filter or
+// search-box re-renders from re-parsing every message's markdown.
+// 每条可见消息渲染一个实例；memo 避免筛选/搜索重渲染时重解析全部消息。
+export const AgentConversationMarkdown = memo(
+  function AgentConversationMarkdown({ content }: AgentConversationMarkdownProps) {
+    return (
+      <div className="agent-conversation-markdown min-w-0 max-w-full break-words text-[13px] leading-5">
+        <ReactMarkdown
+          remarkPlugins={REMARK_PLUGINS}
+          rehypePlugins={REHYPE_PLUGINS}
+          components={markdownComponents}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+    );
+  },
+);

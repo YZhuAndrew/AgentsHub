@@ -687,6 +687,90 @@ describe("AiTestModal workbench", () => {
     expect(clearTimeoutSpy).toHaveBeenCalledWith(expect.anything());
   });
 
+  it("throttles streamed single-model flushes and lands the full buffer", async () => {
+    const user = userEvent.setup();
+
+    useSettingsStore.setState({
+      aiModels: [
+        {
+          id: "chat-default",
+          type: "chat",
+          provider: "openai",
+          apiProtocol: "openai",
+          apiKey: "chat-key",
+          apiUrl: "https://example.com/v1",
+          model: "gpt-4o-mini",
+          isDefault: true,
+          chatParams: { stream: true },
+        },
+      ],
+      scenarioModelDefaults: { promptTest: "chat-default" },
+    } as Partial<ReturnType<typeof useSettingsStore.getState>>);
+
+    let streamCallbacks:
+      | { onContent: (chunk: string) => void; onThinking: (chunk: string) => void }
+      | undefined;
+    const singleResponse = createDeferred<{
+      content: string;
+      thinkingContent: string;
+    }>();
+    chatCompletionMock.mockImplementation(
+      (_config: unknown, _messages: unknown, options: { streamCallbacks?: typeof streamCallbacks }) => {
+        streamCallbacks = options?.streamCallbacks;
+        return singleResponse.promise;
+      },
+    );
+
+    await renderWithI18n(
+      <ToastProvider>
+        <AiTestModal isOpen onClose={vi.fn()} prompt={prompt} />
+      </ToastProvider>,
+      { language: "en" },
+    );
+
+    await user.click(screen.getAllByRole("button", { name: "AI Test" })[1]);
+    await waitFor(() => {
+      expect(chatCompletionMock).toHaveBeenCalledTimes(1);
+    });
+    expect(streamCallbacks).toBeDefined();
+
+    // Switch to fake timers only for the flush-cadence assertions.
+    vi.useFakeTimers();
+
+    await act(async () => {
+      streamCallbacks!.onContent("Hello ");
+    });
+
+    // The chunk is buffered; it must not render before the flush interval.
+    expect(screen.queryByText(/Hello/)).toBeNull();
+
+    await act(async () => {
+      streamCallbacks!.onContent("streamed ");
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(150);
+    });
+
+    // Both buffered chunks landed together in a single flush.
+    expect(screen.getByText(/Hello streamed/)).toBeInTheDocument();
+
+    await act(async () => {
+      streamCallbacks!.onContent("world");
+      singleResponse.resolve({ content: "ignored-final", thinkingContent: "" });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText(/Hello streamed world/)).toBeInTheDocument();
+
+    // No pending flush may fire afterwards and disturb the final content.
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText(/Hello streamed world/)).toBeInTheDocument();
+  });
+
   it("does not schedule copy feedback when closed before clipboard write finishes", async () => {
     const clipboardWrite = createDeferred<void>();
     vi.spyOn(navigator.clipboard, "writeText").mockReturnValue(clipboardWrite.promise);

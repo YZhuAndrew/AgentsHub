@@ -1,4 +1,11 @@
-import { useState, useEffect, useMemo, useCallback, useRef, useId } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+  useId,
+} from "react";
 import { Modal, Button, Input, Textarea, UnsavedChangesDialog } from "../ui";
 import { handleMarkdownListKeyDown } from "../ui/Textarea";
 import { Select } from "../ui/Select";
@@ -32,10 +39,9 @@ import type {
   Prompt,
   UpdatePromptDTO,
 } from "@prompthub/shared/types";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import rehypeHighlight from "rehype-highlight";
+import { MarkdownMemo } from "../ui/MarkdownMemo";
 import { defaultSchema } from "hast-util-sanitize";
 import { renderFolderIcon } from "../layout/folderIconHelper";
 import {
@@ -1098,13 +1104,11 @@ export function EditPromptModal({
             <div className="flex-1 overflow-auto p-6">
               <div className="prose prose-sm max-w-none markdown-content">
                 {fullscreenValue ? (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
+                  <MarkdownMemo
+                    content={fullscreenValue}
                     rehypePlugins={rehypePlugins}
                     components={markdownComponents}
-                  >
-                    {fullscreenValue}
-                  </ReactMarkdown>
+                  />
                 ) : (
                   <div className="text-muted-foreground text-sm italic">
                     {t("prompt.noContent", "暂无内容")}
@@ -1674,13 +1678,11 @@ export function EditPromptModal({
               <div className="flex-1 overflow-auto p-4">
                 <div className="prose prose-sm max-w-none markdown-content">
                   {systemPrompt ? (
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
+                    <MarkdownMemo
+                      content={systemPrompt}
                       rehypePlugins={rehypePlugins}
                       components={markdownComponents}
-                    >
-                      {systemPrompt}
-                    </ReactMarkdown>
+                    />
                   ) : (
                     <div className="text-muted-foreground text-sm italic">
                       {t("prompt.noContent", "暂无内容")}
@@ -1766,13 +1768,11 @@ export function EditPromptModal({
               <div className="flex-1 overflow-auto p-4">
                 <div className="prose prose-sm max-w-none markdown-content">
                   {userPrompt ? (
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
+                    <MarkdownMemo
+                      content={userPrompt}
                       rehypePlugins={rehypePlugins}
                       components={markdownComponents}
-                    >
-                      {userPrompt}
-                    </ReactMarkdown>
+                    />
                   ) : (
                     <div className="text-muted-foreground text-sm italic">
                       {t("prompt.noContent", "暂无内容")}

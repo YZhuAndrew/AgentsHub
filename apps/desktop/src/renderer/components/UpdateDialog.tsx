@@ -28,6 +28,12 @@ export interface ProgressInfo {
 
 type MacInstallSource = 'direct' | 'homebrew' | 'unknown';
 
+// Stable plugin identities so re-renders of the dialog do not force
+// react-markdown to rebuild its plugin chain.
+// plugin 身份稳定，避免对话框重渲染时重建 react-markdown 插件链。
+const RELEASE_NOTE_REMARK_PLUGINS: ComponentProps<typeof ReactMarkdown>["remarkPlugins"] = [remarkGfm];
+const RELEASE_NOTE_REHYPE_PLUGINS: ComponentProps<typeof ReactMarkdown>["rehypePlugins"] = [rehypeSanitize];
+
 const releaseNoteMarkdownComponents: ComponentProps<typeof ReactMarkdown>["components"] = {
   a: ({
     children,
@@ -377,8 +383,8 @@ export function UpdateDialog({ isOpen, onClose, initialStatus }: UpdateDialogPro
       <div className="max-h-[360px] overflow-y-auto px-4 py-3 sm:max-h-[440px]">
         <div className="prose prose-sm dark:prose-invert max-w-none break-words prose-headings:text-foreground prose-h1:text-base prose-h1:font-semibold prose-h2:text-sm prose-h2:font-semibold prose-h3:text-sm prose-h3:font-medium prose-p:my-2 prose-p:text-[13px] prose-p:text-foreground/85 prose-li:text-[13px] prose-li:text-foreground/85 prose-pre:overflow-x-auto prose-pre:border prose-pre:border-border prose-pre:bg-background/80 prose-code:text-primary">
           <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeSanitize]}
+            remarkPlugins={RELEASE_NOTE_REMARK_PLUGINS}
+            rehypePlugins={RELEASE_NOTE_REHYPE_PLUGINS}
             components={releaseNoteMarkdownComponents}
           >
             {releaseNotes}

@@ -28,12 +28,16 @@ import type {
   PromptRelation,
   PromptSummary,
 } from "@prompthub/shared/types";
-import { useEffect, useMemo, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import rehypeSanitize from "rehype-sanitize";
 import rehypeHighlight from "rehype-highlight";
 import { defaultSchema } from "hast-util-sanitize";
+import { MarkdownMemo } from "../ui/MarkdownMemo";
 import { resolveLocalVideoSrc } from "../../utils/media-url";
 import { copyTextToClipboard } from "./prompt-copy-utils";
 import { parsePromptVariables } from "./prompt-modal-utils";
@@ -229,13 +233,11 @@ export function PromptDetailModal({
     }
     return (
       <div className="p-4 rounded-lg bg-muted/30 border border-border text-sm leading-relaxed markdown-content space-y-2 break-words">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
+        <MarkdownMemo
+          content={content}
           rehypePlugins={rehypePlugins}
           components={markdownComponents}
-        >
-          {content}
-        </ReactMarkdown>
+        />
       </div>
     );
   };

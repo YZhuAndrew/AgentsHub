@@ -2,6 +2,7 @@ import {
   Children,
   cloneElement,
   isValidElement,
+  memo,
   useMemo,
   type ComponentProps,
   type ReactNode,
@@ -17,6 +18,27 @@ interface PromptMarkdownContentProps {
   content: string;
   highlightTerms: string[];
   highlightClassName?: string;
+}
+
+// react-markdown re-parses its full input on every render, so the plugin
+// arrays must keep a single module-level identity and the component must be
+// skipped when neither the content nor the highlight terms changed.
+// react-markdown 每次渲染都会重新解析全文，plugin 数组必须保持模块级
+// 单一身份，且内容/高亮词未变化时直接跳过重渲染。
+const REMARK_PLUGINS: ComponentProps<typeof ReactMarkdown>["remarkPlugins"] = [
+  remarkGfm,
+];
+
+function shallowEqualStringArrays(
+  left: string[],
+  right: string[],
+): boolean {
+  if (left === right) return true;
+  if (left.length !== right.length) return false;
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) return false;
+  }
+  return true;
 }
 
 function escapeRegExp(str: string) {
@@ -77,7 +99,7 @@ function renderHighlightedChildren(
   });
 }
 
-export function PromptMarkdownContent({
+function PromptMarkdownContentView({
   content,
   highlightTerms,
   highlightClassName = "bg-primary/15 text-primary rounded px-0.5",
@@ -198,7 +220,7 @@ export function PromptMarkdownContent({
 
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={REMARK_PLUGINS}
       rehypePlugins={rehypePlugins}
       components={markdownComponents}
     >
@@ -206,3 +228,14 @@ export function PromptMarkdownContent({
     </ReactMarkdown>
   );
 }
+
+// highlightTerms may arrive as a fresh array identity per parent render even
+// when the values are unchanged, so compare by value instead of identity.
+// highlightTerms 可能每次父渲染都是新数组身份但值未变，因此按值比较。
+export const PromptMarkdownContent = memo(
+  PromptMarkdownContentView,
+  (prev, next) =>
+    prev.content === next.content &&
+    prev.highlightClassName === next.highlightClassName &&
+    shallowEqualStringArrays(prev.highlightTerms, next.highlightTerms),
+);
