@@ -81,6 +81,49 @@ describe("skill-installer-utils", () => {
         }),
       ]);
     });
+
+    it("serves repeated custom agent reads from cache and refreshes after invalidation", () => {
+      let agentsPayload = JSON.stringify([
+        {
+          id: "cached-agent",
+          name: "Cached Agent",
+          rootPath: "~/cached-agent",
+        },
+      ]);
+      const getMock = vi.fn().mockImplementation((key: string) => {
+        if (key !== "customAgents") return undefined;
+        return { value: agentsPayload };
+      });
+      vi.mocked(initDatabase).mockReturnValue({
+        prepare: vi.fn().mockReturnValue({ get: getMock }),
+      } as unknown as ReturnType<typeof initDatabase>);
+
+      const first = getCustomAgentPlatforms();
+      const second = getCustomAgentPlatforms();
+      expect(first).toHaveLength(1);
+      expect(first[0]).toEqual(
+        expect.objectContaining({ id: "cached-agent" }),
+      );
+      expect(second).toEqual(first);
+      expect(initDatabase).toHaveBeenCalledTimes(1);
+
+      agentsPayload = JSON.stringify([
+        {
+          id: "cached-agent",
+          name: "Cached Agent",
+          rootPath: "~/cached-agent",
+        },
+        {
+          id: "updated-agent",
+          name: "Updated Agent",
+          rootPath: "~/updated-agent",
+        },
+      ]);
+      invalidateCustomPathsCache();
+      const refreshed = getCustomAgentPlatforms();
+      expect(refreshed).toHaveLength(2);
+      expect(initDatabase).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("getConfiguredBuiltinAgentPlatformIds", () => {

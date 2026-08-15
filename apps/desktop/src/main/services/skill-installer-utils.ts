@@ -440,6 +440,9 @@ let _builtinAgentOverridesCache: Record<
 > | null = null;
 let _builtinAgentOverridesCacheTs = 0;
 
+let _customAgentsCache: CustomAgentConfig[] | null = null;
+let _customAgentsCacheTs = 0;
+
 function normalizeBuiltinAgentOverrides(
   input: unknown,
 ): Record<string, BuiltinAgentOverrideConfig> {
@@ -661,31 +664,42 @@ function readPlatformRootPathsFromSettings(): Record<string, string> {
 }
 
 export function readCustomAgentsFromSettings(): CustomAgentConfig[] {
+  const now = Date.now();
+  if (_customAgentsCache && now - _customAgentsCacheTs < CUSTOM_PATHS_CACHE_TTL) {
+    return _customAgentsCache;
+  }
+  const cache = (value: CustomAgentConfig[]): CustomAgentConfig[] => {
+    _customAgentsCache = value;
+    _customAgentsCacheTs = now;
+    return value;
+  };
   try {
     const db = initDatabase();
     if (!db || typeof db.prepare !== "function") {
-      return [];
+      return cache([]);
     }
     const stmt = db.prepare("SELECT value FROM settings WHERE key = ?");
     const row = stmt.get("customAgents") as { value: string } | undefined;
     if (!row?.value) {
-      return [];
+      return cache([]);
     }
     const parsed = JSON.parse(row.value) as unknown;
     if (!Array.isArray(parsed)) {
-      return [];
+      return cache([]);
     }
-    return parsed.filter(
-      (entry): entry is CustomAgentConfig =>
-        Boolean(entry) &&
-        typeof entry === "object" &&
-        typeof (entry as CustomAgentConfig).id === "string" &&
-        typeof (entry as CustomAgentConfig).name === "string" &&
-        typeof (entry as CustomAgentConfig).rootPath === "string",
+    return cache(
+      parsed.filter(
+        (entry): entry is CustomAgentConfig =>
+          Boolean(entry) &&
+          typeof entry === "object" &&
+          typeof (entry as CustomAgentConfig).id === "string" &&
+          typeof (entry as CustomAgentConfig).name === "string" &&
+          typeof (entry as CustomAgentConfig).rootPath === "string",
+      ),
     );
   } catch (error) {
     console.warn("Failed to read custom agents from settings:", error);
-    return [];
+    return cache([]);
   }
 }
 
@@ -724,6 +738,8 @@ export function invalidateCustomPathsCache(): void {
   _customRootPathsCacheTs = 0;
   _builtinAgentOverridesCache = null;
   _builtinAgentOverridesCacheTs = 0;
+  _customAgentsCache = null;
+  _customAgentsCacheTs = 0;
 }
 
 export function getBuiltinAgentOverride(

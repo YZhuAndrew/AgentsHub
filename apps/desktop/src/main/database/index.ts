@@ -21,7 +21,10 @@ import {
   CanonicalRuleDB,
   CanonicalSkillDB,
   getRuntimeStorageContext,
+  hasCanonicalWorkspaceReconcileCompleted,
+  markCanonicalWorkspaceReconcileCompleted,
   recoverCanonicalResourcePublications,
+  resetCanonicalWorkspaceReconcileMemo,
 } from "@prompthub/core";
 import type { RecoveryContentCounts } from "@prompthub/shared/types";
 import {
@@ -37,6 +40,7 @@ import { reconcileDesktopSkillRepoPaths } from "../services/skill-repo-reconcili
 // ── Re-exports from @prompthub/db ────────────────────────────────────────────
 // All consumers in the desktop app can continue importing from this file.
 export { getDatabase, closeDatabase, isDatabaseEmpty };
+export { resetCanonicalWorkspaceReconcileMemo };
 export { DatabaseAdapter } from "@prompthub/db";
 export type { Database } from "@prompthub/db";
 export { SCHEMA_TABLES, SCHEMA_INDEXES, SCHEMA } from "@prompthub/db";
@@ -176,14 +180,18 @@ export function initDatabase(): DatabaseAdapter.Database {
     recoverUnregisteredLock: true,
   });
   try {
+    const dataRoot = getDataDir();
     if (getRuntimeStorageContext().localAuthority === "canonical-files") {
-      new CanonicalSkillDB(database).reconcileCanonicalWorkspaces();
-      new CanonicalRuleDB(database).reconcileCanonicalWorkspaces();
+      if (!hasCanonicalWorkspaceReconcileCompleted(dataRoot)) {
+        new CanonicalSkillDB(database).reconcileCanonicalWorkspaces();
+        new CanonicalRuleDB(database).reconcileCanonicalWorkspaces();
+        markCanonicalWorkspaceReconcileCompleted(dataRoot);
+      }
     } else {
       reconcileDesktopSkillRepoPaths(
         database,
         path.join(
-          getDataDir(),
+          dataRoot,
           "operations",
           "migrations",
           "desktop-skill-repo-v1.json",

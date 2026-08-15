@@ -58,6 +58,13 @@
   `preserve` 用于用户自己的 live 根（重建 internal 链接并把绝对目标改写为相对、
   重建相对 dangling、跳过 escaping 与绝对 dangling），`preserve-strict` 用于
   托管备份根（escaping 与绝对 dangling 直接拒绝）。
+- canonical Skill 工作区水合采用 bundle-hash 变更检测（2026-08-15 起，
+  `canonical-workspace-reconcile-performance`）：bundle 是唯一持久权威，
+  `cache/skill-workspaces` 是可丢弃投影；工作区内 `.canonical-bundle-hash`
+  与 bundle manifest `contentHash` 一致时水合必须直接复用现有工作区，
+  标记缺失或不一致时走 stage → 删除 → 原子改名重建。initDatabase 的 reconcile
+  每进程每个 data root 至多执行一次；进程内单技能变更经由 publish → hydrate
+  保持一致，备份/恢复路径通过进程重启自然重置 memo。
 - 预升级备份按 `preserve` 保留 contained 链接并跳过 escaping 链接；从预升级
   备份恢复按 `preserve-strict` 重建 contained 链接并拒绝 escaping 链接；legacy
   布局迁移路径仍拒绝一切符号链接。不得把 `userData` 外部引用作为快照内容

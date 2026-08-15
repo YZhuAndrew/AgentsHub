@@ -19,6 +19,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `agent-provider-protocol-bridge` | active | `spec/changes/active/agent-provider-protocol-bridge/` |
 | `app-shell-left-rail` | in progress | `spec/changes/active/app-shell-left-rail/` |
 | `brand-agentshub-prompthub-replacement` | active | `spec/changes/active/brand-agentshub-prompthub-replacement/` |
+| `canonical-workspace-reconcile-performance` | active | `spec/changes/active/canonical-workspace-reconcile-performance/` |
 | `cloud-account-store-client` | active | `spec/changes/active/cloud-account-store-client/` |
 | `cloud-collaborative-prompt-sharing` | active | `spec/changes/active/cloud-collaborative-prompt-sharing/` |
 | `desktop-arch-trim-mac-arm64-win-x64` | active | `spec/changes/active/desktop-arch-trim-mac-arm64-win-x64/` |

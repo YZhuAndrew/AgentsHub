@@ -152,12 +152,31 @@ export function deleteCanonicalSkill(skillId: string): void {
   });
 }
 
+function readWorkspaceBundleHash(workspacePath: string): string | null {
+  try {
+    const raw = fs.readFileSync(
+      path.join(workspacePath, ".canonical-bundle-hash"),
+      "utf8",
+    );
+    const trimmed = raw.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function hydrateCanonicalSkillWorkspace(skillId: string): string | null {
   const resourcePath = bundlePath(skillId);
   if (!fs.existsSync(resourcePath)) return null;
   const resource = readSkillResourceBundle(resourcePath);
   if (resource.packageFiles.length === 0) return null;
   const workspacePath = getCanonicalSkillWorkspacePath(skillId);
+  if (
+    readWorkspaceBundleHash(workspacePath) ===
+    resource.bundleManifest.contentHash
+  ) {
+    return workspacePath;
+  }
   const stagePath = `${workspacePath}.stage-${process.pid}`;
   fs.rmSync(stagePath, { recursive: true, force: true });
   fs.mkdirSync(stagePath, { recursive: true, mode: 0o700 });

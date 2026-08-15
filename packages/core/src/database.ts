@@ -22,6 +22,10 @@ import {
   CanonicalPromptRelationDB,
 } from "./canonical-prompt-graph-db";
 import { getRuntimeStorageContext } from "./runtime-paths";
+import {
+  hasCanonicalWorkspaceReconcileCompleted,
+  markCanonicalWorkspaceReconcileCompleted,
+} from "./canonical-workspace-reconcile-memo";
 
 export function initDatabase(
   hooks?: InitDatabaseHooks,
@@ -29,12 +33,19 @@ export function initDatabase(
   assertStorageMaintenanceAvailable(getUserDataPath());
   recoverCanonicalResourcePublications(getDataDir());
   const database = dbInit(getDatabasePath(), hooks);
-  if (getRuntimeStorageContext().localAuthority === "canonical-files") {
+  const dataRoot = getDataDir();
+  if (
+    getRuntimeStorageContext().localAuthority === "canonical-files" &&
+    !hasCanonicalWorkspaceReconcileCompleted(dataRoot)
+  ) {
     new CanonicalSkillDB(database).reconcileCanonicalWorkspaces();
     new CanonicalRuleDB(database).reconcileCanonicalWorkspaces();
+    markCanonicalWorkspaceReconcileCompleted(dataRoot);
   }
   return database;
 }
+
+export { resetCanonicalWorkspaceReconcileMemo } from "./canonical-workspace-reconcile-memo";
 
 export {
   closeDatabase,
