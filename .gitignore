@@ -129,3 +129,26 @@ packages/shared/types/index.js.map
 .omx/
 .workbuddy/
 .zcode/
+
+# ========================
+# Promotional / marketing materials (local only)
+# 宣传文档、介绍视频、宣传图等对外推广物料统一放在 promo/，
+# 不进入 Git、不上传 GitHub（仓库只保留可构建的功能性资源）。
+# 后续生成的宣传类文档/视频/图片请直接放入 promo/。
+# ========================
+/promo/
+
+# ========================
+# Generated deliverables / agent working output (local only)
+# outputs/ 是 AI 助手生成的产物目录：宣传文章、配图、视频工程、
+# BGM、截图等，均为本地交付物，不进入 Git、不上传 GitHub。
+# ========================
+/outputs/
+
+# ========================
+# Website article drafts (local only)
+# website/articles/ 存放面向公众号/博客的宣传文章草稿、构建脚本与
+# 配图（article.md / article.html / build_article.py / imgs），
+# 属于对外宣传物料，不进入 Git。
+# ========================
+/website/articles/
