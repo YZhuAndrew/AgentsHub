@@ -1042,6 +1042,16 @@ export function initDatabase(
       );
       markMigration("repair_empty_prompt_version_chain_v1");
     }
+
+    if (!hasMigration("narrow_prompts_fts_update_trigger_v1")) {
+      // The pre-narrowing trigger rewrote the FTS row on every UPDATE of
+      // prompts (including usage_count / is_favorite / current_version),
+      // paying a full-text reindex per non-content mutation. Drop the legacy
+      // trigger here; SCHEMA_INDEXES re-creates it below restricted to the
+      // FTS-indexed columns.
+      db!.exec("DROP TRIGGER IF EXISTS prompts_au");
+      markMigration("narrow_prompts_fts_update_trigger_v1");
+    }
   };
 
   try {

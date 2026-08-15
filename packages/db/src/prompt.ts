@@ -73,37 +73,46 @@ export class PromptDB {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    stmt.run(
-      id,
-      data.visibility || "private",
-      data.title,
-      data.description || null,
-      data.promptType || "text",
-      data.systemPrompt || null,
-      data.systemPromptEn || null,
-      data.userPrompt,
-      data.userPromptEn || null,
-      JSON.stringify(data.variables || []),
-      JSON.stringify(data.tags || []),
-      data.folderId || null,
-      data.parentId || null,
-      data.order ?? 0,
-      JSON.stringify(data.images || []),
-      JSON.stringify(data.videos || []),
-      data.source || null,
-      data.notes || null,
-      null,
-      0,
-      0,
-      0,
-      now,
-      now,
-    );
+    // Insert the prompt and its initial version in one transaction: a single
+    // fsync cycle instead of two, and no window where the prompt row exists
+    // without its version-1 row.
+    // 单事务写入 prompt 与初始版本：一次 fsync，且消除"prompt 行存在但
+    // 初始版本缺失"的中间态。
+    const txn = this.db.transaction(() => {
+      stmt.run(
+        id,
+        data.visibility || "private",
+        data.title,
+        data.description || null,
+        data.promptType || "text",
+        data.systemPrompt || null,
+        data.systemPromptEn || null,
+        data.userPrompt,
+        data.userPromptEn || null,
+        JSON.stringify(data.variables || []),
+        JSON.stringify(data.tags || []),
+        data.folderId || null,
+        data.parentId || null,
+        data.order ?? 0,
+        JSON.stringify(data.images || []),
+        JSON.stringify(data.videos || []),
+        data.source || null,
+        data.notes || null,
+        null,
+        0,
+        0,
+        0,
+        now,
+        now,
+      );
 
-    // Create initial version
-    // 创建初始版本
-    this.createVersion(id, "Initial version");
-    // 初始版本
+      // Create initial version
+      // 创建初始版本
+      this.createVersion(id, "Initial version");
+      // 初始版本
+    });
+
+    txn();
 
     return this.getById(id)!;
   }

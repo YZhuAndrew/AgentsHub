@@ -489,7 +489,10 @@ CREATE TRIGGER IF NOT EXISTS prompts_ad AFTER DELETE ON prompts BEGIN
 END;
 
 -- FTS 触发器：更新
-CREATE TRIGGER IF NOT EXISTS prompts_au AFTER UPDATE ON prompts BEGIN
+-- 仅当 FTS 索引列出现在 SET 子句时才重写 FTS 行；usage_count、
+-- is_favorite、current_version 等非索引列更新不触发全文索引重写。
+-- 列表必须与 prompts_fts 的列定义保持一致。
+CREATE TRIGGER IF NOT EXISTS prompts_au AFTER UPDATE OF title, description, system_prompt, user_prompt, tags ON prompts BEGIN
   INSERT INTO prompts_fts(prompts_fts, rowid, title, description, system_prompt, user_prompt, tags)
   VALUES ('delete', OLD.rowid, OLD.title, OLD.description, OLD.system_prompt, OLD.user_prompt, OLD.tags);
   INSERT INTO prompts_fts(rowid, title, description, system_prompt, user_prompt, tags)
