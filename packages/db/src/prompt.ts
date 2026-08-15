@@ -526,6 +526,19 @@ export class PromptDB {
     return rows.map((row) => this.rowToVersion(row));
   }
 
+  /**
+   * Get a single version by its id. Used by callers that need to locate the
+   * owning prompt before/after a version-level mutation.
+   *
+   * 按 id 获取单个版本：供版本级变更前后定位所属 prompt 使用。
+   */
+  getVersionById(versionId: string): PromptVersion | null {
+    const row = this.db
+      .prepare("SELECT * FROM prompt_versions WHERE id = ?")
+      .get(versionId) as PromptVersionRow | undefined;
+    return row ? this.rowToVersion(row) : null;
+  }
+
   deleteVersion(versionId: string): boolean {
     const versionRow = this.db
       .prepare("SELECT version FROM prompt_versions WHERE id = ?")
@@ -675,10 +688,13 @@ export class PromptDB {
   /**
    * Rename a tag across all prompts
    * 全局重命名标签
+   *
+   * @returns ids of prompts whose tags were updated (empty when no match)
    */
-  renameTag(oldTag: string, newTag: string): void {
-    if (!oldTag || !newTag || oldTag === newTag) return;
+  renameTag(oldTag: string, newTag: string): string[] {
+    if (!oldTag || !newTag || oldTag === newTag) return [];
 
+    const affectedIds: string[] = [];
     const txn = this.db.transaction(() => {
       // Find all prompts containing the old tag
       // LIKE '%"oldTag"%' is a fast initial filter
@@ -687,13 +703,12 @@ export class PromptDB {
         .all(`%"${oldTag}"%`) as { id: string; tags: string }[];
 
       const updateStmt = this.db.prepare(`
-        UPDATE prompts 
+        UPDATE prompts
         SET tags = ?, current_version = current_version + 1, updated_at = ?
         WHERE id = ?
       `);
 
       const now = Date.now();
-      let hasUpdates = false;
 
       for (const row of rows) {
         try {
@@ -705,7 +720,7 @@ export class PromptDB {
               new Set(tags.map((t) => (t === oldTag ? newTag : t))),
             );
             updateStmt.run(JSON.stringify(newTags), now, row.id);
-            hasUpdates = true;
+            affectedIds.push(row.id);
           }
         } catch (e) {
           // ignore invalid json
@@ -714,22 +729,26 @@ export class PromptDB {
     });
 
     txn();
+    return affectedIds;
   }
 
   /**
    * Delete a tag across all prompts
    * 全局删除标签
+   *
+   * @returns ids of prompts whose tags were updated (empty when no match)
    */
-  deleteTag(tag: string): void {
-    if (!tag) return;
+  deleteTag(tag: string): string[] {
+    if (!tag) return [];
 
+    const affectedIds: string[] = [];
     const txn = this.db.transaction(() => {
       const rows = this.db
         .prepare(`SELECT id, tags FROM prompts WHERE tags LIKE ?`)
         .all(`%"${tag}"%`) as { id: string; tags: string }[];
 
       const updateStmt = this.db.prepare(`
-        UPDATE prompts 
+        UPDATE prompts
         SET tags = ?, current_version = current_version + 1, updated_at = ?
         WHERE id = ?
       `);
@@ -742,6 +761,7 @@ export class PromptDB {
           if (Array.isArray(tags) && tags.includes(tag)) {
             const newTags = tags.filter((t) => t !== tag);
             updateStmt.run(JSON.stringify(newTags), now, row.id);
+            affectedIds.push(row.id);
           }
         } catch (e) {
           // ignore
@@ -750,16 +770,21 @@ export class PromptDB {
     });
 
     txn();
+    return affectedIds;
   }
 
   /**
    * Move a prompt under another prompt, or reorder it within the same level.
+   *
+   * @returns ids of prompts whose parent_id/sort_order were touched by this
+   *   move (the moved prompt plus both sibling groups). Callers use this to
+   *   sync only the affected workspace files.
    */
   movePrompt(
     promptId: string,
     newParentId: string | null,
     newOrder: number,
-  ): void {
+  ): string[] {
     if (!Number.isFinite(newOrder) || newOrder < 0) {
       throw new Error("Prompt order must be a non-negative number");
     }
@@ -767,12 +792,16 @@ export class PromptDB {
       throw new Error("Parent prompt id must be null or a non-empty string");
     }
 
+    const affectedIds = new Set<string>([promptId]);
     const txn = this.db.transaction(() => {
       const current = this.db
         .prepare("SELECT id, parent_id FROM prompts WHERE id = ?")
         .get(promptId) as { id: string; parent_id: string | null } | undefined;
 
-      if (!current) return;
+      if (!current) {
+        affectedIds.delete(promptId);
+        return;
+      }
 
       if (newParentId === promptId) {
         throw new Error("Cannot move a prompt under itself");
@@ -784,10 +813,11 @@ export class PromptDB {
       const targetParentId = newParentId ?? null;
 
       if (oldParentId !== targetParentId) {
-        this.rewritePromptSiblingOrder(
-          oldParentId,
-          this.getPromptSiblingIds(oldParentId).filter((id) => id !== promptId),
+        const oldSiblingIds = this.getPromptSiblingIds(oldParentId).filter(
+          (id) => id !== promptId,
         );
+        oldSiblingIds.forEach((id) => affectedIds.add(id));
+        this.rewritePromptSiblingOrder(oldParentId, oldSiblingIds);
       }
 
       const targetSiblingIds = this.getPromptSiblingIds(targetParentId).filter(
@@ -798,6 +828,7 @@ export class PromptDB {
         targetSiblingIds.length,
       );
       targetSiblingIds.splice(targetIndex, 0, promptId);
+      targetSiblingIds.forEach((id) => affectedIds.add(id));
       this.rewritePromptSiblingOrder(
         targetParentId,
         targetSiblingIds,
@@ -807,6 +838,7 @@ export class PromptDB {
     });
 
     txn();
+    return [...affectedIds];
   }
 
   private assertValidPromptParent(
