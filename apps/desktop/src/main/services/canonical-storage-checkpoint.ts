@@ -332,6 +332,7 @@ function assertCheckpointCapacity(
 ): void {
   const inventory = createStorageInventory(options.activeRoot, {
     includeSecrets: false,
+    symlinkPolicy: "record",
   });
   const parentPath = path.dirname(path.resolve(options.targetPath));
   fs.mkdirSync(parentPath, { recursive: true, mode: 0o700 });

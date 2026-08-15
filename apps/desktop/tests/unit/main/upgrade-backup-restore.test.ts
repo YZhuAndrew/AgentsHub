@@ -113,6 +113,58 @@ describe("upgrade-backup-restore", () => {
     });
   });
 
+  it.skipIf(process.platform === "win32")(
+    "restores contained symlinks from a backup snapshot",
+    async () => {
+      const userDataPath = path.join(tmpBase, "AgentsHub");
+      fs.mkdirSync(path.join(userDataPath, "data", "skills", "demo-skill"), {
+        recursive: true,
+      });
+      writeTestDatabase(
+        path.join(userDataPath, "data", "prompthub.db"),
+        "old-db",
+      );
+      fs.writeFileSync(
+        path.join(userDataPath, "data", "skills", "demo-skill", "SKILL.md"),
+        "# skill",
+      );
+      fs.symlinkSync(
+        "SKILL.md",
+        path.join(userDataPath, "data", "skills", "demo-skill", "AGENTS.md"),
+        "file",
+      );
+
+      const snapshot = await createUpgradeDataSnapshot(userDataPath, {
+        fromVersion: "0.7.2",
+      });
+
+      fs.rmSync(path.join(userDataPath, "data"), {
+        recursive: true,
+        force: true,
+      });
+
+      const result = await restoreFromUpgradeBackupAsync(
+        userDataPath,
+        snapshot.backupId,
+      );
+
+      expect(result.success).toBe(true);
+      expect(
+        readTestDatabase(path.join(userDataPath, "data", "prompthub.db")),
+      ).toBe("old-db");
+      const restoredLink = path.join(
+        userDataPath,
+        "data",
+        "skills",
+        "demo-skill",
+        "AGENTS.md",
+      );
+      expect(fs.lstatSync(restoredLink).isSymbolicLink()).toBe(true);
+      expect(fs.readlinkSync(restoredLink)).toBe("SKILL.md");
+      expect(fs.readFileSync(restoredLink, "utf8")).toBe("# skill");
+    },
+  );
+
   it("ignores runtime cache directories during restore", async () => {
     const userDataPath = path.join(tmpBase, "AgentsHub");
     fs.mkdirSync(userDataPath, { recursive: true });

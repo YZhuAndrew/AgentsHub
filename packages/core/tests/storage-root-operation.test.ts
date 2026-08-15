@@ -257,26 +257,51 @@ describe("storage root operation", () => {
   });
 
   it.skipIf(process.platform === "win32")(
-    "rejects symlinks in the durable inventory without writing the target",
+    "skips escaping symlinks and recreates contained links during migration",
     async () => {
-      const { base, source, target, control } = createFixture();
+      const { base, source, target, control, pointers } = createFixture();
+      const skillDir = path.join(source, "data", "skills", "demo-skill");
+      fs.mkdirSync(skillDir, { recursive: true });
+      fs.writeFileSync(path.join(skillDir, "SKILL.md"), "# skill");
+      fs.symlinkSync("SKILL.md", path.join(skillDir, "AGENTS.md"), "file");
+      fs.writeFileSync(path.join(base, "outside"), "outside");
       fs.symlinkSync(
         path.join(base, "outside"),
         path.join(source, "data", "prompts", "escape"),
       );
 
-      await expect(
-        applyStorageRootChange({
-          action: "migrate",
-          sourceRoot: source,
-          targetRoot: target,
-          controlDirectory: control,
-          publishBootPointer: () => undefined,
-          getAvailableBytes: () => 1024 * 1024 * 1024,
-          operationId: "unsafe-link",
-        }),
-      ).rejects.toThrow("symbolic link");
-      expect(fs.existsSync(target)).toBe(false);
+      const result = await applyStorageRootChange({
+        action: "migrate",
+        sourceRoot: source,
+        targetRoot: target,
+        controlDirectory: control,
+        publishBootPointer: (root) => {
+          pointers.push(root);
+        },
+        verifyDatabase: (databasePath) => {
+          expect(fs.readFileSync(databasePath, "utf8")).toBe("sqlite-image");
+        },
+        getAvailableBytes: () => 1024 * 1024 * 1024,
+        operationId: "linked-migration",
+      });
+
+      expect(result.status).toBe("committed");
+      expect(pointers).toEqual([target]);
+      const migratedLink = path.join(
+        target,
+        "data",
+        "skills",
+        "demo-skill",
+        "AGENTS.md",
+      );
+      expect(fs.lstatSync(migratedLink).isSymbolicLink()).toBe(true);
+      expect(fs.readlinkSync(migratedLink)).toBe("SKILL.md");
+      expect(
+        fs.existsSync(path.join(target, "data", "prompts", "escape")),
+      ).toBe(false);
+      expect(fs.lstatSync(path.join(source, "data", "prompts", "escape")).isSymbolicLink()).toBe(
+        true,
+      );
     },
   );
 

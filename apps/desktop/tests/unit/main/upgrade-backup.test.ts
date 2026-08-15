@@ -227,6 +227,11 @@ describe("upgrade-backup", () => {
         "CLAUDE.md",
       );
       expect(fs.lstatSync(backedLink).isSymbolicLink()).toBe(true);
+      // Absolute internal targets are rewritten relative so the backup stays
+      // restorable on any machine.
+      const backedTarget = fs.readlinkSync(backedLink);
+      expect(path.isAbsolute(backedTarget)).toBe(false);
+      expect(backedTarget).toBe("SKILL.md");
       expect(
         fs.readFileSync(
           path.join(snapshot.backupPath, "skills", "demo-skill", "SKILL.md"),

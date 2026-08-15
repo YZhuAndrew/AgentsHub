@@ -291,12 +291,60 @@ function assertOwnedOperationPath(
   }
 }
 
+function pathIsWithinRoot(root: string, target: string): boolean {
+  const relative = path.relative(root, target);
+  return (
+    relative !== ".." &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+  );
+}
+
+/**
+ * Contained candidate links are legal (the upgrade/portable restore copy
+ * policies recreate them with relative in-root targets), but a candidate is
+ * swapped over the live root wholesale, so any link that resolves — or, when
+ * dangling, lexically points — outside the stage must fail closed.
+ */
+function assertCandidateLinkContained(
+  resolvedStageRoot: string,
+  linkPath: string,
+): void {
+  const rawTarget = fs.readlinkSync(linkPath);
+  // Compare in realpath space on both sides: the link's directory is resolved
+  // the same way as the stage root so platform directory aliases (macOS
+  // /var -> /private/var) cannot make in-root targets look escaping.
+  const resolvedLinkDirectory = fs.realpathSync(path.dirname(linkPath));
+  const lexicalTarget = path.resolve(resolvedLinkDirectory, rawTarget);
+  if (!pathIsWithinRoot(resolvedStageRoot, lexicalTarget)) {
+    throw new Error(
+      `Storage restore candidate contains symbolic link: ${linkPath}`,
+    );
+  }
+  try {
+    const resolved = fs.realpathSync(linkPath);
+    if (!pathIsWithinRoot(resolvedStageRoot, resolved)) {
+      throw new Error(
+        `Storage restore candidate contains symbolic link: ${linkPath}`,
+      );
+    }
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== "ENOENT") {
+      throw new Error(
+        `Storage restore candidate contains symbolic link: ${linkPath}`,
+      );
+    }
+  }
+}
+
 function validateCandidateTree(
   stageRoot: string,
   limits: { maxEntries: number; maxBytes: number; maxDepth: number },
 ): void {
   let entries = 0;
   let bytes = 0;
+  let resolvedStageRoot: string | null = null;
   const visit = (targetPath: string, depth: number): void => {
     if (depth > limits.maxDepth) {
       throw new Error(
@@ -305,9 +353,15 @@ function validateCandidateTree(
     }
     const stats = fs.lstatSync(targetPath);
     if (stats.isSymbolicLink()) {
-      throw new Error(
-        `Storage restore candidate contains symbolic link: ${targetPath}`,
-      );
+      if (resolvedStageRoot === null) {
+        resolvedStageRoot = fs.realpathSync(stageRoot);
+      }
+      assertCandidateLinkContained(resolvedStageRoot, targetPath);
+      entries += 1;
+      if (entries > limits.maxEntries) {
+        throw new Error("Storage restore candidate exceeds entry limit");
+      }
+      return;
     }
     entries += 1;
     if (entries > limits.maxEntries) {

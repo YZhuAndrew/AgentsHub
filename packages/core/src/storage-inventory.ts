@@ -48,7 +48,9 @@ export interface StorageInventoryOptions extends StorageInventoryLimits {
    * consumers never silently skip linked content. "record" classifies each
    * link instead (internal / escaping / dangling relative to the inventory
    * root) and collects it under `StorageInventory.symlinks` without walking
-   * through it; regular-file hashing and totals are unaffected.
+   * through it; regular-file hashing and totals are unaffected. Only a
+   * realpath `ENOENT` classifies as dangling; other resolution failures
+   * (cycles, permission errors) throw.
    */
   symlinkPolicy?: "refuse" | "record";
 }
@@ -237,6 +239,39 @@ function resolvedPathIsWithin(root: string, target: string): boolean {
   );
 }
 
+function resolveInventoryRootReal(root: string): string {
+  // Normalize the root with realpath so internal/escaping classification is
+  // consistent even when system directories are themselves symlinks (e.g.
+  // macOS /var -> /private/var); otherwise an internal link's realpath would
+  // compare against a non-normalized root and be misclassified as escaping.
+  try {
+    return fs.realpathSync(root);
+  } catch {
+    return root;
+  }
+}
+
+function classifyStorageSymlink(
+  targetPath: string,
+  resolvedRoot: string,
+): { kind: StorageSymlinkKind; resolvedPath: string | null } {
+  try {
+    const resolved = fs.realpathSync(targetPath);
+    return {
+      kind: resolvedPathIsWithin(resolvedRoot, resolved)
+        ? "internal"
+        : "escaping",
+      resolvedPath: resolved,
+    };
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") return { kind: "dangling", resolvedPath: null };
+    throw new Error(
+      `Cannot resolve symbolic link in storage inventory: ${targetPath} (${code ?? "unknown error"})`,
+    );
+  }
+}
+
 export function createStorageInventory(
   rootPath: string,
   options: StorageInventoryOptions = {},
@@ -284,16 +319,7 @@ export function createStorageInventory(
   const files: StorageInventoryEntry[] = [];
   const symlinks: StorageSymlinkEntry[] = [];
   const symlinkPolicy = options.symlinkPolicy ?? "refuse";
-  // Normalize the root with realpath so internal/escaping classification is
-  // consistent even when system directories are themselves symlinks (e.g.
-  // macOS /var -> /private/var); otherwise an internal link's realpath would
-  // compare against a non-normalized root and be misclassified as escaping.
-  let resolvedRoot: string;
-  try {
-    resolvedRoot = fs.realpathSync(root);
-  } catch {
-    resolvedRoot = root;
-  }
+  const resolvedRoot = resolveInventoryRootReal(root);
   const excludedPaths = new Set(
     (options.excludeRelativePaths ?? []).map((entry) =>
       entry.split(path.sep).join("/"),
@@ -316,20 +342,9 @@ export function createStorageInventory(
         );
       }
       const linkTarget = fs.readlinkSync(targetPath);
-      let kind: StorageSymlinkKind;
-      try {
-        const resolved = fs.realpathSync(targetPath);
-        kind = resolvedPathIsWithin(resolvedRoot, resolved)
-          ? "internal"
-          : "escaping";
-      } catch {
-        // Dangling link: realpath cannot resolve it, so it cannot escape the
-        // root either.
-        kind = "dangling";
-      }
       symlinks.push({
         relativePath: normalizeRelativePath(root, targetPath),
-        kind,
+        kind: classifyStorageSymlink(targetPath, resolvedRoot).kind,
         target: linkTarget,
       });
       return;
@@ -395,9 +410,97 @@ export function createStorageInventory(
   };
 }
 
+export interface CopyStorageInventorySymlinkOptions {
+  /**
+   * - "preserve": recreate contained links (internal links rewritten with a
+   *   relative destination target, dangling links with relative raw targets)
+   *   and skip escaping links plus dangling links with absolute targets.
+   *   Intended for copying the user's own live root (0.7.1 snapshot
+   *   contract).
+   * - "preserve-strict": same recreation rules, but escaping links and
+   *   absolute dangling targets throw. Intended for untrusted backup or
+   *   candidate roots where links resolving outside the root must fail
+   *   closed.
+   */
+  symlinks?: "preserve" | "preserve-strict";
+}
+
+function recreateRecordedSymlinks(
+  inventory: StorageInventory,
+  destination: string,
+  policy: "preserve" | "preserve-strict",
+): void {
+  const resolvedRoot = resolveInventoryRootReal(inventory.rootPath);
+  for (const link of inventory.symlinks) {
+    const sourceLinkPath = path.join(
+      inventory.rootPath,
+      ...link.relativePath.split("/"),
+    );
+    let before: fs.Stats;
+    try {
+      before = fs.lstatSync(sourceLinkPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        throw new Error(
+          `Storage inventory source changed type: ${sourceLinkPath}`,
+        );
+      }
+      throw error;
+    }
+    if (!before.isSymbolicLink()) {
+      throw new Error(
+        `Storage inventory source changed type: ${sourceLinkPath}`,
+      );
+    }
+    const { kind, resolvedPath } = classifyStorageSymlink(
+      sourceLinkPath,
+      resolvedRoot,
+    );
+    const rawTarget = fs.readlinkSync(sourceLinkPath);
+    if (kind === "escaping") {
+      if (policy === "preserve-strict") {
+        throw new Error(
+          `Refusing escaping symbolic link in storage copy: ${sourceLinkPath}`,
+        );
+      }
+      continue;
+    }
+    if (kind === "dangling" && path.isAbsolute(rawTarget)) {
+      if (policy === "preserve-strict") {
+        throw new Error(
+          `Refusing absolute dangling symbolic link in storage copy: ${sourceLinkPath}`,
+        );
+      }
+      continue;
+    }
+    const destinationLink = path.join(
+      destination,
+      ...link.relativePath.split("/"),
+    );
+    // Escaping and absolute-dangling links returned above, so a resolved
+    // path here means internal and a null one means relative dangling.
+    let destinationTarget: string;
+    if (resolvedPath !== null) {
+      const targetSuffix = path.relative(resolvedRoot, resolvedPath);
+      destinationTarget = path.relative(
+        path.dirname(destinationLink),
+        path.join(destination, ...targetSuffix.split(path.sep)),
+      );
+    } else {
+      destinationTarget = rawTarget;
+    }
+    fs.mkdirSync(path.dirname(destinationLink), {
+      recursive: true,
+      mode: 0o700,
+    });
+    fs.symlinkSync(destinationTarget, destinationLink);
+  }
+}
+
 export function copyStorageInventory(
   inventory: StorageInventory,
   destinationRoot: string,
+  options: CopyStorageInventorySymlinkOptions = {},
 ): void {
   const destination = path.resolve(destinationRoot);
   fs.mkdirSync(destination, { recursive: true, mode: 0o700 });
@@ -450,6 +553,9 @@ export function copyStorageInventory(
         `Storage inventory source changed during copy: ${sourcePath}`,
       );
     }
+  }
+  if (options.symlinks) {
+    recreateRecordedSymlinks(inventory, destination, options.symlinks);
   }
 }
 

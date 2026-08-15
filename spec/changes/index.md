@@ -8,7 +8,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | State | Count |
 | --- | ---: |
 | Active | 50 |
-| Archived | 209 |
+| Archived | 210 |
 | Legacy | 1 |
 
 ## Active
@@ -51,7 +51,6 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `prompt-workspace-completion` | active | `spec/changes/active/prompt-workspace-completion/` |
 | `r2-direct-downloads` | active | `spec/changes/active/r2-direct-downloads/` |
 | `readme-screenshots-v0-5-6` | active | `spec/changes/active/readme-screenshots-v0-5-6/` |
-| `release-0-8-0-prep` | active | `spec/changes/active/release-0-8-0-prep/` |
 | `republish-0-5-9-20260714` | active | `spec/changes/active/republish-0-5-9-20260714/` |
 | `risk-aware-verification-harness` | active | `spec/changes/active/risk-aware-verification-harness/` |
 | `rules-agent-source-matrix` | active | `spec/changes/active/rules-agent-source-matrix/` |
@@ -60,6 +59,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `skill-batch-import-zip-and-multi-url` | active | `spec/changes/active/skill-batch-import-zip-and-multi-url/` |
 | `skill-uninstall-lifecycle` | active | `spec/changes/active/skill-uninstall-lifecycle/` |
 | `skills-issue-194-shared-global-target` | active | `spec/changes/active/skills-issue-194-shared-global-target/` |
+| `storage-inventory-symlink-containment` | active | `spec/changes/active/storage-inventory-symlink-containment/` |
 | `sync-issue-191-safety-report-contract` | active | `spec/changes/active/sync-issue-191-safety-report-contract/` |
 | `update-channel-hardening` | active | `spec/changes/active/update-channel-hardening/` |
 | `web-agent-service-parity` | active | `spec/changes/active/web-agent-service-parity/` |
@@ -272,6 +272,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `2026-08-14-prompt-output-format-contribution` | archived | `spec/changes/archive/2026/08/2026-08-14-prompt-output-format-contribution/` |
 | `2026-08-14-qwenwork-agent-platform-support` | archived | `spec/changes/archive/2026/08/2026-08-14-qwenwork-agent-platform-support/` |
 | `2026-08-14-release-0-6-0-version-alignment` | archived | `spec/changes/archive/2026/08/2026-08-14-release-0-6-0-version-alignment/` |
+| `2026-08-14-release-0-8-0-prep` | archived | `spec/changes/archive/2026/08/2026-08-14-release-0-8-0-prep/` |
 | `2026-08-14-restore-window-state` | archived | `spec/changes/archive/2026/08/2026-08-14-restore-window-state/` |
 | `2026-08-14-rules-managed-copies` | archived | `spec/changes/archive/2026/08/2026-08-14-rules-managed-copies/` |
 | `2026-08-14-skill-file-markdown-preview` | archived | `spec/changes/archive/2026/08/2026-08-14-skill-file-markdown-preview/` |

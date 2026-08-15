@@ -16,6 +16,7 @@ import {
   DatabaseAdapter,
   initDatabase,
   PromptDB,
+  SkillDB,
 } from "@prompthub/db";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -204,4 +205,37 @@ describe("canonical storage authority publication", () => {
     ).toBe("keep");
     expect(readCanonicalStorageAuthority(input.activeRoot)).toBeNull();
   });
+
+  it.skipIf(process.platform === "win32")(
+    "publishes when managed skill packages contain contained symlinks",
+    async () => {
+      const input = fixture();
+      const packagePath = path.join(input.activeRoot, "data", "skills", "writer");
+      fs.mkdirSync(packagePath, { recursive: true });
+      fs.writeFileSync(path.join(packagePath, "SKILL.md"), "# Writer\n");
+      fs.symlinkSync("SKILL.md", path.join(packagePath, "AGENTS.md"), "file");
+      const database = initDatabase(input.sourceDatabasePath);
+      new SkillDB(database).create({
+        name: "writer",
+        description: "Writing helper",
+        instructions: "Write clearly",
+        protocol_type: "skill",
+        local_repo_path: packagePath,
+      });
+      closeDatabase();
+
+      const result = await publishCanonicalStorageAuthority(options(input));
+
+      expect(result.status).toBe("committed");
+      expect(
+        readCanonicalStorageShadow(path.join(input.activeRoot, "data")).skills[0]
+          .packageFiles,
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: "AGENTS.md" }),
+          expect.objectContaining({ path: "SKILL.md" }),
+        ]),
+      );
+    },
+  );
 });

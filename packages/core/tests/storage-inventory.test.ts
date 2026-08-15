@@ -402,4 +402,350 @@ describe("storage inventory", () => {
       layoutEpoch: 1,
     });
   });
+
+  it.skipIf(process.platform === "win32")(
+    "classifies recorded symlinks as internal, escaping, or dangling",
+    () => {
+      const canonical = canonicalFixture();
+      write(canonical, "data/skills/demo/CLAUDE.md", "# claude");
+      const aliasPath = path.join(canonical, "data", "skills", "demo", "AGENTS.md");
+      fs.symlinkSync("CLAUDE.md", aliasPath);
+
+      const absoluteAlias = path.join(
+        canonical,
+        "data",
+        "skills",
+        "demo",
+        "ABS.md",
+      );
+      fs.symlinkSync(
+        path.join(canonical, "data", "skills", "demo", "CLAUDE.md"),
+        absoluteAlias,
+      );
+
+      const outsidePath = path.join(path.dirname(canonical), "outside-secret.txt");
+      fs.writeFileSync(outsidePath, "external secret");
+      const escapingPath = path.join(canonical, "data", "skills", "escape.md");
+      fs.symlinkSync(
+        path.relative(path.dirname(escapingPath), outsidePath),
+        escapingPath,
+      );
+
+      const danglingPath = path.join(canonical, "data", "skills", "broken.md");
+      fs.symlinkSync("missing-target.md", danglingPath);
+
+      const inventory = createStorageInventory(canonical, {
+        symlinkPolicy: "record",
+      });
+
+      expect(inventory.symlinks).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            relativePath: "data/skills/demo/AGENTS.md",
+            kind: "internal",
+            target: "CLAUDE.md",
+          }),
+          expect.objectContaining({
+            relativePath: "data/skills/demo/ABS.md",
+            kind: "internal",
+          }),
+          expect.objectContaining({
+            relativePath: "data/skills/escape.md",
+            kind: "escaping",
+          }),
+          expect.objectContaining({
+            relativePath: "data/skills/broken.md",
+            kind: "dangling",
+            target: "missing-target.md",
+          }),
+        ]),
+      );
+      expect(
+        inventory.files.some((entry) =>
+          entry.relativePath.endsWith("AGENTS.md"),
+        ),
+      ).toBe(false);
+      expect(
+        inventory.files.some((entry) =>
+          entry.relativePath.endsWith("CLAUDE.md"),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "fails closed on symlink cycles instead of classifying them dangling",
+    () => {
+      const canonical = canonicalFixture();
+      const basePath = path.join(canonical, "data", "skills");
+      fs.mkdirSync(basePath, { recursive: true });
+      fs.symlinkSync("loop-b", path.join(basePath, "loop-a"));
+      fs.symlinkSync("loop-a", path.join(basePath, "loop-b"));
+
+      expect(() =>
+        createStorageInventory(canonical, { symlinkPolicy: "record" }),
+      ).toThrow(/loop-a/);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "recreates contained links under the preserve copy policy",
+    () => {
+      const source = canonicalFixture();
+      write(source, "data/skills/demo/CLAUDE.md", "# claude");
+      fs.symlinkSync(
+        "CLAUDE.md",
+        path.join(source, "data", "skills", "demo", "AGENTS.md"),
+      );
+      fs.symlinkSync(
+        path.join(source, "data", "skills", "demo", "CLAUDE.md"),
+        path.join(source, "data", "skills", "demo", "ABS.md"),
+      );
+      fs.symlinkSync(
+        "missing-target.md",
+        path.join(source, "data", "skills", "broken.md"),
+      );
+      const outsidePath = path.join(path.dirname(source), "outside-secret.txt");
+      fs.writeFileSync(outsidePath, "external secret");
+      fs.symlinkSync(
+        path.relative(path.join(source, "data", "skills"), outsidePath),
+        path.join(source, "data", "skills", "escape.md"),
+      );
+      fs.symlinkSync(
+        path.join(path.dirname(source), "missing-absolute.md"),
+        path.join(source, "data", "skills", "abs-dangling.md"),
+      );
+
+      const inventory = createStorageInventory(source, {
+        symlinkPolicy: "record",
+      });
+      const destination = root("prompthub-storage-preserve-");
+      copyStorageInventory(inventory, destination, { symlinks: "preserve" });
+
+      const demoPath = path.join(destination, "data", "skills", "demo");
+      expect(fs.readlinkSync(path.join(demoPath, "AGENTS.md"))).toBe(
+        "CLAUDE.md",
+      );
+      const absoluteTarget = fs.readlinkSync(path.join(demoPath, "ABS.md"));
+      expect(path.isAbsolute(absoluteTarget)).toBe(false);
+      expect(
+        fs.readFileSync(path.join(demoPath, "ABS.md"), "utf8"),
+      ).toBe("# claude");
+      expect(
+        fs.lstatSync(
+          path.join(destination, "data", "skills", "broken.md"),
+        ).isSymbolicLink(),
+      ).toBe(true);
+      expect(
+        fs.existsSync(path.join(destination, "data", "skills", "escape.md")),
+      ).toBe(false);
+      expect(
+        fs.existsSync(
+          path.join(destination, "data", "skills", "abs-dangling.md"),
+        ),
+      ).toBe(false);
+      expect(() =>
+        verifyStorageInventory(inventory, destination),
+      ).not.toThrow();
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "rejects escaping and absolute-dangling links under preserve-strict",
+    () => {
+      const source = canonicalFixture();
+      const outsidePath = path.join(path.dirname(source), "outside-secret.txt");
+      fs.writeFileSync(outsidePath, "external secret");
+      fs.symlinkSync(
+        path.relative(path.join(source, "data"), outsidePath),
+        path.join(source, "data", "escape.md"),
+      );
+
+      const strictInventory = createStorageInventory(source, {
+        symlinkPolicy: "record",
+      });
+      expect(() =>
+        copyStorageInventory(strictInventory, root("prompthub-storage-strict-"), {
+          symlinks: "preserve-strict",
+        }),
+      ).toThrow(/escape/);
+
+      const absoluteSource = canonicalFixture();
+      fs.symlinkSync(
+        path.join(path.dirname(absoluteSource), "missing-absolute.md"),
+        path.join(absoluteSource, "data", "abs-dangling.md"),
+      );
+      const absoluteInventory = createStorageInventory(absoluteSource, {
+        symlinkPolicy: "record",
+      });
+      expect(() =>
+        copyStorageInventory(
+          absoluteInventory,
+          root("prompthub-storage-strict-absolute-"),
+          { symlinks: "preserve-strict" },
+        ),
+      ).toThrow(/abs-dangling/);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "rejects a recorded link that disappears before copy",
+    () => {
+      const source = canonicalFixture();
+      write(source, "data/skills/demo/CLAUDE.md", "# claude");
+      const linkPath = path.join(source, "data", "skills", "demo", "AGENTS.md");
+      fs.symlinkSync("CLAUDE.md", linkPath);
+      const inventory = createStorageInventory(source, {
+        symlinkPolicy: "record",
+      });
+      fs.rmSync(linkPath);
+      expect(() =>
+        copyStorageInventory(inventory, root("prompthub-storage-removed-"), {
+          symlinks: "preserve",
+        }),
+      ).toThrow(/AGENTS.md/);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "reports link resolution failures without an errno code",
+    () => {
+      const source = canonicalFixture();
+      write(source, "data/skills/demo/CLAUDE.md", "# claude");
+      const linkPath = path.join(source, "data", "skills", "demo", "AGENTS.md");
+      fs.symlinkSync("CLAUDE.md", linkPath);
+      const originalRealpath = fs.realpathSync.bind(fs);
+      vi.spyOn(fs, "realpathSync").mockImplementation((target, options) => {
+        if (path.resolve(String(target)).endsWith("AGENTS.md")) {
+          throw new Error("opaque failure");
+        }
+        return originalRealpath(target, options as never);
+      });
+      expect(() =>
+        createStorageInventory(source, { symlinkPolicy: "record" }),
+      ).toThrow(/AGENTS.md \(unknown error\)/);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "falls back to the resolved root when realpath fails",
+    () => {
+      const source = canonicalFixture();
+      write(source, "data/skills/demo/CLAUDE.md", "# claude");
+      fs.symlinkSync(
+        "CLAUDE.md",
+        path.join(source, "data", "skills", "demo", "AGENTS.md"),
+      );
+      const resolvedSource = path.resolve(source);
+      const linkTargetPath = path.join(
+        resolvedSource,
+        "data",
+        "skills",
+        "demo",
+        "CLAUDE.md",
+      );
+      const originalRealpath = fs.realpathSync.bind(fs);
+      vi.spyOn(fs, "realpathSync").mockImplementation((target, options) => {
+        if (path.resolve(String(target)) === resolvedSource) {
+          throw new Error("realpath failed");
+        }
+        if (path.resolve(String(target)).endsWith("AGENTS.md")) {
+          // Keep the mocked resolution in the same path space as the
+          // fallback root so platform aliases do not skew classification.
+          return linkTargetPath;
+        }
+        return originalRealpath(target, options as never);
+      });
+      const inventory = createStorageInventory(source, {
+        symlinkPolicy: "record",
+      });
+      expect(
+        inventory.symlinks.find((entry) =>
+          entry.relativePath.endsWith("AGENTS.md"),
+        )?.kind,
+      ).toBe("internal");
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "re-classifies recorded links against the root at copy time",
+    () => {
+      const source = canonicalFixture();
+      write(source, "data/skills/demo/CLAUDE.md", "# claude");
+      const linkPath = path.join(source, "data", "skills", "demo", "AGENTS.md");
+      fs.symlinkSync("CLAUDE.md", linkPath);
+      const outsidePath = path.join(path.dirname(source), "outside-secret.txt");
+      fs.writeFileSync(outsidePath, "external secret");
+      const inventory = createStorageInventory(source, {
+        symlinkPolicy: "record",
+      });
+
+      fs.rmSync(linkPath);
+      fs.symlinkSync(
+        path.relative(path.dirname(linkPath), outsidePath),
+        linkPath,
+      );
+
+      const preserved = root("prompthub-storage-reclassify-");
+      copyStorageInventory(inventory, preserved, { symlinks: "preserve" });
+      expect(
+        fs.existsSync(path.join(preserved, "data", "skills", "demo", "AGENTS.md")),
+      ).toBe(false);
+
+      expect(() =>
+        copyStorageInventory(inventory, root("prompthub-storage-reclassify-strict-"), {
+          symlinks: "preserve-strict",
+        }),
+      ).toThrow(/AGENTS.md/);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "propagates non-missing stat failures when recreating links",
+    () => {
+      const source = canonicalFixture();
+      write(source, "data/skills/demo/CLAUDE.md", "# claude");
+      const linkPath = path.join(source, "data", "skills", "demo", "AGENTS.md");
+      fs.symlinkSync("CLAUDE.md", linkPath);
+      const inventory = createStorageInventory(source, {
+        symlinkPolicy: "record",
+      });
+
+      const originalLstat = fs.lstatSync.bind(fs);
+      vi.spyOn(fs, "lstatSync").mockImplementation((target, options) => {
+        if (path.resolve(String(target)) === path.resolve(linkPath)) {
+          const failure = new Error("permission denied") as NodeJS.ErrnoException;
+          failure.code = "EACCES";
+          throw failure;
+        }
+        return originalLstat(target, options as never);
+      });
+
+      expect(() =>
+        copyStorageInventory(inventory, root("prompthub-storage-stat-fail-"), {
+          symlinks: "preserve",
+        }),
+      ).toThrow(/permission denied/);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "rejects a recorded link that changes type before copy",
+    () => {
+      const source = canonicalFixture();
+      write(source, "data/skills/demo/CLAUDE.md", "# claude");
+      const linkPath = path.join(source, "data", "skills", "demo", "AGENTS.md");
+      fs.symlinkSync("CLAUDE.md", linkPath);
+      const inventory = createStorageInventory(source, {
+        symlinkPolicy: "record",
+      });
+      fs.rmSync(linkPath);
+      fs.writeFileSync(linkPath, "replaced");
+      expect(() =>
+        copyStorageInventory(inventory, root("prompthub-storage-mutated-"), {
+          symlinks: "preserve",
+        }),
+      ).toThrow(/AGENTS.md/);
+    },
+  );
 });

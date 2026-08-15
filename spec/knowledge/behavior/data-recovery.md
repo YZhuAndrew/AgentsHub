@@ -16,7 +16,8 @@
 - 在高风险布局迁移或升级前，应具备保险快照、预备份或等价的可回滚手段。
 - 恢复或迁移失败后，不应把用户留在半恢复或半迁移状态。
 - 完整恢复、portable restore、升级恢复和数据库恢复必须先在不可见 stage 中准备
-  候选，校验容量、路径、symlink、schema、hash、SQLite quick-check 与领域数量，
+  候选，校验容量、路径、contained symlink 边界、schema、hash、SQLite quick-check
+  与领域数量，
   再通过 durable journal 发布。任一 DB、文件、配置或领域步骤失败时必须回滚；
   崩溃后的下一次启动必须在打开业务服务前完成或回滚 journal，不能报告 partial
   success。
@@ -49,11 +50,20 @@
   避免历史 partial marker 让根残留重新成为当前数据库。
 - 预升级快照必须跳过 Electron 在 `userData` 根目录创建的运行时 singleton
   条目（`SingletonCookie`、`SingletonLock`、`SingletonSocket`）。这些条目不是
-  用户数据，不得导致布局迁移快照失败；但用户数据 payload 内的其它符号链接
-  仍必须拒绝。
-- 预升级备份、legacy 预升级备份迁移、以及从预升级备份恢复必须拒绝符号链接；
-  不得把 `userData` 外部引用作为快照内容保存、迁移或恢复进当前数据目录。
-- 数据库恢复合并附带资产、工作区文件或浏览器存储目录时必须跳过符号链接；
+  用户数据，不得导致布局迁移快照失败。
+- 存储清单与拷贝采用统一的 symlink containment 契约（2026-08-15 起，
+  `storage-inventory-symlink-containment`）：清单在 `symlinkPolicy: "record"`
+  下把链接分类为 internal/escaping/dangling（仅 realpath `ENOENT` 算 dangling，
+  环或权限错误必须 fail closed），并按 realpath 归一后的根判定边界；拷贝策略
+  `preserve` 用于用户自己的 live 根（重建 internal 链接并把绝对目标改写为相对、
+  重建相对 dangling、跳过 escaping 与绝对 dangling），`preserve-strict` 用于
+  托管备份根（escaping 与绝对 dangling 直接拒绝）。
+- 预升级备份按 `preserve` 保留 contained 链接并跳过 escaping 链接；从预升级
+  备份恢复按 `preserve-strict` 重建 contained 链接并拒绝 escaping 链接；legacy
+  布局迁移路径仍拒绝一切符号链接。不得把 `userData` 外部引用作为快照内容
+  保存、迁移或恢复进当前数据目录。
+- 数据库恢复对 active 根的基础拷贝按 `preserve` 保留 contained 链接；来自
+  外部恢复来源（拖入数据库、外来目录）的 incoming 树仍必须拒绝一切符号链接；
   不得把所选恢复来源之外的文件内容导入当前数据目录。
 - 数据库恢复候选中的 `prompthub.db`、`data/prompthub.db`、独立数据库
   备份文件、以及用户直接拖入的数据库恢复源必须是 link-safe 普通文件，并通过

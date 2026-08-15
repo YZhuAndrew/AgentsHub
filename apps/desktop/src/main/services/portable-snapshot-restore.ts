@@ -868,8 +868,14 @@ async function prepareCandidate(
   const inventoryWithoutDatabase = createStorageInventory(activeRoot, {
     includeSecrets: true,
     excludeRelativePaths: [databaseRelativePath],
+    symlinkPolicy: "record",
   });
-  copyStorageInventory(inventoryWithoutDatabase, stageRoot);
+  // The candidate clones the user's live root: contained links are recreated
+  // with relative targets and escaping links are skipped, matching the
+  // upgrade-snapshot contract.
+  copyStorageInventory(inventoryWithoutDatabase, stageRoot, {
+    symlinks: "preserve",
+  });
   createConsistentDatabaseImage(
     path.join(activeRoot, "data", "prompthub.db"),
     path.join(stageRoot, "data", "prompthub.db"),
@@ -896,6 +902,7 @@ export async function restorePortableSnapshotArchive(
   try {
     const activeInventory = createStorageInventory(activeRoot, {
       includeSecrets: true,
+      symlinkPolicy: "record",
     });
     const archiveStats = fs.lstatSync(path.resolve(options.archivePath));
     assertCapacity(
@@ -963,6 +970,7 @@ export async function restorePortableLogicalSnapshot(
     const envelope = parsePortableLogicalEnvelope(options.logicalText);
     const activeInventory = createStorageInventory(activeRoot, {
       includeSecrets: true,
+      symlinkPolicy: "record",
     });
     assertCapacity(
       activeRoot,

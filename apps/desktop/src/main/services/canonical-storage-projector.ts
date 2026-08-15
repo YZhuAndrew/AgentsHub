@@ -87,30 +87,99 @@ function assertSafeDirectory(rootPath: string): string {
   return path.resolve(rootPath);
 }
 
-function collectPackageFiles(rootPath: string): Array<{
+interface PackageFileEntry {
   path: string;
   sourcePath: string;
-}> {
-  const root = assertSafeDirectory(rootPath);
-  const files: Array<{ path: string; sourcePath: string }> = [];
-  const queue = [root];
+}
+
+/**
+ * Resolve a contained package symlink to the regular file or directory it
+ * points at. Links escaping the package boundary and dangling links fail
+ * closed: the canonical shadow must not depend on content outside the
+ * managed package or on links that resolve nowhere.
+ */
+function resolvePackageSymlink(
+  packageRoot: string,
+  sourcePath: string,
+): { stats: fs.Stats; resolvedPath: string } {
+  let resolvedPath: string;
+  try {
+    resolvedPath = fs.realpathSync(sourcePath);
+  } catch {
+    throw new Error(
+      `Canonical package source contains a symbolic link that cannot be resolved within the package: ${sourcePath}`,
+    );
+  }
+  const relative = path.relative(packageRoot, resolvedPath);
+  if (
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    throw new Error(
+      `Canonical package source contains a symbolic link escaping the package: ${sourcePath}`,
+    );
+  }
+  return { stats: fs.statSync(resolvedPath), resolvedPath };
+}
+
+function collectPackageFiles(rootPath: string): PackageFileEntry[] {
+  // Resolve the root through realpath so containment compares against the
+  // same normalized form realpathSync returns for children, even when system
+  // directories are themselves symlinks (e.g. macOS /var -> /private/var).
+  let root: string;
+  try {
+    root = fs.realpathSync(assertSafeDirectory(rootPath));
+  } catch {
+    root = assertSafeDirectory(rootPath);
+  }
+  const files: PackageFileEntry[] = [];
+  const queue: Array<{ directory: string; prefix: string }> = [{ directory: root, prefix: "" }];
+  const expandedRealpaths = new Set<string>();
   let totalBytes = 0;
-  while (queue.length > 0) {
-    const directory = queue.shift();
-    if (!directory) break;
+  const recordPackageFile = (entryPath: string, sourcePath: string): void => {
+    totalBytes += fs.statSync(sourcePath).size;
+    if (files.length >= MAX_PACKAGE_FILES || totalBytes > MAX_PACKAGE_BYTES) {
+      throw new Error("Canonical package source exceeds bounded scan limits");
+    }
+    files.push({ path: entryPath, sourcePath });
+  };
+  // Index-based BFS over the growing queue: symlinks may enqueue the same
+  // resolved directory under several prefixes, so the queue never drains.
+  for (let index = 0; index < queue.length; index += 1) {
+    const { directory, prefix } = queue[index];
     const entries = fs
       .readdirSync(directory, { withFileTypes: true })
       .sort((left, right) => compareText(left.name, right.name));
     for (const entry of entries) {
       if (IGNORED_PACKAGE_DIRECTORIES.has(entry.name)) continue;
       const sourcePath = path.join(directory, entry.name);
+      const entryPath = prefix ? `${prefix}/${entry.name}` : entry.name;
       if (entry.isSymbolicLink()) {
+        // Contained links materialize: the shadow carries the target content
+        // under the link path, so the projection never follows links outside
+        // the package and never loses alias files.
+        const { stats, resolvedPath } = resolvePackageSymlink(root, sourcePath);
+        if (stats.isFile()) {
+          recordPackageFile(entryPath, resolvedPath);
+          continue;
+        }
+        if (stats.isDirectory()) {
+          if (expandedRealpaths.has(resolvedPath)) {
+            throw new Error(
+              `Canonical package source contains a cyclic symbolic link: ${sourcePath}`,
+            );
+          }
+          expandedRealpaths.add(resolvedPath);
+          queue.push({ directory: resolvedPath, prefix: entryPath });
+          continue;
+        }
         throw new Error(
-          `Canonical package source contains a symbolic link: ${sourcePath}`,
+          `Canonical package source contains a symbolic link to a special file: ${sourcePath}`,
         );
       }
       if (entry.isDirectory()) {
-        queue.push(sourcePath);
+        queue.push({ directory: sourcePath, prefix: entryPath });
         continue;
       }
       if (!entry.isFile()) {
@@ -118,15 +187,7 @@ function collectPackageFiles(rootPath: string): Array<{
           `Canonical package source contains a special file: ${sourcePath}`,
         );
       }
-      const size = fs.statSync(sourcePath).size;
-      totalBytes += size;
-      if (files.length >= MAX_PACKAGE_FILES || totalBytes > MAX_PACKAGE_BYTES) {
-        throw new Error("Canonical package source exceeds bounded scan limits");
-      }
-      files.push({
-        path: path.relative(root, sourcePath).split(path.sep).join("/"),
-        sourcePath,
-      });
+      recordPackageFile(entryPath, sourcePath);
     }
   }
   return files.sort((left, right) => compareText(left.path, right.path));

@@ -4,11 +4,12 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   acquireStorageMaintenanceIntent,
   configureRuntimePaths,
+  encodeCanonicalResourceDirectory,
   getImagesDir,
   readCanonicalStorageShadow,
   resetRuntimePaths,
@@ -116,7 +117,7 @@ describe("canonical storage production projector", () => {
   });
 
   it.skipIf(process.platform === "win32")(
-    "fails closed and removes the staged shadow when a managed package contains a symlink",
+    "fails closed and removes the staged shadow when a managed package contains an escaping symlink",
     async () => {
       const root = fs.mkdtempSync(
         path.join(os.tmpdir(), "prompthub-canonical-projector-link-"),
@@ -130,9 +131,371 @@ describe("canonical storage production projector", () => {
         "# Writer\n",
         "utf8",
       );
+      fs.writeFileSync(path.join(root, "outside-secret.md"), "outside");
       fs.symlinkSync(
-        path.join(packagePath, "SKILL.md"),
+        path.join(root, "outside-secret.md"),
         path.join(packagePath, "linked.md"),
+      );
+      new SkillDB(database).create({
+        name: "Writer",
+        description: "Writing helper",
+        instructions: "Write clearly",
+        protocol_type: "skill",
+        local_repo_path: packagePath,
+      });
+      const targetPath = path.join(root, "canonical-shadow");
+
+      await expect(
+        projectCanonicalStorageShadow({
+          database,
+          targetPath,
+          readRules: async () => [],
+          mcpLibrary: {
+            kind: "prompthub-mcp-library",
+            version: 1,
+            updatedAt: new Date().toISOString(),
+            servers: [],
+            bindings: [],
+          },
+          plugins: [],
+          pluginVersions: new Map(),
+          generations: [],
+        }),
+      ).rejects.toThrow("contains a symbolic link");
+      expect(fs.existsSync(targetPath)).toBe(false);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "materializes contained package symlinks as regular shadow files",
+    async () => {
+      const root = fs.mkdtempSync(
+        path.join(os.tmpdir(), "prompthub-canonical-projector-alias-"),
+      );
+      roots.push(root);
+      configureRuntimePaths({ userDataPath: root });
+      const database = initDatabase(path.join(root, "prompthub.db"));
+      const packagePath = path.join(root, "skill-package");
+      fs.mkdirSync(path.join(packagePath, "references"), { recursive: true });
+      fs.writeFileSync(path.join(packagePath, "SKILL.md"), "# Writer\n", "utf8");
+      fs.writeFileSync(
+        path.join(packagePath, "references", "style.md"),
+        "Concise\n",
+        "utf8",
+      );
+      fs.symlinkSync(
+        "SKILL.md",
+        path.join(packagePath, "AGENTS.md"),
+        "file",
+      );
+      fs.symlinkSync(
+        "references",
+        path.join(packagePath, "docs"),
+        "dir",
+      );
+      fs.mkdirSync(path.join(packagePath, ".git"));
+      fs.writeFileSync(path.join(packagePath, ".git", "HEAD"), "ref");
+      const skill = new SkillDB(database).create({
+        name: "Writer",
+        description: "Writing helper",
+        instructions: "Write clearly",
+        protocol_type: "skill",
+        local_repo_path: packagePath,
+      });
+      const targetPath = path.join(root, "canonical-shadow");
+
+      const result = await projectCanonicalStorageShadow({
+        database,
+        targetPath,
+        readRules: async () => [],
+        mcpLibrary: {
+          kind: "prompthub-mcp-library",
+          version: 1,
+          updatedAt: new Date().toISOString(),
+          servers: [],
+          bindings: [],
+        },
+        plugins: [],
+        pluginVersions: new Map(),
+        generations: [],
+      });
+
+      const shadow = readCanonicalStorageShadow(result.targetPath);
+      expect(shadow.skills[0].packageFiles.map((entry) => entry.path)).toEqual([
+        "AGENTS.md",
+        "SKILL.md",
+        "docs/style.md",
+        "references/style.md",
+      ]);
+      // Contained links materialize as regular bundle files carrying the
+      // target content.
+      const bundleFilesPath = path.join(
+        result.targetPath,
+        "skills",
+        encodeCanonicalResourceDirectory(skill.id),
+        "files",
+      );
+      expect(
+        fs.readFileSync(path.join(bundleFilesPath, "AGENTS.md"), "utf8"),
+      ).toBe("# Writer\n");
+      expect(
+        fs.readFileSync(path.join(bundleFilesPath, "docs", "style.md"), "utf8"),
+      ).toBe("Concise\n");
+      expect(
+        fs
+          .lstatSync(path.join(bundleFilesPath, "AGENTS.md"))
+          .isSymbolicLink(),
+      ).toBe(false);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "rejects a package whose files exceed the byte scan limit",
+    async () => {
+      const root = fs.mkdtempSync(
+        path.join(os.tmpdir(), "prompthub-canonical-projector-bytes-"),
+      );
+      roots.push(root);
+      const database = initDatabase(path.join(root, "prompthub.db"));
+      const packagePath = path.join(root, "skill-package");
+      fs.mkdirSync(packagePath);
+      const largePath = path.join(packagePath, "SKILL.md");
+      fs.writeFileSync(largePath, "# Writer\n");
+      // Sparse file: stat reports an oversized file without consuming disk.
+      fs.truncateSync(largePath, 11 * 1024 * 1024 * 1024);
+      new SkillDB(database).create({
+        name: "Writer",
+        description: "Writing helper",
+        instructions: "Write clearly",
+        protocol_type: "skill",
+        local_repo_path: packagePath,
+      });
+
+      await expect(
+        projectCanonicalStorageShadow({
+          database,
+          targetPath: path.join(root, "canonical-shadow"),
+          readRules: async () => [],
+          mcpLibrary: {
+            kind: "prompthub-mcp-library",
+            version: 1,
+            updatedAt: new Date().toISOString(),
+            servers: [],
+            bindings: [],
+          },
+          plugins: [],
+          pluginVersions: new Map(),
+          generations: [],
+        }),
+      ).rejects.toThrow("exceeds bounded scan limits");
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "rejects a package whose link count exceeds the file scan limit",
+    async () => {
+      const root = fs.mkdtempSync(
+        path.join(os.tmpdir(), "prompthub-canonical-projector-count-"),
+      );
+      roots.push(root);
+      const database = initDatabase(path.join(root, "prompthub.db"));
+      const packagePath = path.join(root, "skill-package");
+      fs.mkdirSync(packagePath);
+      fs.writeFileSync(path.join(packagePath, "SKILL.md"), "# Writer\n");
+      for (let index = 0; index <= 20_000; index += 1) {
+        fs.symlinkSync(
+          "SKILL.md",
+          path.join(packagePath, `alias-${index.toString().padStart(5, "0")}`),
+          "file",
+        );
+      }
+      new SkillDB(database).create({
+        name: "Writer",
+        description: "Writing helper",
+        instructions: "Write clearly",
+        protocol_type: "skill",
+        local_repo_path: packagePath,
+      });
+
+      await expect(
+        projectCanonicalStorageShadow({
+          database,
+          targetPath: path.join(root, "canonical-shadow"),
+          readRules: async () => [],
+          mcpLibrary: {
+            kind: "prompthub-mcp-library",
+            version: 1,
+            updatedAt: new Date().toISOString(),
+            servers: [],
+            bindings: [],
+          },
+          plugins: [],
+          pluginVersions: new Map(),
+          generations: [],
+        }),
+      ).rejects.toThrow("exceeds bounded scan limits");
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "fails closed when a managed package contains a cyclic directory symlink",
+    async () => {
+      const root = fs.mkdtempSync(
+        path.join(os.tmpdir(), "prompthub-canonical-projector-cycle-"),
+      );
+      roots.push(root);
+      const database = initDatabase(path.join(root, "prompthub.db"));
+      const packagePath = path.join(root, "skill-package");
+      fs.mkdirSync(packagePath);
+      fs.writeFileSync(path.join(packagePath, "SKILL.md"), "# Writer\n");
+      fs.symlinkSync(".", path.join(packagePath, "self"), "dir");
+      new SkillDB(database).create({
+        name: "Writer",
+        description: "Writing helper",
+        instructions: "Write clearly",
+        protocol_type: "skill",
+        local_repo_path: packagePath,
+      });
+
+      await expect(
+        projectCanonicalStorageShadow({
+          database,
+          targetPath: path.join(root, "canonical-shadow"),
+          readRules: async () => [],
+          mcpLibrary: {
+            kind: "prompthub-mcp-library",
+            version: 1,
+            updatedAt: new Date().toISOString(),
+            servers: [],
+            bindings: [],
+          },
+          plugins: [],
+          pluginVersions: new Map(),
+          generations: [],
+        }),
+      ).rejects.toThrow("cyclic symbolic link");
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "fails closed when a package symlink resolves to a special file",
+    async () => {
+      const root = fs.mkdtempSync(
+        path.join(os.tmpdir(), "prompthub-canonical-projector-special-"),
+      );
+      roots.push(root);
+      const database = initDatabase(path.join(root, "prompthub.db"));
+      const packagePath = path.join(root, "skill-package");
+      fs.mkdirSync(packagePath);
+      fs.writeFileSync(path.join(packagePath, "SKILL.md"), "# Writer\n");
+      fs.symlinkSync("SKILL.md", path.join(packagePath, "alias.md"), "file");
+      new SkillDB(database).create({
+        name: "Writer",
+        description: "Writing helper",
+        instructions: "Write clearly",
+        protocol_type: "skill",
+        local_repo_path: packagePath,
+      });
+      const resolvedTarget = fs.realpathSync(
+        path.join(packagePath, "SKILL.md"),
+      );
+      const originalStat = fs.statSync.bind(fs);
+      vi.spyOn(fs, "statSync").mockImplementation((target, options) => {
+        if (path.resolve(String(target)) === path.resolve(resolvedTarget)) {
+          const real = originalStat(target, options as never);
+          return Object.assign(Object.create(real), {
+            isFile: () => false,
+            isDirectory: () => false,
+          });
+        }
+        return originalStat(target, options as never);
+      });
+
+      await expect(
+        projectCanonicalStorageShadow({
+          database,
+          targetPath: path.join(root, "canonical-shadow"),
+          readRules: async () => [],
+          mcpLibrary: {
+            kind: "prompthub-mcp-library",
+            version: 1,
+            updatedAt: new Date().toISOString(),
+            servers: [],
+            bindings: [],
+          },
+          plugins: [],
+          pluginVersions: new Map(),
+          generations: [],
+        }),
+      ).rejects.toThrow("special file");
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "projects regular packages when the package root realpath fails",
+    async () => {
+      const root = fs.mkdtempSync(
+        path.join(os.tmpdir(), "prompthub-canonical-projector-rootfail-"),
+      );
+      roots.push(root);
+      configureRuntimePaths({ userDataPath: root });
+      const database = initDatabase(path.join(root, "prompthub.db"));
+      const packagePath = path.join(root, "skill-package");
+      fs.mkdirSync(packagePath);
+      fs.writeFileSync(path.join(packagePath, "SKILL.md"), "# Writer\n");
+      new SkillDB(database).create({
+        name: "Writer",
+        description: "Writing helper",
+        instructions: "Write clearly",
+        protocol_type: "skill",
+        local_repo_path: packagePath,
+      });
+      const originalRealpath = fs.realpathSync.bind(fs);
+      vi.spyOn(fs, "realpathSync").mockImplementation((target, options) => {
+        if (path.resolve(String(target)) === path.resolve(packagePath)) {
+          throw new Error("realpath failed");
+        }
+        return originalRealpath(target, options as never);
+      });
+
+      const result = await projectCanonicalStorageShadow({
+        database,
+        targetPath: path.join(root, "canonical-shadow"),
+        readRules: async () => [],
+        mcpLibrary: {
+          kind: "prompthub-mcp-library",
+          version: 1,
+          updatedAt: new Date().toISOString(),
+          servers: [],
+          bindings: [],
+        },
+        plugins: [],
+        pluginVersions: new Map(),
+        generations: [],
+      });
+
+      const shadow = readCanonicalStorageShadow(result.targetPath);
+      expect(shadow.skills[0].packageFiles.map((entry) => entry.path)).toEqual([
+        "SKILL.md",
+      ]);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "fails closed when a managed package contains a dangling symlink",
+    async () => {
+      const root = fs.mkdtempSync(
+        path.join(os.tmpdir(), "prompthub-canonical-projector-dangling-"),
+      );
+      roots.push(root);
+      const database = initDatabase(path.join(root, "prompthub.db"));
+      const packagePath = path.join(root, "skill-package");
+      fs.mkdirSync(packagePath);
+      fs.writeFileSync(path.join(packagePath, "SKILL.md"), "# Writer\n");
+      fs.symlinkSync(
+        "missing-target.md",
+        path.join(packagePath, "broken.md"),
+        "file",
       );
       new SkillDB(database).create({
         name: "Writer",

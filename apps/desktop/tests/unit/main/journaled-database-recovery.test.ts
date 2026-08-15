@@ -98,4 +98,39 @@ describe("journaled database recovery", () => {
       expect(fs.readFileSync(outside, "utf8")).toBe("outside");
     },
   );
+
+  it.skipIf(process.platform === "win32")(
+    "recovers while the active root contains contained symlinks",
+    async () => {
+      const active = createRoot("prompthub-active-keep-link", "before");
+      const source = createRoot("prompthub-source-keep-link", "after");
+      // The data tree is replaced by the incoming source during recovery, so
+      // links there must merely not block the operation; the config tree is
+      // carried over from the active root, so contained links there survive.
+      fs.mkdirSync(path.join(active, "data", "skills", "demo-skill"), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(active, "data", "skills", "demo-skill", "SKILL.md"),
+        "# skill",
+      );
+      fs.symlinkSync(
+        "SKILL.md",
+        path.join(active, "data", "skills", "demo-skill", "AGENTS.md"),
+        "file",
+      );
+      fs.mkdirSync(path.join(active, "config"), { recursive: true });
+      fs.writeFileSync(path.join(active, "config", "app.json"), "config");
+      fs.symlinkSync("app.json", path.join(active, "config", "alias.json"), "file");
+
+      const result = await performJournaledDatabaseRecovery(source, active);
+
+      expect(result.success).toBe(true);
+      expect(readMarker(active)).toBe("after");
+      const preservedLink = path.join(active, "config", "alias.json");
+      expect(fs.lstatSync(preservedLink).isSymbolicLink()).toBe(true);
+      expect(fs.readlinkSync(preservedLink)).toBe("app.json");
+      expect(fs.readFileSync(preservedLink, "utf8")).toBe("config");
+    },
+  );
 });

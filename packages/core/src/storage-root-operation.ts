@@ -328,6 +328,7 @@ function targetMatchesSourceDigest(
     return (
       createStorageInventory(journal.targetRoot, {
         includeSecrets: journal.includeSecrets,
+        symlinkPolicy: "record",
       }).digest === journal.sourceDigest
     );
   } catch {
@@ -468,6 +469,7 @@ async function applyStorageRootChangeWithIntent(
       const inventory = createStorageInventory(sourceRoot, {
         ...options.inventoryLimits,
         includeSecrets: options.includeSecrets ?? true,
+        symlinkPolicy: "record",
       });
       copiedFiles = inventory.files.length;
       copiedBytes = inventory.totalBytes;
@@ -482,7 +484,11 @@ async function applyStorageRootChangeWithIntent(
           `Insufficient space for storage migration: required=${requiredBytes}, available=${availableBytes}`,
         );
       }
-      copyStorageInventory(inventory, stagePath);
+      // The stage clones the user's live root: contained links are recreated
+      // with relative targets and escaping links are skipped, matching the
+      // upgrade-snapshot contract. The journal digest stays regular-file
+      // based, which is how targetMatchesSourceDigest compares it.
+      copyStorageInventory(inventory, stagePath, { symlinks: "preserve" });
       writeRuntimeLayoutState(stagePath, {
         layoutEpoch: inventory.layoutEpoch,
         identityRoot: targetRoot,

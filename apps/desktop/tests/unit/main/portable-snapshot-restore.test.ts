@@ -363,6 +363,53 @@ describe("portable snapshot restore", () => {
     ).toBe(true);
   });
 
+  it.skipIf(process.platform === "win32")(
+    "preserves contained skill symlinks in the staged restore candidate",
+    async () => {
+      const root = createActiveRoot();
+      fs.mkdirSync(path.join(root, "data", "skills", "demo-skill"), {
+        recursive: true,
+      });
+      fs.writeFileSync(
+        path.join(root, "data", "skills", "demo-skill", "SKILL.md"),
+        "# skill",
+      );
+      fs.symlinkSync(
+        "SKILL.md",
+        path.join(root, "data", "skills", "demo-skill", "AGENTS.md"),
+        "file",
+      );
+      const archivePath = createArchive(root, {
+        version: 1,
+        exportedAt: "2026-08-11T00:00:00.000Z",
+        prompts: [prompt("new", "New")],
+        folders: [],
+        versions: [],
+      });
+
+      const result = await restorePortableSnapshotArchive({
+        archivePath,
+        activeRoot: root,
+        cacheRoot: path.join(root, "cache"),
+        encryption,
+        operationId: "restore-linked-skills",
+        getAvailableBytes: () => Number.MAX_SAFE_INTEGER,
+      });
+
+      expect(result).toMatchObject({ success: true, needsRestart: true });
+      const restoredLink = path.join(
+        root,
+        "data",
+        "skills",
+        "demo-skill",
+        "AGENTS.md",
+      );
+      expect(fs.lstatSync(restoredLink).isSymbolicLink()).toBe(true);
+      expect(fs.readlinkSync(restoredLink)).toBe("SKILL.md");
+      expect(fs.readFileSync(restoredLink, "utf8")).toBe("# skill");
+    },
+  );
+
   it("restores raw generation files when the portable manifest declares the domain", async () => {
     const root = createActiveRoot();
     fs.mkdirSync(path.join(root, "data", "generations"), { recursive: true });

@@ -75,7 +75,11 @@ function removeExcludedCandidateEntries(rootPath: string): void {
   }
 }
 
-function copyDetachedRoot(sourceRoot: string, destinationRoot: string): number {
+function copyDetachedRoot(
+  sourceRoot: string,
+  destinationRoot: string,
+  linkPolicy: "preserve" | "refuse",
+): number {
   const canonicalDataPath = path.join(sourceRoot, "data");
   const canonicalDataStats = readStats(canonicalDataPath);
   const detachedLayoutEpoch =
@@ -87,8 +91,11 @@ function copyDetachedRoot(sourceRoot: string, destinationRoot: string): number {
   const inventory = createStorageInventory(sourceRoot, {
     detachedLayoutEpoch,
     includeSecrets: true,
+    ...(linkPolicy === "preserve" ? { symlinkPolicy: "record" as const } : {}),
   });
-  copyStorageInventory(inventory, destinationRoot);
+  copyStorageInventory(inventory, destinationRoot, {
+    ...(linkPolicy === "preserve" ? { symlinks: "preserve" as const } : {}),
+  });
   return detachedLayoutEpoch;
 }
 
@@ -129,7 +136,10 @@ async function prepareRecoveryCandidate(
   activeRoot: string,
   stageRoot: string,
 ): Promise<void> {
-  copyDetachedRoot(activeRoot, stageRoot);
+  // The staged base clones the user's live root, so contained links are
+  // preserved; the incoming source below keeps refusing every link because
+  // it is an untrusted recovery input.
+  copyDetachedRoot(activeRoot, stageRoot, "preserve");
   await normalizeCandidate(stageRoot, activeRoot, "pre-recovery-base");
 
   const sourceStats = readStats(sourcePath);
@@ -145,7 +155,7 @@ async function prepareRecoveryCandidate(
     const incomingRoot = `${stageRoot}-incoming`;
     fs.rmSync(incomingRoot, { recursive: true, force: true });
     try {
-      copyDetachedRoot(sourcePath, incomingRoot);
+      copyDetachedRoot(sourcePath, incomingRoot, "refuse");
       const incomingDatabase = databasePathForRoot(incomingRoot);
       await normalizeCandidate(incomingRoot, activeRoot, "recovery-source");
       if (!incomingDatabase) {

@@ -464,6 +464,98 @@ describe("journaled storage restore", () => {
     },
   );
 
+  it.skipIf(process.platform === "win32")(
+    "rejects candidate links that resolve outside through a chain",
+    async () => {
+      const root = fixture();
+      const outside = path.join(root, "outside");
+      fs.mkdirSync(outside);
+      fs.writeFileSync(path.join(outside, "file"), "outside");
+      await expect(
+        runJournaledStorageRestore({
+          activeRoot: root,
+          operationId: "candidate-link-chain",
+          entryNames: ["data"],
+          prepareCandidate: (stageRoot) => {
+            fs.mkdirSync(path.join(stageRoot, "data"));
+            // The lexical target stays inside the stage, but resolving the
+            // chain escapes through the second link.
+            fs.symlinkSync("m/file", path.join(stageRoot, "data", "l"));
+            fs.symlinkSync(outside, path.join(stageRoot, "data", "m"));
+          },
+          verifyCandidate: () => undefined,
+          verifyActive: () => undefined,
+        }),
+      ).rejects.toThrow(/contains symbolic link/);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "rejects cyclic candidate links",
+    async () => {
+      const root = fixture();
+      await expect(
+        runJournaledStorageRestore({
+          activeRoot: root,
+          operationId: "candidate-link-cycle",
+          entryNames: ["data"],
+          prepareCandidate: (stageRoot) => {
+            fs.mkdirSync(path.join(stageRoot, "data"));
+            fs.symlinkSync("loop", path.join(stageRoot, "data", "loop"));
+          },
+          verifyCandidate: () => undefined,
+          verifyActive: () => undefined,
+        }),
+      ).rejects.toThrow(/contains symbolic link/);
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "restores a candidate containing contained links",
+    async () => {
+      const root = fixture();
+      const result = await runJournaledStorageRestore({
+        activeRoot: root,
+        operationId: "candidate-contained-link",
+        entryNames: ["data"],
+        prepareCandidate: (stageRoot) => {
+          fs.mkdirSync(path.join(stageRoot, "data"));
+          fs.writeFileSync(path.join(stageRoot, "data", "value"), "value");
+          fs.symlinkSync("value", path.join(stageRoot, "data", "alias"));
+        },
+        verifyCandidate: () => undefined,
+        verifyActive: () => undefined,
+      });
+      expect(result.status).toBe("committed");
+      const aliasPath = path.join(root, "data", "alias");
+      expect(fs.lstatSync(aliasPath).isSymbolicLink()).toBe(true);
+      expect(fs.readFileSync(aliasPath, "utf8")).toBe("value");
+    },
+  );
+
+  it.skipIf(process.platform === "win32")(
+    "counts candidate links against the entry limit",
+    async () => {
+      const root = fixture();
+      await expect(
+        runJournaledStorageRestore({
+          activeRoot: root,
+          operationId: "candidate-link-limit",
+          entryNames: ["data"],
+          candidateLimits: { maxEntries: 1, maxBytes: 1024, maxDepth: 8 },
+          prepareCandidate: (stageRoot) => {
+            fs.mkdirSync(path.join(stageRoot, "data"));
+            const target = path.join(stageRoot, "data", "target");
+            fs.writeFileSync(target, "target");
+            fs.symlinkSync("target", path.join(stageRoot, "data", "alias"));
+          },
+          verifyCandidate: () => undefined,
+          verifyActive: () => undefined,
+        }),
+      ).rejects.toThrow(/entry limit/);
+    },
+  );
+
   it("rejects a special file observed in a candidate", async () => {
     const root = fixture();
     const specialPath = path.join(

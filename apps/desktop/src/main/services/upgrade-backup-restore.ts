@@ -73,8 +73,12 @@ async function prepareUpgradeRestoreCandidate(
   const inventory = createStorageInventory(backupPath, {
     detachedLayoutEpoch,
     includeSecrets: true,
+    symlinkPolicy: "record",
   });
-  copyStorageInventory(inventory, stageRoot);
+  // Strict policy: contained links are recreated into the staged candidate,
+  // but links escaping the backup fail closed — a tampered backup must not
+  // smuggle content from outside its root during restore.
+  copyStorageInventory(inventory, stageRoot, { symlinks: "preserve-strict" });
   if (detachedLayoutEpoch === 0) {
     const migration = await migrateLegacyDataLayout(stageRoot, fromVersion);
     if (migration.status === "partial-failure") {
