@@ -1482,12 +1482,13 @@ app.whenReady().then(async () => {
         activeRoot,
         sourceDatabasePath: getDatabasePath(),
         prepareSourceDatabase: () => {
+          // Keep the handle open: the main initDatabase() below reuses the
+          // module-level instance, so the upgrade path initializes the file
+          // (and pays its integrity scans) exactly once.
+          // 保持句柄打开：下方主 initDatabase() 会复用模块级实例，
+          // 升级路径因此只完整初始化（含完整性扫描）一次。
           const sourceDatabase = initDatabase();
-          try {
-            applyE2ESeed(sourceDatabase);
-          } finally {
-            closeDatabase();
-          }
+          applyE2ESeed(sourceDatabase);
         },
         deviceId: rendererPersistence.selfHostedDeviceId ?? undefined,
         persistExtractedMcpSecrets: (secrets) =>
