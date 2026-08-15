@@ -9,7 +9,7 @@ Un espacio de trabajo local-first para prompts, skills y assets de codificación
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,11 @@ Flags globales habituales:
 ## Registro de cambios
 
 Changelog completo: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.2 (2026-08-15, estable)
+
+- Corregido: las selecciones de distribución de la página de detalle de skills se reiniciaban de inmediato — la elección de plataformas ya no se borra con las actualizaciones de estado de instalación en segundo plano; la distribución global/por proyecto se completa con normalidad
+- Corregido: el tartamudeo al desplazar la vista previa de skills — el análisis de seguridad automático ya no entra en un bucle de analizar → guardar → reanalizar, y las re-renderizaciones no relacionadas vuelven a analizar toda la vista previa de markdown
 
 ### v0.8.1 (2026-08-15, estable)
 

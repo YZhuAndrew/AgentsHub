@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.1_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -311,6 +311,11 @@ Skill のインポート、バージョンスナップショット、配布で�
 ## 変更履歴
 
 完全な変更履歴: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.2（2026-08-15、正式版）
+
+- Skill 詳細ページで配布先の選択が即座にリセットされる問題を修正：プラットフォーム選択がバックグラウンドのインストール状態更新でクリアされなくなり、グローバル/プロジェクト配布が正常に完了します
+- Skill プレビューのスクロール卡りを修正：自動セキュリティスキャンが「スキャン→保存→再スキャン」の無限ループに陥らなくなり、無関係な再レンダリングでも Markdown 全文の再パースとハイライトが発生しなくなりました
 
 ### v0.8.1（2026-08-15、正式版）
 

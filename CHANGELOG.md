@@ -1,5 +1,22 @@
 ## [Unreleased]
 
+## [0.8.2] - 2026-08-15
+
+### 修复 / Fixes
+
+- 📤 **修复技能分发选择被立即清空**：技能详情页选择分发目标平台后，后台安装状态刷新（含打开面板时的首次异步刷新）会把选择立刻重置回未选中，导致无法完成全局/项目分发。现在刷新按技能 ID 触发，常规刷新只剔除已变为「已安装」的平台，仅在切换技能或批量安装完成后清空选择
+  - **Fixed skill distribution selections being cleared immediately**: after selecting target platforms on the Skill detail page, background install-status refreshes (including the first asynchronous refresh when the panel opens) reset the selection back to empty, making global/project distribution impossible. Refreshes are now keyed by skill id; routine refreshes only prune platforms that became installed, and the selection resets only when switching skills or after a completed batch install
+- 🐌 **修复技能预览滚动卡顿与自动扫描死循环**：开启「自动安全扫描」时，扫描报告的保存会替换 store 中的技能对象并触发下一轮扫描，形成持续的「扫描→保存→重扫」循环，整页反复重渲染导致预览上下滚动一卡一卡。现在扫描只依赖实际扫描输入（内容未变不重扫），相同的扫描报告不再替换存储对象，Markdown 预览也不再因无关重渲染而整篇重新解析与高亮
+  - **Fixed skill preview scroll stutter and the auto-scan rescan loop**: with the auto safety scan enabled, saving each scan report replaced the skill object in the store and triggered another scan, creating a continuous scan → save → rescan loop whose constant re-renders made preview scrolling stutter. Scans now depend only on their effective inputs (unchanged content no longer rescans), identical reports no longer replace the stored skill object, and the markdown preview no longer re-parses and re-highlights the whole document on unrelated re-renders
+
+> **macOS 安全说明**
+>
+> AgentsHub 是社区维护的 fork 构建，未配置 Apple Developer 签名。首次启动时 macOS Gatekeeper 可能拦截；如提示"已损坏"或"无法验证开发者"，请运行：
+>
+> ```bash
+> sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
+> ```
+
 ## [0.8.1] - 2026-08-15
 
 ### 修复 / Fixes
