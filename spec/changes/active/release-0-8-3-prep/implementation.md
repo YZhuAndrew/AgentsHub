@@ -21,3 +21,9 @@
 ## 发布执行记录
 
 （发布后回填：workflow run、draft-promote、资产与 latest-*.yml 验证、GitHub issue 快照状态。）
+
+## 发布执行记录
+
+- 首次 dispatch（run 31922651538，tag v0.8.3 → cfae94e1）：verify 门禁失败——desktop-e2e-smoke 中两个 self-hosted e2e `firstWindow` 超时。诊断：`b2b2e656`（canonical-authority 源库句柄复用）在 fresh-profile 发布路径破坏第二启；期间曾误判为 e2e chunk 环复发（bisect 使用的陈旧 out/ 构建污染了复现，已澄清并纠正方法：每次判定前强制干净重建）。
+- 处置：`29102c34` revert 句柄复用（保留 quick_check 整合），见 startup-db-integrity-consolidation implementation.md 追加记录。
+- 复验：revert 后本地 self-hosted e2e 2/2 通过；tag 重指向后重新 dispatch。

@@ -30,3 +30,10 @@
 
 - quick_check 条件化（如仅脏关机标记后执行）：需持久化关机状态与崩溃语义分析，独立 change。
 - 启动链其余串行步骤重排（backup/migration/workspace bootstrap 与首窗并行）：涉及 canonical authority 时序，另行评估。
+
+## 追加（2026-08-16 发布验证）：句柄复用撤回
+
+- **现象**：v0.8.3 CI 完整 verify 门禁中，两个 self-hosted e2e（fresh profile + 渲染器迁移标记 → canonical 发布路径）稳定失败（second launch `firstWindow` 30s 超时）；本地三连跑复现（revert 前挂 / revert 后过 / 重新应用又挂）。
+- **结论**：`prepareSourceDatabase` 保持句柄打开与发布流程（`publishCanonicalStorageAuthority` 以独立只读 adapter 打开源库 + 快照/物化）在该场景下不兼容——macOS 常规启动（already-canonical，不触发该路径）与打包产物 CDP 验证均无法覆盖此分支。以 29102c34 撤回该优化；双开消除不做，quick_check 整合（4→2）保留且不受影响。
+- **后续**：如需恢复该优化，须先在 packages/core 为 publish 阶段显式建模"外部读连接与主句柄共存"的锁语义（VFS 目录锁/租约交互），并以 self-hosted e2e 为准入测试。
+- **验证**：revert 状态下 `self-hosted-sync.spec.ts` 本地 2/2 通过（干净构建）；`pnpm verify:release:quick` 全绿。
