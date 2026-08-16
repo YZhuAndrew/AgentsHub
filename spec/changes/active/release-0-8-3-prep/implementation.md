@@ -32,3 +32,9 @@
 
 - test 6（startup backup）通过——句柄复用 revert 生效；test 7 在「Restored N prompts」toast 断言超时：恢复流程 `showToast` 后 `setTimeout(reload, 1000)`，慢速 CI 上恢复完成时的 CPU 尖峰使渲染循环卡顿，toast 在 Playwright 两次轮询之间完成"出现→销毁"。
 - 修复：重载延迟 1000ms → 3000ms（`useDataSyncController.ts`）——1 秒本就不够读完四段式 toast，属 UX 与测试稳定性双赢；本地 2/2 复跑通过。
+
+## 发布结果
+
+- 第三次 dispatch（run 31927466630，tag v0.8.3 → 708ccf15）：全绿，draft 资产齐全（mac arm64 dmg/zip、win x64 exe、linux deb/AppImage、latest-*.yml、CLI tgz），release notes 含 verbatim macOS 安全说明。
+- Promote：`--draft=false --latest` 完成；`/releases/latest` 解析到 v0.8.3；latest-mac.yml 指向 0.8.3 资产（sha512/size 校验位齐全）；DMG 直链 HTTP 200、大小一致。
+- Homebrew cask 更新已按 workflow 约定 re-dispatch（run 31928199741）。
