@@ -69,3 +69,11 @@
 ## 稳定文档同步
 
 - 本变更行为边界已在 `specs/db|desktop|web/spec.md` 中描述；`spec/knowledge/*` 的对应更新待 change 收敛（converge）时随归档一并处理。
+
+## 追加修复（2026-08-16）：函数式 manualChunks 的跨 chunk 初始化环
+
+- **现象**：本地测试 DMG 安装后窗口空白（dev 正常）。CDP 实测渲染进程抛 `TypeError: Cannot read properties of undefined (reading 'createContext')` at `i18n-vendor`。
+- **根因**：函数式 manualChunks 下，Rollup 把共享的 commonjs interop 辅助模块放进 `i18n-vendor`，而 `react-vendor` 也引用它——`react-vendor → i18n-vendor → react-vendor` 成环，先执行的 chunk 拿到未初始化的 React 绑定（`react-i18next` 在模块顶层调 `React.createContext`）。
+- **修复**：`vite.config.ts` manualChunks 增加 `id.includes("commonjsHelpers") → "react-vendor"`，helper 确定性内联进 react-vendor，环消除；i18n-vendor 恢复单向依赖。
+- **验证（本次补齐上次缺失的运行时验证）**：重建后以 CDP 连接真实打包 App——`root.children=3`、主界面完整渲染（侧边栏 + 228 Skill 数据加载）、渲染异常 0 条；入口 chunk 对 markdown-vendor 引用仍为 0；`pnpm bundle:budget` 通过。
+- **教训记录**：静态 import 图检查不足以验证分包改动，必须实际运行打包产物（本次以 CDP 渲染断言为准入）。

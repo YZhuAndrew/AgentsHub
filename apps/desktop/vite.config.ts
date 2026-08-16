@@ -155,6 +155,18 @@ export default defineConfig(async () => ({
         // id，否则会被 Rollup 并入 markdown-vendor，把整个 markdown 栈
         // 拖进首屏关键路径。
         manualChunks(id: string) {
+          // Rollup's shared commonjs interop helper must have a deterministic
+          // home. Left to default placement it landed in i18n-vendor, and
+          // react-vendor importing it from there created a circular chunk
+          // initialization (react-i18next's top-level React.createContext ran
+          // before react-vendor initialized → blank window in packaged app).
+          // Rollup 的共享 commonjs interop 辅助模块必须有确定归属：默认
+          // 落位曾被放进 i18n-vendor，react-vendor 反向引用它形成跨 chunk
+          // 初始化环（react-i18next 顶层的 React.createContext 在
+          // react-vendor 初始化前执行 → 打包后白屏）。
+          if (id.includes("commonjsHelpers")) {
+            return "react-vendor";
+          }
           if (id.includes("react/jsx-runtime")) {
             return "react-vendor";
           }
