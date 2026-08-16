@@ -1,5 +1,33 @@
 ## [Unreleased]
 
+## [0.8.3] - 2026-08-16
+
+### 修复 / Fixes
+
+- ⛔ **紧急修复：浏览工作区目录后启动白屏**：用 Finder 打开本地数据目录（如 `data/prompts/`）后，macOS 自动写入的 `.DS_Store` 会让 canonical 工作区的文件清单校验判定「存在未声明文件」，此后**每次启动都在引导阶段失败并显示空白窗口**。现在清单遍历忽略 OS 元数据文件（`.DS_Store`/`Thumbs.db`，任意层级），与既有存储清单约定一致；其他未声明文件仍会被严格拒绝
+  - **Emergency fix: blank window after browsing the workspace directory**: opening the local data directory in Finder drops a `.DS_Store` file, which made the canonical workspace file-inventory verification fail with an "undeclared file" error — every subsequent launch aborted during bootstrap and showed a blank window. The inventory walk now ignores OS metadata files (`.DS_Store`/`Thumbs.db` at any depth), matching the existing storage-inventory convention; any other undeclared file is still strictly rejected
+- ⛔ **紧急修复：打包版启动白屏（渲染进程初始化失败）**：上一版引入的构建分块优化在个别 chunk 组合下形成跨块循环初始化（`react-vendor ↔ i18n-vendor`），打包产物启动时 `react-i18next` 顶层的 `React.createContext` 在 React 完成初始化前执行并抛错，整个渲染进程挂掉——**安装包打开即白屏**，而开发模式（不打包）不受影响。现在共享的 commonjs interop 辅助模块有确定归属，循环消除；分块收益（markdown 栈不进首屏）保持不变
+  - **Emergency fix: blank window in the packaged build (renderer initialization failure)**: the build-chunking optimization introduced in the previous version produced a circular cross-chunk initialization (`react-vendor ↔ i18n-vendor`) under the resulting chunk layout, so at startup `react-i18next`'s top-level `React.createContext` ran before React finished initializing and threw, killing the whole renderer — the packaged app opened to a blank window while dev mode (unbundled) was unaffected. The shared commonjs interop helper now has a deterministic home, the cycle is gone, and the chunking win (the markdown stack stays off the startup path) is preserved
+
+### 性能 / Performance
+
+- 🚀 **Prompt 工作区定向同步**：此前每次 prompt 变更（改名、切收藏、拖拽排序、标签操作）都会**全量重写**整个工作区（全部 `.md` 与版本文件，500 条 × 10 版本 ≈ 5500 次同步文件写，主进程阻塞导致可感知卡顿）。现在按内容漂移检测只写受影响文件；prompt 关系与输出格式的变更不再触发任何文件写。Web 端同步的 N+1 查询与版本双查一并消除
+  - **Targeted prompt workspace sync**: every prompt mutation (rename, favorite toggle, drag-reorder, tag ops) used to fully rewrite the workspace (all `.md` and version files — ~5500 synchronous file writes for 500 prompts × 10 versions, blocking the main process with visible stutter). A drift-detection pass now writes only affected files, and relation/output-format changes no longer touch the filesystem at all. The self-hosted web sync's N+1 query and double version fetch are also gone
+- 🔋 **数据库写路径与启动扫描削减**：FTS 更新触发器只在索引列变化时重写全文索引（复制计数/收藏切换不再隐性重写）；创建 prompt 合并为单事务（磁盘同步减半且消除半写状态）；健康库启动时的全库完整性扫描从 4 趟降为 2 趟，升级首启不再重复初始化数据库
+  - **Database write-path and startup-scan reductions**: the FTS update trigger only rewrites the full-text index when indexed columns change (usage-count bumps and favorite toggles no longer silently rewrite it); prompt creation is a single transaction (half the fsyncs, no half-written state); a healthy database now runs 2 whole-file integrity scans at startup instead of 4, and the upgrade-path first launch no longer initializes the database twice
+- ⚡ **渲染层响应与首屏**：高频 Markdown 视图改为按内容跳过重解析（搜索打字、面板筛选不再整篇重解析）；AI 测试的流式输出从每帧刷新节流到 100ms（长回复 CPU 不再随长度平方增长）；markdown 依赖栈移出首屏关键路径（约 101KB gzip 按需加载）；启动时 prompts 与 folders 并行加载
+  - **Renderer responsiveness and first paint**: hot markdown views skip re-parsing when content is unchanged (typing in search or filtering panels no longer re-parses whole documents); AI-test streaming flushes throttle from every frame to 100 ms (long responses no longer burn quadratic CPU); the markdown stack moves off the startup critical path (~101 KB gzip loaded on demand); prompts and folders load in parallel at startup
+- 🌐 **自托管 Web 端传输**：静态资源按内容哈希永久缓存 + ETag 协商（重复访问不再重传约 2.5MB），文本响应启用 gzip；媒体存在性检查改为 `stat`（布尔接口不再读取整个文件，此前最大 20MB）
+  - **Self-hosted web transport**: static assets get immutable content-hash caching plus ETag revalidation (repeat visits no longer re-download ~2.5 MB), text responses are gzipped, and the media existence check uses `stat` instead of reading whole files (up to 20 MB) to answer a boolean
+
+> **macOS 安全说明**
+>
+> AgentsHub 是社区维护的 fork 构建，未配置 Apple Developer 签名。首次启动时 macOS Gatekeeper 可能拦截；如提示"已损坏"或"无法验证开发者"，请运行：
+>
+> ```bash
+> sudo xattr -rd com.apple.quarantine /Applications/AgentsHub.app
+> ```
+
 ## [0.8.2] - 2026-08-15
 
 ### 修复 / Fixes

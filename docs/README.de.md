@@ -9,7 +9,7 @@ Ein Local-First-Arbeitsbereich für Prompts, Skills und KI-Coding-Assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.3_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,12 @@ Häufige globale Flags:
 ## Änderungsprotokoll
 
 Vollständiges Changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.3 (2026-08-16, Stable)
+
+- Notfallkorrekturen für leere Fenster beim Start: `.DS_Store`-Dateien, die Finder beim Öffnen des lokalen Datenverzeichnisses anlegt, brechen den Start nicht mehr, und die zirkuläre Chunk-Initialisierung, die den Renderer der Paketversion abwürgte, ist behoben — das Installationspaket öffnet wieder normal
+- Leistung: Prompt-Änderungen synchronisieren nur die betroffenen Workspace-Dateien statt alles neu zu schreiben, Kopieren/Favoriten schreiben den Volltextindex nicht mehr implizit neu, Startup-Integritätsscans halbiert, Markdown-Hotpaths überspringen unveränderte Neuparses, KI-Test-Streaming wird gedrosselt, der Markdown-Stack verlässt den ersten Bildaufbau, und das selbst gehostete Web erhält statisches Caching mit gzip
+
 
 ### v0.8.2 (2026-08-15, Stable)
 

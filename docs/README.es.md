@@ -9,7 +9,7 @@ Un espacio de trabajo local-first para prompts, skills y assets de codificación
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.3_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,12 @@ Flags globales habituales:
 ## Registro de cambios
 
 Changelog completo: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.3 (2026-08-16, estable)
+
+- Correcciones urgentes de ventana en blanco al iniciar: los archivos `.DS_Store` que crea Finder al abrir el directorio de datos local ya no rompen el arranque, y la inicialización circular entre chunks que mataba al renderizador del paquete quedó resuelta — el instalador vuelve a abrirse con normalidad
+- Rendimiento: las mutaciones de prompts ahora sincronizan solo los archivos afectados del workspace en lugar de reescribir todo, copiar/favoritar ya no reescribe silenciosamente el índice de texto completo, los escaneos de integridad al iniciar se reducen a la mitad, las vistas markdown calientes omiten reparses sin cambios, el streaming de pruebas de IA se limita, la pila markdown sale del primer pintado y el web autoalojado gana caché estática con gzip
+
 
 ### v0.8.2 (2026-08-15, estable)
 

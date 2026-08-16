@@ -9,7 +9,7 @@ Un espace de travail local-first pour les prompts, les skills et les assets de c
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.3_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,12 @@ Options globales courantes :
 ## Journal des modifications
 
 Journal complet : **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.3 (2026-08-16, stable)
+
+- Corrections urgentes des fenêtres vides au démarrage : les fichiers `.DS_Store` créés par Finder à l'ouverture du répertoire de données local ne cassent plus le lancement, et l'initialisation circulaire entre chunks qui tuait le renderer de la version empaquetée est résolue — l'installateur s'ouvre à nouveau normalement
+- Performance : les modifications de prompts ne synchronisent plus que les fichiers concernés au lieu de tout réécrire, copier/favoriser ne réécrit plus silencieusement l'index plein-texte, les scans d'intégrité au démarrage sont réduits de moitié, les vues markdown chaudes évitent les re-parses inchangés, le streaming des tests IA est régulé, la pile markdown quitte le premier rendu, et le web auto-hébergé gagne un cache statique avec gzip
+
 
 ### v0.8.2 (2026-08-15, stable)
 

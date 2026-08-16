@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.3_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -311,6 +311,12 @@ Skill のインポート、バージョンスナップショット、配布で�
 ## 変更履歴
 
 完全な変更履歴: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.3（2026-08-16、正式版）
+
+- 起動時の白画面を緊急修正：Finder でローカルデータディレクトリを閲覧した後に生成される `.DS_Store` により起動が失敗しなくなり、パッケージ版レンダラーのチャンク間循環初期化も解消されてインストーラーが正常に開くようになりました
+- パフォーマンス改善：Prompt 変更は影響するワークスペースファイルのみ同期（全体再書き込み廃止）、コピー/お気に入り操作で全文検索インデックスを黙って書き換えない、起動時の整合性スキャンを半減、Markdown ホットパスの不要な再パース回避、AI テストのストリーミング間引き、markdown 依存を初画面から除外、セルフホスト Web の静的キャッシュと gzip
+
 
 ### v0.8.2（2026-08-15、正式版）
 

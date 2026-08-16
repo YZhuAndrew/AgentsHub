@@ -9,7 +9,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.3_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -310,6 +310,12 @@ Skill 匯入、版本快照與分發會統一套用內建忽略規則和根目�
 ## 更新日誌
 
 完整版本說明：**[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.3（2026-08-16，正式版）
+
+- 緊急修復啟動白屏：用 Finder 瀏覽本地資料目錄後產生的 `.DS_Store` 不再讓啟動失敗；打包版渲染程序的跨 chunk 初始化環已消除，安裝包可正常開啟
+- 效能最佳化：Prompt 變更只同步受影響的工作區檔案（不再全量重寫）、複製/收藏不再隱性重寫全文索引、啟動完整性掃描減半、Markdown 熱路徑跳過無變化重解析、AI 測試串流輸出節流、markdown 相依移出首屏、自架 Web 靜態快取與 gzip
+
 
 ### v0.8.2（2026-08-15，正式版）
 

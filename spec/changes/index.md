@@ -7,7 +7,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 
 | State | Count |
 | --- | ---: |
-| Active | 49 |
+| Active | 54 |
 | Archived | 215 |
 | Legacy | 1 |
 
@@ -19,6 +19,7 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `agent-provider-protocol-bridge` | active | `spec/changes/active/agent-provider-protocol-bridge/` |
 | `app-shell-left-rail` | in progress | `spec/changes/active/app-shell-left-rail/` |
 | `brand-agentshub-prompthub-replacement` | active | `spec/changes/active/brand-agentshub-prompthub-replacement/` |
+| `canonical-inventory-os-metadata-tolerance` | active | `spec/changes/active/canonical-inventory-os-metadata-tolerance/` |
 | `cloud-account-store-client` | active | `spec/changes/active/cloud-account-store-client/` |
 | `cloud-collaborative-prompt-sharing` | active | `spec/changes/active/cloud-collaborative-prompt-sharing/` |
 | `desktop-arch-trim-mac-arm64-win-x64` | active | `spec/changes/active/desktop-arch-trim-mac-arm64-win-x64/` |
@@ -51,19 +52,23 @@ file manually. Run the generator after adding, moving, or archiving a change.
 | `prompt-workspace-completion` | active | `spec/changes/active/prompt-workspace-completion/` |
 | `r2-direct-downloads` | active | `spec/changes/active/r2-direct-downloads/` |
 | `readme-screenshots-v0-5-6` | active | `spec/changes/active/readme-screenshots-v0-5-6/` |
+| `release-0-8-3-prep` | active | `spec/changes/active/release-0-8-3-prep/` |
 | `republish-0-5-9-20260714` | active | `spec/changes/active/republish-0-5-9-20260714/` |
 | `risk-aware-verification-harness` | active | `spec/changes/active/risk-aware-verification-harness/` |
 | `rules-agent-source-matrix` | active | `spec/changes/active/rules-agent-source-matrix/` |
 | `rules-issue-193-missing-project-reconciliation` | active | `spec/changes/active/rules-issue-193-missing-project-reconciliation/` |
+| `runtime-perf-optimizations` | active | `spec/changes/active/runtime-perf-optimizations/` |
 | `self-hosted-skill-sync-reliability` | active | `spec/changes/active/self-hosted-skill-sync-reliability/` |
 | `skill-batch-import-zip-and-multi-url` | active | `spec/changes/active/skill-batch-import-zip-and-multi-url/` |
 | `skill-uninstall-lifecycle` | active | `spec/changes/active/skill-uninstall-lifecycle/` |
 | `skills-issue-194-shared-global-target` | active | `spec/changes/active/skills-issue-194-shared-global-target/` |
+| `startup-db-integrity-consolidation` | active | `spec/changes/active/startup-db-integrity-consolidation/` |
 | `sync-issue-191-safety-report-contract` | active | `spec/changes/active/sync-issue-191-safety-report-contract/` |
 | `update-channel-hardening` | active | `spec/changes/active/update-channel-hardening/` |
 | `web-agent-service-parity` | active | `spec/changes/active/web-agent-service-parity/` |
 | `web-sync-contract-completion` | active | `spec/changes/active/web-sync-contract-completion/` |
 | `windows-code-signing-and-reputation` | active | `spec/changes/active/windows-code-signing-and-reputation/` |
+| `workspace-sync-incremental` | active | `spec/changes/active/workspace-sync-incremental/` |
 
 ## Archived
 

@@ -9,7 +9,7 @@ A local-first workspace for prompts, skills, and AI coding assets.
 
 [![GitHub Stars](https://img.shields.io/github/stars/YZhuAndrew/AgentsHub?style=for-the-badge&logo=github&color=yellow)](https://github.com/YZhuAndrew/AgentsHub/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/YZhuAndrew/AgentsHub/total?style=for-the-badge&logo=github&color=blue)](https://github.com/YZhuAndrew/AgentsHub/releases)
-[![Version](https://img.shields.io/badge/release-v0.8.2_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
+[![Version](https://img.shields.io/badge/release-v0.8.3_stable-22C55E?style=for-the-badge)](https://github.com/YZhuAndrew/AgentsHub/releases/latest)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=for-the-badge)](../LICENSE)
 
   <br/>
@@ -327,6 +327,12 @@ Common global flags:
 ## Changelog
 
 Full changelog: **[CHANGELOG.md](../CHANGELOG.md)**
+
+### v0.8.3 (2026-08-16, stable)
+
+- Emergency fixes for blank startup windows: `.DS_Store` files created by Finder no longer break launch, and the circular cross-chunk initialization that killed the packaged renderer is resolved — the installer opens normally again
+- Performance: prompt mutations now sync only the affected workspace files instead of rewriting everything, copy/favorite toggles no longer silently rewrite the full-text index, startup integrity scans are halved, hot markdown views skip unchanged re-parses, AI-test streaming is throttled, the markdown stack is off the first paint, and the self-hosted web gains static caching with gzip
+
 
 ### v0.8.2 (2026-08-15, stable)
 
