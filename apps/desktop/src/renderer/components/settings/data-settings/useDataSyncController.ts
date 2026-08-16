@@ -217,7 +217,13 @@ function useSelfHostedActions(
         ),
         "success",
       );
-      setTimeout(() => window.location.reload(), 1000);
+      // Give the success toast a readable lifetime before the reload wipes
+      // it: 1s was both too fast to read on slow machines and too tight for
+      // e2e polling on loaded CI runners (toast painted and destroyed
+      // between polls during the restore CPU spike).
+      // 重载前给成功 toast 留出可读时长：1 秒在慢机上读不完，也会在
+      // CI 高负载的恢复 CPU 尖峰期间于两次轮询之间整体错过 toast。
+      setTimeout(() => window.location.reload(), 3000);
     } catch (error) {
       showToast(getErrorMessage(error), "error");
     }

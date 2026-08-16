@@ -27,3 +27,8 @@
 - 首次 dispatch（run 31922651538，tag v0.8.3 → cfae94e1）：verify 门禁失败——desktop-e2e-smoke 中两个 self-hosted e2e `firstWindow` 超时。诊断：`b2b2e656`（canonical-authority 源库句柄复用）在 fresh-profile 发布路径破坏第二启；期间曾误判为 e2e chunk 环复发（bisect 使用的陈旧 out/ 构建污染了复现，已澄清并纠正方法：每次判定前强制干净重建）。
 - 处置：`29102c34` revert 句柄复用（保留 quick_check 整合），见 startup-db-integrity-consolidation implementation.md 追加记录。
 - 复验：revert 后本地 self-hosted e2e 2/2 通过；tag 重指向后重新 dispatch。
+
+## 第二次 dispatch 诊断（run 31926844469）
+
+- test 6（startup backup）通过——句柄复用 revert 生效；test 7 在「Restored N prompts」toast 断言超时：恢复流程 `showToast` 后 `setTimeout(reload, 1000)`，慢速 CI 上恢复完成时的 CPU 尖峰使渲染循环卡顿，toast 在 Playwright 两次轮询之间完成"出现→销毁"。
+- 修复：重载延迟 1000ms → 3000ms（`useDataSyncController.ts`）——1 秒本就不够读完四段式 toast，属 UX 与测试稳定性双赢；本地 2/2 复跑通过。
