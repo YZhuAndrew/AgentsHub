@@ -9,7 +9,16 @@ import {
 } from "./runtime-storage-context";
 
 const COPY_BUFFER_BYTES = 1024 * 1024;
-const IGNORED_EMPTY_ENTRIES = new Set([".DS_Store", "Thumbs.db"]);
+/**
+ * OS-generated metadata files that appear in any workspace directory the
+ * user opens in Finder/Explorer. All storage inventory walks must tolerate
+ * them; they never count as workspace content.
+ *
+ * Finder/资源管理器会在用户打开的任意目录生成这些 OS 元数据文件；所有
+ * 存储清单遍历都必须容忍它们，且绝不计为工作区内容。
+ */
+export const OS_METADATA_FILE_NAMES = new Set([".DS_Store", "Thumbs.db"]);
+const IGNORED_EMPTY_ENTRIES = OS_METADATA_FILE_NAMES;
 const CANONICAL_TOP_LEVEL = ["data", "config", "secrets"] as const;
 const LEGACY_TOP_LEVEL = [
   "prompthub.db",

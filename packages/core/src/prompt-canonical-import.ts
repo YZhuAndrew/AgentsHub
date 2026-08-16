@@ -27,6 +27,7 @@ import {
 import { readResourceBundle } from "./resource-bundle";
 import { encodeCanonicalResourceDirectory } from "./canonical-resource-path";
 import { readContentAddressedObject } from "./content-addressed-object-store";
+import { OS_METADATA_FILE_NAMES } from "./storage-inventory";
 
 const MAX_CATALOG_BYTES = 16 * 1024 * 1024;
 const MAX_RECORD_BYTES = 8 * 1024 * 1024;
@@ -211,6 +212,15 @@ function inventoryRoot(
   while (queue.length > 0) {
     const directory = queue.shift() as string;
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      // OS metadata (Finder's .DS_Store, Explorer's Thumbs.db) shows up in
+      // any directory the user opens; it is not workspace content and must
+      // not fail the inventory. Same convention as storage-inventory.
+      // OS 元数据（Finder 的 .DS_Store、资源管理器的 Thumbs.db）会出现在
+      // 用户打开过的任意目录；它们不是工作区内容，不得使清单校验失败。
+      // 与 storage-inventory 使用同一约定。
+      if (OS_METADATA_FILE_NAMES.has(entry.name)) {
+        continue;
+      }
       const absolutePath = path.join(directory, entry.name);
       const relativePath = path
         .relative(rootPath, absolutePath)
